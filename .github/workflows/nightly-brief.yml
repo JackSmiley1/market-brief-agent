@@ -1,0 +1,26 @@
+name: Nightly Market Brief
+on:
+  schedule:
+    - cron: '30 21 * * 1-5'   # 4:30pm ET weekdays — adjust for daylight saving
+  workflow_dispatch: {}
+jobs:
+  run-brief:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm install
+      - run: npm run brief
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+      - name: Commit brief back to repo
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/
+          git commit -m "Nightly brief: $(date +'%Y-%m-%d')" || echo "No changes"
+          git push
