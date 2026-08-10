@@ -2,10 +2,13 @@ import "dotenv/config";
 import { fetchMarketData } from "./fetchMarketData.js";
 import { fetchMarketNews, fetchCompanyNews } from "./fetchNews.js";
 import { generateBrief } from "./generateBrief.js";
-import { saveBriefMarkdown, appendBriefLog } from "./saveBrief.js";
+import { saveBriefMarkdown, appendBriefLog, saveWatchlistFollowUp, loadMostRecentWatchlist } from "./saveBrief.js";
 
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  // toISOString() reports UTC, which has already rolled to the next
+  // calendar day by ~8pm ET — any run after that gets mislabeled with
+  // tomorrow's date. Use the actual US/Eastern trading-day date instead.
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
 }
 
 async function run() {
@@ -24,8 +27,10 @@ async function run() {
     moverNews.push({ symbol: mover.symbol, news });
   }
 
-  const briefText = await generateBrief({ marketData, marketNews, moverNews, date });
+  const previousWatchlist = loadMostRecentWatchlist(date);
+  const { briefText, followUpItems } = await generateBrief({ marketData, marketNews, moverNews, date, previousWatchlist });
   saveBriefMarkdown(date, briefText);
+  saveWatchlistFollowUp(date, followUpItems);
 
   const winner = [...marketData].sort((a, b) => b.pctChange - a.pctChange)[0];
   const loser = [...marketData].sort((a, b) => a.pctChange - b.pctChange)[0];
