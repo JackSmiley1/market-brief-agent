@@ -2,7 +2,14 @@ import "dotenv/config";
 import { fetchMarketData } from "./fetchMarketData.js";
 import { fetchMarketNews, fetchCompanyNews } from "./fetchNews.js";
 import { generateBrief } from "./generateBrief.js";
-import { saveBriefMarkdown, appendBriefLog, saveWatchlistFollowUp, loadMostRecentWatchlist } from "./saveBrief.js";
+import { matchPreviousWatchlist } from "./buildPrompt.js";
+import {
+  saveBriefMarkdown,
+  appendBriefLog,
+  saveWatchlistFollowUp,
+  loadMostRecentWatchlist,
+  saveGrading,
+} from "./saveBrief.js";
 
 function todayISO() {
   // toISOString() reports UTC, which has already rolled to the next
@@ -27,10 +34,29 @@ async function run() {
     moverNews.push({ symbol: mover.symbol, news });
   }
 
-  const previousWatchlist = loadMostRecentWatchlist(date);
-  const { briefText, followUpItems } = await generateBrief({ marketData, marketNews, moverNews, date, previousWatchlist });
+  const { date: previousDate, items: previousWatchlist } = loadMostRecentWatchlist(date);
+  const followUpResults = matchPreviousWatchlist(previousWatchlist, marketData);
+
+  const { briefText, followUpItems, gradingItems } = await generateBrief({
+    marketData,
+    marketNews,
+    moverNews,
+    date,
+    followUpResults,
+  });
   saveBriefMarkdown(date, briefText);
   saveWatchlistFollowUp(date, followUpItems);
+
+  if (previousDate && gradingItems.length > 0) {
+    // Attach the code-computed pctChange (from followUpResults, not
+    // anything Claude reported) to each graded ticker before writing back.
+    const merged = gradingItems.map((g) => {
+      const match = followUpResults.find((f) => f.ticker === g.ticker);
+      return { ticker: g.ticker, outcome: g.outcome, resultPctChange: match?.result?.pctChange ?? null };
+    });
+    saveGrading(previousDate, merged);
+    console.log(`Graded ${merged.length} ticker(s) from ${previousDate}.`);
+  }
 
   const winner = [...marketData].sort((a, b) => b.pctChange - a.pctChange)[0];
   const loser = [...marketData].sort((a, b) => a.pctChange - b.pctChange)[0];

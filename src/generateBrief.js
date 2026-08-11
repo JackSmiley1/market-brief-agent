@@ -3,8 +3,8 @@ import { SYSTEM_PROMPT, buildUserMessage } from "./buildPrompt.js";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export async function generateBrief({ marketData, marketNews, moverNews, date, previousWatchlist }) {
-  const userMessage = buildUserMessage({ marketData, marketNews, moverNews, date, previousWatchlist });
+export async function generateBrief({ marketData, marketNews, moverNews, date, followUpResults }) {
+  const userMessage = buildUserMessage({ marketData, marketNews, moverNews, date, followUpResults });
 
   const response = await client.messages.create({
     model: "claude-sonnet-5",
@@ -30,7 +30,10 @@ export async function generateBrief({ marketData, marketNews, moverNews, date, p
   // from the saved human-readable text.
   const followUpMatch = rawText.match(/```watchlist-followup\s*([\s\S]*?)```/);
   let followUpItems = [];
+  let gradingItems = [];
   let briefText = rawText;
+
+  const validOutcomes = new Set(["played_out", "partial", "missed", "unclear"]);
 
   if (followUpMatch) {
     briefText = (
@@ -39,7 +42,14 @@ export async function generateBrief({ marketData, marketNews, moverNews, date, p
     ).trim();
     try {
       const parsed = JSON.parse(followUpMatch[1].trim());
-      if (Array.isArray(parsed)) followUpItems = parsed;
+      if (Array.isArray(parsed.newWatchlist)) followUpItems = parsed.newWatchlist;
+      if (Array.isArray(parsed.grading)) {
+        gradingItems = parsed.grading.filter((g) => {
+          const ok = validOutcomes.has(g.outcome);
+          if (!ok) console.warn(`generateBrief: dropping grading entry with invalid outcome "${g.outcome}" for ${g.ticker}`);
+          return ok;
+        });
+      }
     } catch (err) {
       console.warn("generateBrief: failed to parse watchlist-followup block, skipping:", err.message);
     }
@@ -47,5 +57,5 @@ export async function generateBrief({ marketData, marketNews, moverNews, date, p
     console.warn("generateBrief: no watchlist-followup block found in response.");
   }
 
-  return { briefText, followUpItems };
+  return { briefText, followUpItems, gradingItems };
 }

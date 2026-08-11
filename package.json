@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "brief": "node src/index.js"
+    "brief": "node src/index.js",
+    "accuracy": "node src/computeAccuracy.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",
     "axios": "^1.7.0",
+    "better-sqlite3": "^13.0.3",
     "dotenv": "^16.4.0"
   }
 }

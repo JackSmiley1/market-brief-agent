@@ -11,22 +11,27 @@ Do not give direct buy/sell instructions. Give analysis the reader can use to ma
 
 If you are uncertain why something moved, say so plainly instead of inventing a plausible-sounding reason. A correct "unclear" beats a confident guess.`;
 
-export function buildUserMessage({ marketData, marketNews, moverNews, date, previousWatchlist = [] }) {
-  const winners = [...marketData].sort((a, b) => b.pctChange - a.pctChange).slice(0, 5);
-  const losers = [...marketData].sort((a, b) => a.pctChange - b.pctChange).slice(0, 5);
-
-  // Match each previously-flagged ticker against today's actual data so
-  // Claude can report what really happened, not just restate the setup.
-  const followUpResults = previousWatchlist.map((item) => {
+// Matches each previously-flagged ticker against today's actual data. This
+// is the one source of truth for "what really happened" — used both as
+// prompt context (below) and, in index.js, as the code-computed number
+// stored alongside Claude's outcome grading, so the numeric result is never
+// something we just trust the model to report accurately.
+export function matchPreviousWatchlist(previousWatchlist, marketData) {
+  return previousWatchlist.map((item) => {
     const match = marketData.find((d) => d.symbol === item.ticker);
     return {
       ticker: item.ticker,
       setup: item.setup,
       result: match
         ? { pctChange: match.pctChange, close: match.close, volumeRatio: match.volumeRatio }
-        : { note: "No current data available for this ticker today." },
+        : null,
     };
   });
+}
+
+export function buildUserMessage({ marketData, marketNews, moverNews, date, followUpResults = [] }) {
+  const winners = [...marketData].sort((a, b) => b.pctChange - a.pctChange).slice(0, 5);
+  const losers = [...marketData].sort((a, b) => a.pctChange - b.pctChange).slice(0, 5);
 
   const followUpBlock = followUpResults.length > 0
     ? `\nYESTERDAY'S FLAGGED WATCHLIST (with today's actual results):\n${JSON.stringify(followUpResults, null, 2)}\n`
@@ -51,11 +56,16 @@ ${JSON.stringify(marketNews, null, 2)}
 COMPANY NEWS FOR TOP MOVERS:
 ${JSON.stringify(moverNews, null, 2)}
 ${followUpBlock}
-FIRST, before writing anything else, decide which 3-5 tickers (only from FULL WATCHLIST DATA above) you will flag as worth watching tomorrow, and output them immediately as a fenced code block labeled "watchlist-followup", in exactly this form:
+FIRST, before writing anything else, output a single fenced code block labeled "watchlist-followup" containing a JSON object with two keys, in exactly this form:
 \`\`\`watchlist-followup
-[{"ticker": "XOM", "setup": "one-sentence restatement of the condition to watch for"}]
+{
+  "grading": [{"ticker": "XOM", "outcome": "played_out"}],
+  "newWatchlist": [{"ticker": "NVDA", "setup": "one-sentence restatement of the condition to watch for"}]
+}
 \`\`\`
-If none qualify, output an empty array. This block must come first, before any other text, because it's for internal tracking and needs to survive even if the rest of the response gets cut short — do not skip it or put it later.
+- "grading": one entry per ticker in YESTERDAY'S FLAGGED WATCHLIST above (omit this key's array entries, i.e. use an empty array, if that section wasn't provided). "outcome" must be exactly one of: "played_out", "partial", "missed", "unclear" — use "unclear" honestly when the data doesn't clearly support a verdict either way, rather than forcing a call. Base this strictly on the numeric result already provided for that ticker; do not report a different number, you only need the verdict word.
+- "newWatchlist": the 3-5 tickers (only from FULL WATCHLIST DATA above) you will flag as worth watching tomorrow.
+This block must come first, before any other text, because it's for internal tracking and needs to survive even if the rest of the response gets cut short — do not skip it or put it later.
 
 THEN, after that block, produce the full human-readable briefing in exactly this structure:
 

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { db } from "./db.js";
 
 export function saveBriefMarkdown(date, briefText) {
   const dir = path.resolve("logs/briefs");
@@ -7,62 +8,75 @@ export function saveBriefMarkdown(date, briefText) {
   fs.writeFileSync(path.join(dir, `${date}.md`), briefText, "utf-8");
 }
 
+// Upserts by date — re-runs (manual triggers, retries, local testing)
+// replace that day's row instead of creating duplicates.
+const upsertBriefStmt = db.prepare(`
+  INSERT INTO briefs (date, top_winner, winner_pct, top_loser, loser_pct, watchlist_tickers)
+  VALUES (@date, @topWinner, @winnerPct, @topLoser, @loserPct, @watchlistTickers)
+  ON CONFLICT(date) DO UPDATE SET
+    top_winner = excluded.top_winner,
+    winner_pct = excluded.winner_pct,
+    top_loser = excluded.top_loser,
+    loser_pct = excluded.loser_pct,
+    watchlist_tickers = excluded.watchlist_tickers
+`);
+
 // Simple structured row — expand this schema as Phase 2 needs more fields
 export function appendBriefLog(date, row) {
-  const csvPath = path.resolve("logs/brief-log.csv");
-  const header = "date,top_winner,winner_pct,top_loser,loser_pct,watchlist_tickers";
-  const newLine = [
+  upsertBriefStmt.run({
     date,
-    row.topWinner ?? "",
-    row.winnerPct ?? "",
-    row.topLoser ?? "",
-    row.loserPct ?? "",
-    (row.watchlistTickers ?? []).join("|"),
-  ].join(",");
-
-  let dataLines = [];
-  if (fs.existsSync(csvPath)) {
-    const raw = fs.readFileSync(csvPath, "utf-8").trim();
-    dataLines = raw.length > 0 ? raw.split("\n").slice(1) : [];
-  }
-
-  // Overwrite any existing row for this date instead of appending a
-  // duplicate. Re-runs (manual triggers, retries, local testing) should
-  // replace that day's entry, not silently corrupt the historical ledger
-  // this accuracy tracking depends on.
-  dataLines = dataLines.filter((line) => !line.startsWith(`${date},`));
-  dataLines.push(newLine);
-
-  fs.writeFileSync(csvPath, [header, ...dataLines].join("\n") + "\n", "utf-8");
+    topWinner: row.topWinner ?? null,
+    winnerPct: row.winnerPct ?? null,
+    topLoser: row.topLoser ?? null,
+    loserPct: row.loserPct ?? null,
+    watchlistTickers: (row.watchlistTickers ?? []).join("|"),
+  });
 }
 
-const FOLLOWUP_PATH = path.resolve("logs/watchlist-followup.json");
-
-function readFollowUpStore() {
-  if (!fs.existsSync(FOLLOWUP_PATH)) return {};
-  try {
-    return JSON.parse(fs.readFileSync(FOLLOWUP_PATH, "utf-8"));
-  } catch (err) {
-    console.warn("readFollowUpStore: failed to parse watchlist-followup.json, starting fresh:", err.message);
-    return {};
-  }
-}
+const deleteFollowUpsForDateStmt = db.prepare(`DELETE FROM watchlist_followups WHERE date = ?`);
+const insertFollowUpStmt = db.prepare(
+  `INSERT INTO watchlist_followups (date, ticker, setup) VALUES (?, ?, ?)`
+);
 
 // Persists the tickers/setups Claude flagged in today's "Watchlist for
 // Tomorrow" section, keyed by date, so tomorrow's run can check whether they
-// played out.
-export function saveWatchlistFollowUp(date, items) {
-  const store = readFollowUpStore();
-  store[date] = items;
-  fs.writeFileSync(FOLLOWUP_PATH, JSON.stringify(store, null, 2), "utf-8");
+// played out. Replaces (not appends to) any existing rows for this date.
+export const saveWatchlistFollowUp = db.transaction((date, items) => {
+  deleteFollowUpsForDateStmt.run(date);
+  for (const item of items) {
+    insertFollowUpStmt.run(date, item.ticker, item.setup);
+  }
+});
+
+const mostRecentPriorDateStmt = db.prepare(
+  `SELECT MAX(date) AS d FROM watchlist_followups WHERE date < ?`
+);
+const followUpsForDateStmt = db.prepare(
+  `SELECT ticker, setup FROM watchlist_followups WHERE date = ?`
+);
+
+// Returns the most recent stored entries strictly before `date`, skipping
+// weekends/holidays automatically since this queries whatever dates actually
+// have rows rather than assuming yesterday = the last trading day. Returns
+// the source date too, since the grading write-back needs to know which
+// date's rows to update.
+export function loadMostRecentWatchlist(beforeDate) {
+  const row = mostRecentPriorDateStmt.get(beforeDate);
+  if (!row?.d) return { date: null, items: [] };
+  return { date: row.d, items: followUpsForDateStmt.all(row.d) };
 }
 
-// Returns the most recent stored entry strictly before `date`, skipping
-// weekends/holidays automatically since we key by whatever dates actually
-// have entries rather than assuming yesterday = the last trading day.
-export function loadMostRecentWatchlist(beforeDate) {
-  const store = readFollowUpStore();
-  const priorDates = Object.keys(store).filter((d) => d < beforeDate).sort();
-  if (priorDates.length === 0) return [];
-  return store[priorDates[priorDates.length - 1]] ?? [];
-}
+const updateGradingStmt = db.prepare(`
+  UPDATE watchlist_followups
+  SET outcome = ?, result_pct_change = ?
+  WHERE date = ? AND ticker = ?
+`);
+
+// Writes Claude's outcome verdict plus the code-computed (not model-reported)
+// pctChange back onto the original date's rows, turning that day's picks
+// into a graded, queryable record.
+export const saveGrading = db.transaction((date, items) => {
+  for (const item of items) {
+    updateGradingStmt.run(item.outcome, item.resultPctChange ?? null, date, item.ticker);
+  }
+});
