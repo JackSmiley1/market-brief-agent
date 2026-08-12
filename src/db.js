@@ -1,16 +1,21 @@
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import path from "path";
 
 const dbPath = path.resolve("logs/brief-data.db");
-export const db = new Database(dbPath);
+export const db = new DatabaseSync(dbPath);
 
-// The default on-disk rollback journal creates-then-deletes a temp file on
-// every write, which fails on this folder's sync layer (iCloud Desktop sync
-// most likely) with SQLITE_IOERR_DELETE. MEMORY mode keeps the journal in
-// RAM instead — fine for this use case (single local writer, low-stakes
-// data, not a high-concurrency production DB) and avoids touching disk for
-// anything but the single committable .db file itself.
-db.pragma("journal_mode = MEMORY");
+// Using Node's built-in SQLite (available since Node 22.5, no separate
+// native binary to download or compile) instead of better-sqlite3, after
+// better-sqlite3's prebuilt native binary segfaulted reproducibly on
+// GitHub Actions' ubuntu-latest runner (exit 139) while working fine
+// locally and in other Linux environments — a classic native-addon/runner
+// ABI mismatch. This removes that entire class of failure permanently.
+
+// journal_mode = MEMORY avoids the create-then-delete pattern of the
+// default on-disk rollback journal, which fails on this repo's folder due
+// to its sync layer (likely iCloud Desktop sync) with a delete-permission
+// error. Fine for this use case: single local/CI writer, low-stakes data.
+db.exec("PRAGMA journal_mode = MEMORY");
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS briefs (

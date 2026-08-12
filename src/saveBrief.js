@@ -41,12 +41,21 @@ const insertFollowUpStmt = db.prepare(
 // Persists the tickers/setups Claude flagged in today's "Watchlist for
 // Tomorrow" section, keyed by date, so tomorrow's run can check whether they
 // played out. Replaces (not appends to) any existing rows for this date.
-export const saveWatchlistFollowUp = db.transaction((date, items) => {
-  deleteFollowUpsForDateStmt.run(date);
-  for (const item of items) {
-    insertFollowUpStmt.run(date, item.ticker, item.setup);
+// node:sqlite's DatabaseSync has no .transaction() helper (unlike
+// better-sqlite3), so this wraps manually with BEGIN/COMMIT/ROLLBACK.
+export function saveWatchlistFollowUp(date, items) {
+  db.exec("BEGIN");
+  try {
+    deleteFollowUpsForDateStmt.run(date);
+    for (const item of items) {
+      insertFollowUpStmt.run(date, item.ticker, item.setup);
+    }
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
   }
-});
+}
 
 const mostRecentPriorDateStmt = db.prepare(
   `SELECT MAX(date) AS d FROM watchlist_followups WHERE date < ?`
@@ -75,8 +84,15 @@ const updateGradingStmt = db.prepare(`
 // Writes Claude's outcome verdict plus the code-computed (not model-reported)
 // pctChange back onto the original date's rows, turning that day's picks
 // into a graded, queryable record.
-export const saveGrading = db.transaction((date, items) => {
-  for (const item of items) {
-    updateGradingStmt.run(item.outcome, item.resultPctChange ?? null, date, item.ticker);
+export function saveGrading(date, items) {
+  db.exec("BEGIN");
+  try {
+    for (const item of items) {
+      updateGradingStmt.run(item.outcome, item.resultPctChange ?? null, date, item.ticker);
+    }
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
   }
-});
+}
