@@ -25,8 +25,18 @@ async function run() {
   const marketData = await fetchMarketData();
   const marketNews = await fetchMarketNews();
 
-  const sorted = [...marketData].sort((a, b) => Math.abs(b.pctChange) - Math.abs(a.pctChange));
-  const topMovers = sorted.slice(0, 5);
+  // Must match buildPrompt.js's Winners/Losers split exactly (top 5 gainers +
+  // top 5 losers by pctChange) — NOT top-5-by-absolute-magnitude. On days
+  // where gains outpace losses (or vice versa), a magnitude-only cut fetches
+  // news for one side and leaves every ticker on the other side without any
+  // company-specific news, which then shows up as false "no catalyst
+  // identified" verdicts that are really just missing data, not an unclear
+  // situation.
+  const winners = [...marketData].sort((a, b) => b.pctChange - a.pctChange).slice(0, 5);
+  const losers = [...marketData].sort((a, b) => a.pctChange - b.pctChange).slice(0, 5);
+  const topMovers = [...winners, ...losers].filter(
+    (m, i, arr) => arr.findIndex((x) => x.symbol === m.symbol) === i
+  );
 
   const moverNews = [];
   for (const mover of topMovers) {
@@ -58,8 +68,8 @@ async function run() {
     console.log(`Graded ${merged.length} ticker(s) from ${previousDate}.`);
   }
 
-  const winner = [...marketData].sort((a, b) => b.pctChange - a.pctChange)[0];
-  const loser = [...marketData].sort((a, b) => a.pctChange - b.pctChange)[0];
+  const winner = winners[0];
+  const loser = losers[0];
   appendBriefLog(date, {
     topWinner: winner?.symbol,
     winnerPct: winner?.pctChange,
