@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "brief": "node src/index.js",
-    "accuracy": "node src/computeAccuracy.js"
+    "accuracy": "node src/computeAccuracy.js",
+    "pnl": "node src/computePnL.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

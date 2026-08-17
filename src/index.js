@@ -10,6 +10,7 @@ import {
   loadMostRecentWatchlist,
   saveGrading,
 } from "./saveBrief.js";
+import { runPaperTradingCycle } from "./paperTrade.js";
 
 function todayISO() {
   // toISOString() reports UTC, which has already rolled to the next
@@ -56,6 +57,16 @@ async function run() {
   });
   saveBriefMarkdown(date, briefText);
   saveWatchlistFollowUp(date, followUpItems);
+
+  // Simulated (Alpaca paper account, zero real capital) trades layered on
+  // top of tonight's watchlist picks. Wrapped separately so an Alpaca
+  // order/API hiccup here can never take down brief generation, which is
+  // saved above already and is the priority output regardless.
+  try {
+    await runPaperTradingCycle(date, followUpItems.map((item) => item.ticker));
+  } catch (err) {
+    console.error("Paper trading cycle failed (brief was still saved normally):", err.message);
+  }
 
   if (previousDate && gradingItems.length > 0) {
     // Attach the code-computed pctChange (from followUpResults, not

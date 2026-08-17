@@ -35,4 +35,28 @@ db.exec(`
     result_pct_change REAL,
     PRIMARY KEY (date, ticker)
   );
+
+  -- Simulated (paper account, zero real capital) trades against Alpaca's
+  -- paper trading API. One row per position, keyed by the date its entry
+  -- was flagged. Orders are submitted after-hours (this pipeline runs at
+  -- market close) so they queue and fill at the next session's open —
+  -- entry_price/exit_price are filled in by reconciliation on a later run,
+  -- not synchronously when the order is placed. status tracks where each
+  -- position is in that lifecycle: entry_pending -> open -> exit_pending -> closed
+  -- (or *_failed if Alpaca rejects/can't fill an order).
+  CREATE TABLE IF NOT EXISTS paper_trades (
+    date TEXT NOT NULL,
+    ticker TEXT NOT NULL,
+    entry_order_id TEXT,
+    entry_price REAL,
+    entry_filled_at TEXT,
+    notional REAL,
+    exit_order_id TEXT,
+    exit_price REAL,
+    exit_filled_at TEXT,
+    status TEXT NOT NULL DEFAULT 'entry_pending',
+    realized_pnl REAL,
+    realized_pnl_pct REAL,
+    PRIMARY KEY (date, ticker)
+  );
 `);
