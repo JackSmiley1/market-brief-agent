@@ -31,6 +31,13 @@ async function getOrder(orderId) {
   return res.data;
 }
 
+// axios's default err.message on a failed request is just "Request failed
+// with status code 403" — useless for debugging. Alpaca's actual rejection
+// reason lives in the response body; surface that instead when present.
+function describeError(err) {
+  return err.response?.data ? JSON.stringify(err.response.data) : err.message;
+}
+
 // ---- DB statements ----
 
 const insertEntryStmt = db.prepare(`
@@ -56,6 +63,17 @@ const markExitPendingStmt = db.prepare(
   `UPDATE paper_trades SET exit_order_id = ?, status = 'exit_pending' WHERE date = ? AND ticker = ?`
 );
 const markExitFailedStmt = db.prepare(`UPDATE paper_trades SET status = 'exit_failed' WHERE date = ? AND ticker = ?`);
+
+// Alpaca rejects a new buy order for a symbol while an opposite-direction
+// order on that same symbol is still open/unsettled (a wash-trade guard) —
+// confirmed in production on 2026-08-18, when CAT/META/XOM all failed to
+// re-open with a 403 immediately after their same-run close order was
+// submitted. Since picks recur across consecutive days often, check for
+// any unresolved row on this ticker before attempting a new entry, instead
+// of hitting that rejection repeatedly.
+const unresolvedPositionStmt = db.prepare(
+  `SELECT 1 FROM paper_trades WHERE ticker = ? AND status NOT IN ('closed', 'entry_failed', 'exit_failed') LIMIT 1`
+);
 
 const pendingExitsStmt = db.prepare(
   `SELECT date, ticker, entry_price, notional, exit_order_id FROM paper_trades WHERE status = 'exit_pending' AND exit_order_id IS NOT NULL`
@@ -85,7 +103,7 @@ export async function reconcileEntries() {
       }
       // else still open/pending — leave as-is, will retry next run
     } catch (err) {
-      console.error(`paperTrade: failed to reconcile entry for ${row.ticker} (${row.date}):`, err.message);
+      console.error(`paperTrade: failed to reconcile entry for ${row.ticker} (${row.date}):`, describeError(err));
     }
   }
 }
@@ -107,7 +125,7 @@ export async function reconcileExits() {
         console.warn(`paperTrade: exit order for ${row.ticker} (${row.date}) ended as "${order.status}", marking exit_failed.`);
       }
     } catch (err) {
-      console.error(`paperTrade: failed to reconcile exit for ${row.ticker} (${row.date}):`, err.message);
+      console.error(`paperTrade: failed to reconcile exit for ${row.ticker} (${row.date}):`, describeError(err));
     }
   }
 }
@@ -124,7 +142,7 @@ export async function closeMaturePositions() {
       markExitPendingStmt.run(order.id, row.date, row.ticker);
       console.log(`paperTrade: close order submitted — ${row.ticker} (${row.date}), order ${order.id}`);
     } catch (err) {
-      console.error(`paperTrade: failed to submit close order for ${row.ticker} (${row.date}):`, err.message);
+      console.error(`paperTrade: failed to submit close order for ${row.ticker} (${row.date}):`, describeError(err));
       markExitFailedStmt.run(row.date, row.ticker);
     }
   }
@@ -133,12 +151,16 @@ export async function closeMaturePositions() {
 // Step 4: open tonight's new positions, one per newly-flagged watchlist ticker.
 export async function openNewPositions(date, tickers) {
   for (const ticker of tickers) {
+    if (unresolvedPositionStmt.get(ticker)) {
+      console.log(`paperTrade: skipping re-entry — ${ticker} (${date}) already has an unresolved position from an earlier cycle.`);
+      continue;
+    }
     try {
       const order = await submitBuyOrder(ticker, PAPER_TRADE_NOTIONAL);
       insertEntryStmt.run(date, ticker, order.id, PAPER_TRADE_NOTIONAL);
       console.log(`paperTrade: buy order submitted — ${ticker} (${date}), order ${order.id}, $${PAPER_TRADE_NOTIONAL} notional`);
     } catch (err) {
-      console.error(`paperTrade: failed to submit buy order for ${ticker} (${date}):`, err.message);
+      console.error(`paperTrade: failed to submit buy order for ${ticker} (${date}):`, describeError(err));
       markEntryFailedStmt.run(date, ticker, PAPER_TRADE_NOTIONAL);
     }
   }
