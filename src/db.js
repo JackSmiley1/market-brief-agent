@@ -60,3 +60,23 @@ db.exec(`
     PRIMARY KEY (date, ticker)
   );
 `);
+
+// Migration helper: SQLite has no "ADD COLUMN IF NOT EXISTS", so add and
+// swallow the specific "duplicate column" error on repeat runs instead.
+// Needed because paper_trades already has live rows in production —
+// CREATE TABLE IF NOT EXISTS above does nothing for an existing table.
+function addColumnIfMissing(table, columnDef) {
+  try {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${columnDef}`);
+  } catch (err) {
+    if (!/duplicate column name/i.test(err.message)) throw err;
+  }
+}
+
+// direction/qty: added when short-selling support was introduced. Existing
+// rows default to 'long' (accurate — they were all long-only buys prior to
+// this), qty is backfilled by the next reconciliation pass for open rows,
+// stays null for already-closed historical rows (their P&L was already
+// computed correctly under the long-only assumption that was true then).
+addColumnIfMissing("paper_trades", "direction TEXT NOT NULL DEFAULT 'long'");
+addColumnIfMissing("paper_trades", "qty REAL");

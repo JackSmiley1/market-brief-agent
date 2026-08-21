@@ -63,7 +63,8 @@ async function run() {
   // order/API hiccup here can never take down brief generation, which is
   // saved above already and is the priority output regardless.
   try {
-    await runPaperTradingCycle(date, followUpItems.map((item) => item.ticker));
+    const priceMap = Object.fromEntries(marketData.map((d) => [d.symbol, d.close]));
+    await runPaperTradingCycle(date, followUpItems, priceMap);
   } catch (err) {
     console.error("Paper trading cycle failed (brief was still saved normally):", err.message);
   }
