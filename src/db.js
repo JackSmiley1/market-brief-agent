@@ -80,3 +80,12 @@ function addColumnIfMissing(table, columnDef) {
 // computed correctly under the long-only assumption that was true then).
 addColumnIfMissing("paper_trades", "direction TEXT NOT NULL DEFAULT 'long'");
 addColumnIfMissing("paper_trades", "qty REAL");
+
+// confidence: Claude's own self-rated high/medium/low for each pick at the
+// time it was flagged, stored on the grading table (not paper_trades) since
+// it's a property of the analysis/setup itself, not the execution — lets
+// computeConfidence.js join this against paper_trades' realized P&L on
+// (date, ticker) to check whether stated confidence actually predicts
+// outcome. Null (not defaulted) for historical rows — those picks were
+// never rated, so there's no honest value to backfill.
+addColumnIfMissing("watchlist_followups", "confidence TEXT");

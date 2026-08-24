@@ -35,8 +35,10 @@ export function appendBriefLog(date, row) {
 
 const deleteFollowUpsForDateStmt = db.prepare(`DELETE FROM watchlist_followups WHERE date = ?`);
 const insertFollowUpStmt = db.prepare(
-  `INSERT INTO watchlist_followups (date, ticker, setup) VALUES (?, ?, ?)`
+  `INSERT INTO watchlist_followups (date, ticker, setup, confidence) VALUES (?, ?, ?, ?)`
 );
+
+const validConfidence = new Set(["high", "medium", "low"]);
 
 // Persists the tickers/setups Claude flagged in today's "Watchlist for
 // Tomorrow" section, keyed by date, so tomorrow's run can check whether they
@@ -48,7 +50,11 @@ export function saveWatchlistFollowUp(date, items) {
   try {
     deleteFollowUpsForDateStmt.run(date);
     for (const item of items) {
-      insertFollowUpStmt.run(date, item.ticker, item.setup);
+      // Store null rather than silently coercing a malformed/missing
+      // confidence to some default — a bad value should read as "not
+      // rated" in the data, not masquerade as a real "medium" rating.
+      const confidence = validConfidence.has(item.confidence) ? item.confidence : null;
+      insertFollowUpStmt.run(date, item.ticker, item.setup, confidence);
     }
     db.exec("COMMIT");
   } catch (err) {

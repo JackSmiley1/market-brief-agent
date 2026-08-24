@@ -5,7 +5,8 @@
   "scripts": {
     "brief": "node src/index.js",
     "accuracy": "node src/computeAccuracy.js",
-    "pnl": "node src/computePnL.js"
+    "pnl": "node src/computePnL.js",
+    "confidence": "node src/computeConfidence.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",
