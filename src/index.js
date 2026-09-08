@@ -9,6 +9,7 @@ import {
   saveWatchlistFollowUp,
   loadMostRecentWatchlist,
   saveGrading,
+  getMostRecentBriefDate,
 } from "./saveBrief.js";
 import { runPaperTradingCycle } from "./paperTrade.js";
 
@@ -24,6 +25,26 @@ async function run() {
   console.log(`Running brief for ${date}...`);
 
   const marketData = await fetchMarketData();
+
+  // Refuse to proceed on a stale/repeat trading session — this happens on
+  // market holidays, where the cron still fires (it only checks weekday,
+  // not holidays) but Alpaca just returns the same last-real-session bar
+  // again. Confirmed in production on 2026-09-07 (Labor Day): the pipeline
+  // silently reprocessed 2026-09-04's exact numbers under a new date,
+  // double-grading two tickers and opening a redundant paper-trading batch.
+  // Use whichever barDate is most common across the fetched symbols, since
+  // a handful of individual fetch failures shouldn't block this check.
+  const barDateCounts = {};
+  for (const d of marketData) barDateCounts[d.barDate] = (barDateCounts[d.barDate] ?? 0) + 1;
+  const consensusBarDate = Object.entries(barDateCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+  const lastBriefDate = getMostRecentBriefDate();
+  if (consensusBarDate && lastBriefDate && consensusBarDate <= lastBriefDate) {
+    console.log(
+      `No new trading session since ${lastBriefDate} (latest available data is still dated ${consensusBarDate}, likely a market holiday) — skipping this run entirely rather than reprocessing stale data under today's date.`
+    );
+    return;
+  }
+
   const marketNews = await fetchMarketNews();
 
   // Must match buildPrompt.js's Winners/Losers split exactly (top 5 gainers +

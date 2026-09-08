@@ -66,6 +66,16 @@ export async function fetchMarketData() {
         volume: today.v,
         avgVolume: Math.round(avgVolume),
         volumeRatio: Number(volumeRatio.toFixed(2)),
+        // The actual trading-session date of the "today" bar, per Alpaca —
+        // not assumed from the calendar. On a market holiday the cron still
+        // fires (it only checks weekday, not holidays), and Alpaca just
+        // returns the same last-real-session bar again. Without checking
+        // this, that gets silently mislabeled as a fresh day (confirmed in
+        // production on 2026-09-07, a Labor Day run that reprocessed
+        // 2026-09-04's exact numbers under a new date, double-grading two
+        // tickers and opening a redundant paper-trading cycle). index.js
+        // uses this to detect and refuse to proceed on a stale/repeat bar.
+        barDate: today.t.slice(0, 10),
       });
     } catch (err) {
       console.error(`fetchMarketData: failed for ${symbol}:`, err.message);

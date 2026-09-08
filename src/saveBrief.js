@@ -2,6 +2,15 @@ import fs from "fs";
 import path from "path";
 import { db } from "./db.js";
 
+const mostRecentBriefDateStmt = db.prepare(`SELECT MAX(date) AS d FROM briefs`);
+
+// Used to detect a stale/repeat trading session (e.g. a market holiday,
+// where the cron still fires but Alpaca returns the same last-real-session
+// bar again) before doing anything else — see fetchMarketData.js's barDate.
+export function getMostRecentBriefDate() {
+  return mostRecentBriefDateStmt.get().d;
+}
+
 export function saveBriefMarkdown(date, briefText) {
   const dir = path.resolve("logs/briefs");
   fs.mkdirSync(dir, { recursive: true });
