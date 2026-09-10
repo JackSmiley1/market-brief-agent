@@ -1,6 +1,6 @@
 import axios from "axios";
 import { db } from "./db.js";
-import { ALPACA_TRADING_BASE, PAPER_TRADE_NOTIONAL } from "./config.js";
+import { ALPACA_TRADING_BASE, computeNotional } from "./config.js";
 
 const headers = {
   "APCA-API-KEY-ID": process.env.ALPACA_KEY_ID,
@@ -23,10 +23,10 @@ async function submitBuyOrder(symbol, notional) {
 // fetched for the brief itself, so no extra API call) rather than a
 // live quote; this is sizing only, the actual fill price still comes from
 // the order itself once reconciled. Rounds down, minimum 1 share — a
-// genuinely $1000+ stock will short slightly under $1000 notional rather
-// than over, which is the safer direction to round for a fixed-size bet.
-async function submitShortOrder(symbol, estimatedPrice) {
-  const qty = Math.max(1, Math.floor(PAPER_TRADE_NOTIONAL / estimatedPrice));
+// stock priced above the target notional will short slightly under it
+// rather than over, which is the safer direction to round.
+async function submitShortOrder(symbol, estimatedPrice, notional) {
+  const qty = Math.max(1, Math.floor(notional / estimatedPrice));
   const res = await axios.post(
     `${ALPACA_TRADING_BASE}/orders`,
     { symbol, qty: String(qty), side: "sell", type: "market", time_in_force: "day" },
@@ -72,7 +72,7 @@ const fillEntryStmt = db.prepare(`
   WHERE date = ? AND ticker = ?
 `);
 const pendingEntriesStmt = db.prepare(
-  `SELECT date, ticker, entry_order_id FROM paper_trades WHERE status = 'entry_pending' AND entry_order_id IS NOT NULL`
+  `SELECT date, ticker, entry_order_id, notional, direction FROM paper_trades WHERE status = 'entry_pending' AND entry_order_id IS NOT NULL`
 );
 
 const openPositionsStmt = db.prepare(`SELECT date, ticker, entry_price, notional, direction, qty FROM paper_trades WHERE status = 'open'`);
@@ -115,7 +115,11 @@ export async function reconcileEntries() {
         fillEntryStmt.run(Number(order.filled_avg_price), order.filled_at, Number(order.filled_qty), row.date, row.ticker);
         console.log(`paperTrade: entry filled — ${row.ticker} (${row.date}) @ $${order.filled_avg_price} (qty ${order.filled_qty})`);
       } else if (["canceled", "expired", "rejected"].includes(order.status)) {
-        markEntryFailedStmt.run(row.date, row.ticker, PAPER_TRADE_NOTIONAL);
+        // Row already exists (this is a reconcile pass, not a fresh entry),
+        // so ON CONFLICT DO UPDATE only touches status — but pass the
+        // row's own existing values through rather than a placeholder, in
+        // case that assumption ever changes.
+        markEntryFailedStmt.run(row.date, row.ticker, row.notional, row.direction);
         console.warn(`paperTrade: entry order for ${row.ticker} (${row.date}) ended as "${order.status}", marking entry_failed.`);
       }
       // else still open/pending — leave as-is, will retry next run
@@ -177,16 +181,20 @@ export async function closeMaturePositions() {
 }
 
 // Step 4: open tonight's new positions, one per newly-flagged watchlist
-// ticker. `items` is [{ticker, direction}] — direction comes from Claude's
-// own read of each setup (bullish vs bearish), not assumed. `priceMap` is
-// today's already-fetched closes, used only to size short orders (Alpaca
-// requires whole-share qty for shorts, unlike the notional buys used for
-// longs) — not used as the actual fill price, which still comes from the
-// reconciled order itself.
+// ticker. `items` is [{ticker, direction, confidence, eventRisk}] — all
+// self-rated by Claude from its own read of each setup, not assumed.
+// Position size is computed per-item (see config.js's computeNotional) from
+// real evidence: low confidence, event risk, and short direction each cut
+// the size, since the September checkpoint showed each one correlates with
+// worse outcomes. `priceMap` is today's already-fetched closes, used only
+// to size short orders (Alpaca requires whole-share qty for shorts, unlike
+// the notional buys used for longs) — not used as the actual fill price,
+// which still comes from the reconciled order itself.
 export async function openNewPositions(date, items, priceMap = {}) {
   for (const item of items) {
     const ticker = item.ticker;
     const direction = item.direction === "short" ? "short" : "long"; // default long on any malformed/missing value
+    const notional = computeNotional({ confidence: item.confidence, eventRisk: item.eventRisk, direction });
     if (unresolvedPositionStmt.get(ticker)) {
       console.log(`paperTrade: skipping re-entry — ${ticker} (${date}) already has an unresolved position from an earlier cycle.`);
       continue;
@@ -197,18 +205,18 @@ export async function openNewPositions(date, items, priceMap = {}) {
         const estimatedPrice = priceMap[ticker];
         if (!estimatedPrice) {
           console.warn(`paperTrade: no price estimate available for ${ticker} (${date}), skipping short entry — can't size a whole-share qty without one.`);
-          markEntryFailedStmt.run(date, ticker, PAPER_TRADE_NOTIONAL, direction);
+          markEntryFailedStmt.run(date, ticker, notional, direction);
           continue;
         }
-        order = await submitShortOrder(ticker, estimatedPrice);
+        order = await submitShortOrder(ticker, estimatedPrice, notional);
       } else {
-        order = await submitBuyOrder(ticker, PAPER_TRADE_NOTIONAL);
+        order = await submitBuyOrder(ticker, notional);
       }
-      insertEntryStmt.run(date, ticker, order.id, PAPER_TRADE_NOTIONAL, direction);
-      console.log(`paperTrade: ${direction} order submitted — ${ticker} (${date}), order ${order.id}`);
+      insertEntryStmt.run(date, ticker, order.id, notional, direction);
+      console.log(`paperTrade: ${direction} order submitted — ${ticker} (${date}), order ${order.id}, $${notional} notional (confidence=${item.confidence ?? "?"}, eventRisk=${item.eventRisk ?? "?"})`);
     } catch (err) {
       console.error(`paperTrade: failed to submit ${direction} order for ${ticker} (${date}):`, describeError(err));
-      markEntryFailedStmt.run(date, ticker, PAPER_TRADE_NOTIONAL, direction);
+      markEntryFailedStmt.run(date, ticker, notional, direction);
     }
   }
 }

@@ -44,7 +44,7 @@ export function appendBriefLog(date, row) {
 
 const deleteFollowUpsForDateStmt = db.prepare(`DELETE FROM watchlist_followups WHERE date = ?`);
 const insertFollowUpStmt = db.prepare(
-  `INSERT INTO watchlist_followups (date, ticker, setup, confidence) VALUES (?, ?, ?, ?)`
+  `INSERT INTO watchlist_followups (date, ticker, setup, confidence, event_risk) VALUES (?, ?, ?, ?, ?)`
 );
 
 const validConfidence = new Set(["high", "medium", "low"]);
@@ -63,7 +63,10 @@ export function saveWatchlistFollowUp(date, items) {
       // confidence to some default — a bad value should read as "not
       // rated" in the data, not masquerade as a real "medium" rating.
       const confidence = validConfidence.has(item.confidence) ? item.confidence : null;
-      insertFollowUpStmt.run(date, item.ticker, item.setup, confidence);
+      // SQLite has no native boolean; store 1/0/null explicitly rather
+      // than relying on JS truthiness coercion for a missing field.
+      const eventRisk = typeof item.eventRisk === "boolean" ? (item.eventRisk ? 1 : 0) : null;
+      insertFollowUpStmt.run(date, item.ticker, item.setup, confidence, eventRisk);
     }
     db.exec("COMMIT");
   } catch (err) {

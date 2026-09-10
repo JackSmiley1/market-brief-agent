@@ -89,3 +89,12 @@ addColumnIfMissing("paper_trades", "qty REAL");
 // outcome. Null (not defaulted) for historical rows — those picks were
 // never rated, so there's no honest value to backfill.
 addColumnIfMissing("watchlist_followups", "confidence TEXT");
+
+// event_risk: Claude's own self-rated flag for whether a pick has a
+// scheduled earnings/regulatory/binary event that could gap the price
+// beyond a normal day's move. Added after the CRM trade (2026-08-25,
+// shorted into an earnings report, -15.59% — the worst trade in the
+// dataset) exposed that position sizing had no way to account for this
+// risk at all. Used by paperTrade.js to size positions down, not just
+// tracked passively. Null for historical rows (never rated).
+addColumnIfMissing("watchlist_followups", "event_risk INTEGER");
