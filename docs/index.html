@@ -190,6 +190,12 @@
       <div class="loading">Loading…</div>
     </div>
   </section>
+
+  <section id="on-demand-section" style="display:none;">
+    <h2>On-Demand Trades</h2>
+    <p style="color:var(--muted); font-size:13.5px; margin-top:-6px;">User-prompted, ad hoc trades — analyzed and (if flagged) opened on request rather than by the fixed nightly watchlist. Excluded from the sizing-lever evidence above on purpose, since they're a different, uncontrolled selection process.</p>
+    <div class="brief-list" id="on-demand-list"></div>
+  </section>
 </main>
 
 <footer>
@@ -280,6 +286,16 @@ async function main() {
       '<span class="movers">Top winner: ' + winner + ' · Top loser: ' + loser + '</span></div>';
   }).join('');
   document.getElementById('brief-list').innerHTML = briefHtml || '<div class="loading">No briefs yet.</div>';
+
+  // ---- On-demand trades (optional section, hidden until there's data) ----
+  if (data.onDemand && data.onDemand.length > 0) {
+    document.getElementById('on-demand-section').style.display = '';
+    document.getElementById('on-demand-list').innerHTML = data.onDemand.map(t => {
+      const pnlCls = cls(t.pnlPct);
+      return '<div class="brief-row"><span>' + t.date + ' — ' + t.ticker + ' (' + t.direction + ')</span>' +
+        '<span class="movers ' + pnlCls + '">' + fmtPct(t.pnlPct) + ' ($' + t.pnl.toFixed(2) + ')</span></div>';
+    }).join('');
+  }
 }
 
 main().catch(err => {

@@ -51,16 +51,29 @@ const closed = db
             w.confidence, w.event_risk
      FROM paper_trades p
      LEFT JOIN watchlist_followups w ON p.date = w.date AND p.ticker = w.ticker
-     WHERE p.status = 'closed'
+     WHERE p.status = 'closed' AND p.source = 'nightly'
      ORDER BY p.date`
   )
   .all();
+
+// on_demand trades (see onDemandTrade.js) are a different, user-driven
+// selection process than the systematic nightly watchlist — mixing them
+// into the sizing-lever evidence above would quietly contaminate the
+// n>=20 gate with picks that were never part of the same controlled
+// process the SIZING_ADJUSTMENTS were derived from. Reported separately,
+// not included in any bucket above.
+const onDemandClosedCount = db
+  .prepare(`SELECT COUNT(*) AS n FROM paper_trades WHERE status = 'closed' AND source = 'on_demand'`)
+  .get().n;
 
 const out = [];
 const today = new Date().toISOString().slice(0, 10);
 out.push(`# Checkpoint report — ${today}`);
 out.push("");
-out.push(`Closed paper trades analyzed: ${closed.length}`);
+out.push(`Closed paper trades analyzed: ${closed.length} (nightly/systematic only)`);
+if (onDemandClosedCount > 0) {
+  out.push(`On-demand (user-prompted) closed trades excluded from this analysis: ${onDemandClosedCount}`);
+}
 out.push("");
 
 if (closed.length === 0) {

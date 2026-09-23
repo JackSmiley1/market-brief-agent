@@ -40,9 +40,13 @@ async function fetchBarsForSymbol(symbol) {
   return bars.reverse();
 }
 
-export async function fetchMarketData() {
+// `symbols` defaults to the fixed nightly WATCHLIST, but callers (e.g. the
+// on-demand/prompted analysis path) can pass an arbitrary list of tickers
+// instead — the bar-fetching logic itself has no dependency on the fixed
+// universe, only the default did.
+export async function fetchMarketData(symbols = WATCHLIST) {
   const results = [];
-  for (const symbol of WATCHLIST) {
+  for (const symbol of symbols) {
     try {
       const bars = await fetchBarsForSymbol(symbol);
       if (bars.length < 2) {

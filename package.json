@@ -8,7 +8,8 @@
     "pnl": "node src/computePnL.js",
     "confidence": "node src/computeConfidence.js",
     "checkpoint": "node src/checkpoint.js",
-    "export-site": "node src/exportSite.js"
+    "export-site": "node src/exportSite.js",
+    "invest": "node src/onDemandTrade.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

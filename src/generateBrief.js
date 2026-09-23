@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { SYSTEM_PROMPT, buildUserMessage } from "./buildPrompt.js";
+import { SYSTEM_PROMPT, buildUserMessage, ON_DEMAND_SYSTEM_PROMPT, buildOnDemandUserMessage } from "./buildPrompt.js";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -58,4 +58,41 @@ export async function generateBrief({ marketData, marketNews, moverNews, date, f
   }
 
   return { briefText, followUpItems, gradingItems };
+}
+
+// Same client, same "structured block first" pattern as generateBrief, but
+// for a one-off user-prompted ticker/market question (see
+// buildOnDemandUserMessage) rather than the scheduled nightly briefing.
+export async function generateOnDemandCall({ marketData, news, date, query }) {
+  const userMessage = buildOnDemandUserMessage({ marketData, news, date, query });
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-5",
+    max_tokens: 2048,
+    system: ON_DEMAND_SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userMessage }],
+  });
+
+  const rawText = response.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
+
+  const match = rawText.match(/```on-demand-call\s*([\s\S]*?)```/);
+  let picks = [];
+  let analysisText = rawText;
+
+  if (match) {
+    analysisText = (rawText.slice(0, match.index) + rawText.slice(match.index + match[0].length)).trim();
+    try {
+      const parsed = JSON.parse(match[1].trim());
+      if (Array.isArray(parsed.picks)) picks = parsed.picks;
+    } catch (err) {
+      console.warn("generateOnDemandCall: failed to parse on-demand-call block, skipping:", err.message);
+    }
+  } else {
+    console.warn("generateOnDemandCall: no on-demand-call block found in response.");
+  }
+
+  return { analysisText, picks };
 }

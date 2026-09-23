@@ -29,6 +29,40 @@ export function matchPreviousWatchlist(previousWatchlist, marketData) {
   });
 }
 
+// Used by onDemandTrade.js — a user-prompted analysis of a specific
+// ticker/market outside the fixed nightly watchlist. Deliberately a
+// separate, simpler prompt rather than reusing buildUserMessage: there's no
+// "yesterday's watchlist" to grade, no winners/losers ranking across 30+
+// tickers, and the reader is asking about a specific thing right now rather
+// than getting a scheduled market-wide briefing. Still asks for the same
+// structured direction/confidence/eventRisk shape so it can flow into the
+// same paperTrade.js sizing logic as the nightly picks.
+export const ON_DEMAND_SYSTEM_PROMPT = `You are a market analyst answering a specific, user-initiated question about one or more tickers, for a reader in a no-execution paper-trading research phase (simulated capital only, never real).
+
+Be concrete: cite the actual price/volume/news data provided rather than general knowledge about the company. Distinguish company-specific catalysts from macro/sector moves from unclear/no-catalyst moves. If the data doesn't support a confident read, say so plainly — an honest "unclear" beats a confident-sounding guess.`;
+
+export function buildOnDemandUserMessage({ marketData, news, date, query }) {
+  return `Date: ${date}
+User request: ${query}
+
+MARKET DATA FOR REQUESTED TICKER(S):
+${JSON.stringify(marketData, null, 2)}
+
+RECENT NEWS FOR REQUESTED TICKER(S):
+${JSON.stringify(news, null, 2)}
+
+FIRST, output a single fenced code block labeled "on-demand-call" containing a JSON object in exactly this form:
+\`\`\`on-demand-call
+{"picks": [{"ticker": "NVDA", "direction": "long", "confidence": "medium", "eventRisk": false, "reasoning": "one-sentence justification"}]}
+\`\`\`
+- "picks": one entry per ticker in MARKET DATA above that you'd actually flag as worth a simulated position — it is fine (and often correct) to return an empty array if nothing here has a real setup. Do not force a pick just because one was requested.
+- "direction": "long" or "short" per the same logic as a standard trade thesis.
+- "confidence": "high" | "medium" | "low" — an honest read, not hedged toward "medium" by default. Use "high" sparingly.
+- "eventRisk": true if there's a scheduled earnings/regulatory/binary event that could gap the price during the hold window, else false.
+
+THEN, after that block, write 2-4 sentences of plain-language analysis explaining the call (or explaining why you're passing on all of them).`;
+}
+
 export function buildUserMessage({ marketData, marketNews, moverNews, date, followUpResults = [] }) {
   const winners = [...marketData].sort((a, b) => b.pctChange - a.pctChange).slice(0, 5);
   const losers = [...marketData].sort((a, b) => a.pctChange - b.pctChange).slice(0, 5);

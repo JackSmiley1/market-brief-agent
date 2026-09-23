@@ -30,14 +30,25 @@ function summarize(rows) {
   };
 }
 
+// Nightly/systematic trades only — see checkpoint.js for why on_demand
+// trades (ad hoc, user-prompted, see onDemandTrade.js) are excluded from
+// this analysis rather than blended in.
 const closed = db
   .prepare(
     `SELECT p.date, p.ticker, p.direction, p.notional, p.realized_pnl, p.realized_pnl_pct, p.exit_filled_at,
             w.confidence, w.event_risk
      FROM paper_trades p
      LEFT JOIN watchlist_followups w ON p.date = w.date AND p.ticker = w.ticker
-     WHERE p.status = 'closed'
+     WHERE p.status = 'closed' AND p.source = 'nightly'
      ORDER BY COALESCE(p.exit_filled_at, p.date)`
+  )
+  .all();
+
+const onDemandClosed = db
+  .prepare(
+    `SELECT date, ticker, direction, realized_pnl, realized_pnl_pct, exit_filled_at
+     FROM paper_trades WHERE status = 'closed' AND source = 'on_demand'
+     ORDER BY COALESCE(exit_filled_at, date) DESC LIMIT 20`
   )
   .all();
 
@@ -114,6 +125,13 @@ const output = {
     sizingAdjustments: SIZING_ADJUSTMENTS,
   },
   recentBriefs,
+  onDemand: onDemandClosed.map((r) => ({
+    date: r.date,
+    ticker: r.ticker,
+    direction: r.direction,
+    pnl: r.realized_pnl,
+    pnlPct: r.realized_pnl_pct,
+  })),
 };
 
 const dir = path.resolve("docs");

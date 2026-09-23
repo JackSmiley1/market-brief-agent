@@ -81,6 +81,16 @@ function addColumnIfMissing(table, columnDef) {
 addColumnIfMissing("paper_trades", "direction TEXT NOT NULL DEFAULT 'long'");
 addColumnIfMissing("paper_trades", "qty REAL");
 
+// source: 'nightly' for the fixed-watchlist systematic picks the sizing
+// rules (config.js's SIZING_ADJUSTMENTS) were actually derived from and
+// validated against, 'on_demand' for ad hoc user-prompted trades (see
+// onDemandTrade.js). checkpoint.js and exportSite.js filter to 'nightly'
+// only when evaluating those sizing rules — mixing in ad hoc trades would
+// quietly contaminate the n>=20 evidence gate with a different, uncontrolled
+// selection process. Existing rows default to 'nightly', which is accurate:
+// on_demand trading didn't exist before this column was added.
+addColumnIfMissing("paper_trades", "source TEXT NOT NULL DEFAULT 'nightly'");
+
 // confidence: Claude's own self-rated high/medium/low for each pick at the
 // time it was flagged, stored on the grading table (not paper_trades) since
 // it's a property of the analysis/setup itself, not the execution — lets

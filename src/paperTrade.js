@@ -58,13 +58,13 @@ function describeError(err) {
 // ---- DB statements ----
 
 const insertEntryStmt = db.prepare(`
-  INSERT INTO paper_trades (date, ticker, entry_order_id, notional, direction, status)
-  VALUES (?, ?, ?, ?, ?, 'entry_pending')
-  ON CONFLICT(date, ticker) DO UPDATE SET entry_order_id = excluded.entry_order_id, direction = excluded.direction, status = 'entry_pending'
+  INSERT INTO paper_trades (date, ticker, entry_order_id, notional, direction, status, source)
+  VALUES (?, ?, ?, ?, ?, 'entry_pending', ?)
+  ON CONFLICT(date, ticker) DO UPDATE SET entry_order_id = excluded.entry_order_id, direction = excluded.direction, status = 'entry_pending', source = excluded.source
 `);
 const markEntryFailedStmt = db.prepare(`
-  INSERT INTO paper_trades (date, ticker, notional, direction, status)
-  VALUES (?, ?, ?, ?, 'entry_failed')
+  INSERT INTO paper_trades (date, ticker, notional, direction, status, source)
+  VALUES (?, ?, ?, ?, 'entry_failed', ?)
   ON CONFLICT(date, ticker) DO UPDATE SET status = 'entry_failed'
 `);
 const fillEntryStmt = db.prepare(`
@@ -190,7 +190,7 @@ export async function closeMaturePositions() {
 // to size short orders (Alpaca requires whole-share qty for shorts, unlike
 // the notional buys used for longs) — not used as the actual fill price,
 // which still comes from the reconciled order itself.
-export async function openNewPositions(date, items, priceMap = {}) {
+export async function openNewPositions(date, items, priceMap = {}, source = "nightly") {
   for (const item of items) {
     const ticker = item.ticker;
     const direction = item.direction === "short" ? "short" : "long"; // default long on any malformed/missing value
@@ -205,18 +205,18 @@ export async function openNewPositions(date, items, priceMap = {}) {
         const estimatedPrice = priceMap[ticker];
         if (!estimatedPrice) {
           console.warn(`paperTrade: no price estimate available for ${ticker} (${date}), skipping short entry — can't size a whole-share qty without one.`);
-          markEntryFailedStmt.run(date, ticker, notional, direction);
+          markEntryFailedStmt.run(date, ticker, notional, direction, source);
           continue;
         }
         order = await submitShortOrder(ticker, estimatedPrice, notional);
       } else {
         order = await submitBuyOrder(ticker, notional);
       }
-      insertEntryStmt.run(date, ticker, order.id, notional, direction);
-      console.log(`paperTrade: ${direction} order submitted — ${ticker} (${date}), order ${order.id}, $${notional} notional (confidence=${item.confidence ?? "?"}, eventRisk=${item.eventRisk ?? "?"})`);
+      insertEntryStmt.run(date, ticker, order.id, notional, direction, source);
+      console.log(`paperTrade: ${direction} order submitted — ${ticker} (${date}), order ${order.id}, $${notional} notional (confidence=${item.confidence ?? "?"}, eventRisk=${item.eventRisk ?? "?"}, source=${source})`);
     } catch (err) {
       console.error(`paperTrade: failed to submit ${direction} order for ${ticker} (${date}):`, describeError(err));
-      markEntryFailedStmt.run(date, ticker, notional, direction);
+      markEntryFailedStmt.run(date, ticker, notional, direction, source);
     }
   }
 }
