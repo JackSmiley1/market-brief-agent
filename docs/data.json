@@ -1,0 +1,661 @@
+{
+  "generatedAt": "2026-09-23T19:28:46.433Z",
+  "minSampleSize": 20,
+  "overview": {
+    "closedTrades": 77,
+    "avgReturnPct": -0.43,
+    "totalPnl": -266.28,
+    "totalNotional": 73750,
+    "winRatePct": 51.9,
+    "directionalHitRatePct": 67.3,
+    "directionalResolvedN": 107
+  },
+  "equityCurve": [
+    {
+      "date": "2026-08-19",
+      "cumulativePnl": -26.9
+    },
+    {
+      "date": "2026-08-19",
+      "cumulativePnl": -21
+    },
+    {
+      "date": "2026-08-19",
+      "cumulativePnl": -49.66
+    },
+    {
+      "date": "2026-08-19",
+      "cumulativePnl": -38.82
+    },
+    {
+      "date": "2026-08-20",
+      "cumulativePnl": -37.75
+    },
+    {
+      "date": "2026-08-20",
+      "cumulativePnl": -28.35
+    },
+    {
+      "date": "2026-08-20",
+      "cumulativePnl": -88.01
+    },
+    {
+      "date": "2026-08-21",
+      "cumulativePnl": -80.53
+    },
+    {
+      "date": "2026-08-21",
+      "cumulativePnl": -62.7
+    },
+    {
+      "date": "2026-08-21",
+      "cumulativePnl": -75.91
+    },
+    {
+      "date": "2026-08-21",
+      "cumulativePnl": -87.39
+    },
+    {
+      "date": "2026-08-24",
+      "cumulativePnl": -73.73
+    },
+    {
+      "date": "2026-08-24",
+      "cumulativePnl": -93.84
+    },
+    {
+      "date": "2026-08-24",
+      "cumulativePnl": -112.78
+    },
+    {
+      "date": "2026-08-24",
+      "cumulativePnl": -100.12
+    },
+    {
+      "date": "2026-08-25",
+      "cumulativePnl": -100.75
+    },
+    {
+      "date": "2026-08-25",
+      "cumulativePnl": -116.48
+    },
+    {
+      "date": "2026-08-25",
+      "cumulativePnl": -105.78
+    },
+    {
+      "date": "2026-08-25",
+      "cumulativePnl": -138.05
+    },
+    {
+      "date": "2026-08-26",
+      "cumulativePnl": -143.89
+    },
+    {
+      "date": "2026-08-26",
+      "cumulativePnl": -155.57
+    },
+    {
+      "date": "2026-08-26",
+      "cumulativePnl": -155.82
+    },
+    {
+      "date": "2026-08-27",
+      "cumulativePnl": -154.71
+    },
+    {
+      "date": "2026-08-27",
+      "cumulativePnl": -158.9
+    },
+    {
+      "date": "2026-08-27",
+      "cumulativePnl": -285.27
+    },
+    {
+      "date": "2026-08-28",
+      "cumulativePnl": -280.65
+    },
+    {
+      "date": "2026-08-28",
+      "cumulativePnl": -292.84
+    },
+    {
+      "date": "2026-08-28",
+      "cumulativePnl": -290.2
+    },
+    {
+      "date": "2026-08-28",
+      "cumulativePnl": -283.67
+    },
+    {
+      "date": "2026-08-31",
+      "cumulativePnl": -262.32
+    },
+    {
+      "date": "2026-08-31",
+      "cumulativePnl": -274.68
+    },
+    {
+      "date": "2026-08-31",
+      "cumulativePnl": -269.04
+    },
+    {
+      "date": "2026-08-31",
+      "cumulativePnl": -275.69
+    },
+    {
+      "date": "2026-09-01",
+      "cumulativePnl": -267.49
+    },
+    {
+      "date": "2026-09-01",
+      "cumulativePnl": -246.08
+    },
+    {
+      "date": "2026-09-01",
+      "cumulativePnl": -234.98
+    },
+    {
+      "date": "2026-09-01",
+      "cumulativePnl": -261.01
+    },
+    {
+      "date": "2026-09-01",
+      "cumulativePnl": -254.43
+    },
+    {
+      "date": "2026-09-02",
+      "cumulativePnl": -264.21
+    },
+    {
+      "date": "2026-09-02",
+      "cumulativePnl": -239.82
+    },
+    {
+      "date": "2026-09-02",
+      "cumulativePnl": -245.95
+    },
+    {
+      "date": "2026-09-02",
+      "cumulativePnl": -248.72
+    },
+    {
+      "date": "2026-09-03",
+      "cumulativePnl": -256.03
+    },
+    {
+      "date": "2026-09-03",
+      "cumulativePnl": -251.58
+    },
+    {
+      "date": "2026-09-03",
+      "cumulativePnl": -244.9
+    },
+    {
+      "date": "2026-09-03",
+      "cumulativePnl": -243.96
+    },
+    {
+      "date": "2026-09-04",
+      "cumulativePnl": -277.76
+    },
+    {
+      "date": "2026-09-04",
+      "cumulativePnl": -282.7
+    },
+    {
+      "date": "2026-09-04",
+      "cumulativePnl": -222.48
+    },
+    {
+      "date": "2026-09-04",
+      "cumulativePnl": -194.59
+    },
+    {
+      "date": "2026-09-08",
+      "cumulativePnl": -203.13
+    },
+    {
+      "date": "2026-09-08",
+      "cumulativePnl": -200.83
+    },
+    {
+      "date": "2026-09-08",
+      "cumulativePnl": -194.69
+    },
+    {
+      "date": "2026-09-09",
+      "cumulativePnl": -192.05
+    },
+    {
+      "date": "2026-09-09",
+      "cumulativePnl": -219.5
+    },
+    {
+      "date": "2026-09-09",
+      "cumulativePnl": -187.91
+    },
+    {
+      "date": "2026-09-09",
+      "cumulativePnl": -174.61
+    },
+    {
+      "date": "2026-09-10",
+      "cumulativePnl": -154.4
+    },
+    {
+      "date": "2026-09-10",
+      "cumulativePnl": -132.36
+    },
+    {
+      "date": "2026-09-11",
+      "cumulativePnl": -121.55
+    },
+    {
+      "date": "2026-09-11",
+      "cumulativePnl": -119.68
+    },
+    {
+      "date": "2026-09-11",
+      "cumulativePnl": -156.54
+    },
+    {
+      "date": "2026-09-11",
+      "cumulativePnl": -183.06
+    },
+    {
+      "date": "2026-09-11",
+      "cumulativePnl": -198.14
+    },
+    {
+      "date": "2026-09-14",
+      "cumulativePnl": -267.07
+    },
+    {
+      "date": "2026-09-14",
+      "cumulativePnl": -255.26
+    },
+    {
+      "date": "2026-09-14",
+      "cumulativePnl": -216.49
+    },
+    {
+      "date": "2026-09-15",
+      "cumulativePnl": -215.35
+    },
+    {
+      "date": "2026-09-15",
+      "cumulativePnl": -191.12
+    },
+    {
+      "date": "2026-09-15",
+      "cumulativePnl": -196.69
+    },
+    {
+      "date": "2026-09-16",
+      "cumulativePnl": -194.69
+    },
+    {
+      "date": "2026-09-16",
+      "cumulativePnl": -185.52
+    },
+    {
+      "date": "2026-09-16",
+      "cumulativePnl": -207.44
+    },
+    {
+      "date": "2026-09-16",
+      "cumulativePnl": -208.68
+    },
+    {
+      "date": "2026-09-17",
+      "cumulativePnl": -232.4
+    },
+    {
+      "date": "2026-09-17",
+      "cumulativePnl": -241.18
+    },
+    {
+      "date": "2026-09-17",
+      "cumulativePnl": -266.28
+    }
+  ],
+  "buckets": {
+    "direction": [
+      {
+        "label": "long",
+        "n": 41,
+        "totalPnl": -100.93,
+        "totalNotional": 41000,
+        "avgReturnPct": -0.247,
+        "winRatePct": 53.7,
+        "meetsMinN": true
+      },
+      {
+        "label": "short",
+        "n": 36,
+        "totalPnl": -165.35,
+        "totalNotional": 32750,
+        "avgReturnPct": -0.639,
+        "winRatePct": 50,
+        "meetsMinN": true
+      }
+    ],
+    "confidence": [
+      {
+        "label": "high",
+        "n": 2,
+        "totalPnl": -25.58,
+        "totalNotional": 2000,
+        "avgReturnPct": -1.28,
+        "winRatePct": 50,
+        "meetsMinN": false
+      },
+      {
+        "label": "medium",
+        "n": 33,
+        "totalPnl": 81.58,
+        "totalNotional": 30500,
+        "avgReturnPct": 0.156,
+        "winRatePct": 54.5,
+        "meetsMinN": true
+      },
+      {
+        "label": "low",
+        "n": 14,
+        "totalPnl": -212.13,
+        "totalNotional": 13250,
+        "avgReturnPct": -1.769,
+        "winRatePct": 57.1,
+        "meetsMinN": false
+      }
+    ],
+    "eventRisk": [
+      {
+        "label": "no_event_risk",
+        "n": 10,
+        "totalPnl": -49.79,
+        "totalNotional": 6750,
+        "avgReturnPct": -0.895,
+        "winRatePct": 40,
+        "meetsMinN": false
+      }
+    ]
+  },
+  "methodology": {
+    "baseNotionalUsd": 1000,
+    "sizingAdjustments": {
+      "lowConfidence": 0.5,
+      "eventRisk": 0.5,
+      "shortDirection": 0.5
+    }
+  },
+  "recentBriefs": [
+    {
+      "date": "2026-09-17",
+      "topWinner": "INTC",
+      "winnerPct": 7.65,
+      "topLoser": "CRM",
+      "loserPct": -3.06,
+      "watchlistTickers": [
+        "INTC",
+        "AMD",
+        "ORCL",
+        "NVDA",
+        "TSLA",
+        "CRM",
+        "BA",
+        "DIS",
+        "NFLX",
+        "WMT"
+      ]
+    },
+    {
+      "date": "2026-09-16",
+      "topWinner": "INTC",
+      "winnerPct": 4.02,
+      "topLoser": "GS",
+      "loserPct": -3.83,
+      "watchlistTickers": [
+        "INTC",
+        "ORCL",
+        "AMD",
+        "NVDA",
+        "DIS",
+        "GS",
+        "BA",
+        "XOM",
+        "CVX",
+        "BAC"
+      ]
+    },
+    {
+      "date": "2026-09-15",
+      "topWinner": "CVX",
+      "winnerPct": 2.62,
+      "topLoser": "ORCL",
+      "loserPct": -3.02,
+      "watchlistTickers": [
+        "CVX",
+        "XOM",
+        "AMD",
+        "JPM",
+        "META",
+        "ORCL",
+        "NFLX",
+        "DIS",
+        "AMZN",
+        "UNH"
+      ]
+    },
+    {
+      "date": "2026-09-14",
+      "topWinner": "CRM",
+      "winnerPct": 4.69,
+      "topLoser": "INTC",
+      "loserPct": -5.62,
+      "watchlistTickers": [
+        "CRM",
+        "NFLX",
+        "GOOGL",
+        "META",
+        "MSFT",
+        "INTC",
+        "BAC",
+        "AMD",
+        "CAT",
+        "GS"
+      ]
+    },
+    {
+      "date": "2026-09-11",
+      "topWinner": "BA",
+      "winnerPct": 2.7,
+      "topLoser": "UNH",
+      "loserPct": -2.42,
+      "watchlistTickers": [
+        "BA",
+        "INTC",
+        "AMD",
+        "AMZN",
+        "CRM",
+        "UNH",
+        "ORCL",
+        "JNJ",
+        "NVDA",
+        "PFE"
+      ]
+    },
+    {
+      "date": "2026-09-10",
+      "topWinner": "AAPL",
+      "winnerPct": 3.55,
+      "topLoser": "INTC",
+      "loserPct": -5.64,
+      "watchlistTickers": [
+        "AAPL",
+        "DIS",
+        "XOM",
+        "GOOGL",
+        "MSFT",
+        "INTC",
+        "ORCL",
+        "AMD",
+        "NVDA",
+        "HD"
+      ]
+    },
+    {
+      "date": "2026-09-09",
+      "topWinner": "META",
+      "winnerPct": 6.53,
+      "topLoser": "GOOGL",
+      "loserPct": -2.29,
+      "watchlistTickers": [
+        "META",
+        "AMD",
+        "XOM",
+        "CVX",
+        "INTC",
+        "GOOGL",
+        "BA",
+        "CRM",
+        "UNH",
+        "AMZN"
+      ]
+    },
+    {
+      "date": "2026-09-08",
+      "topWinner": "INTC",
+      "winnerPct": 9.04,
+      "topLoser": "CRM",
+      "loserPct": -3.89,
+      "watchlistTickers": [
+        "INTC",
+        "AMD",
+        "TSLA",
+        "ORCL",
+        "CAT",
+        "CRM",
+        "HD",
+        "PFE",
+        "JNJ",
+        "NVDA"
+      ]
+    },
+    {
+      "date": "2026-09-04",
+      "topWinner": "AMD",
+      "winnerPct": 4.65,
+      "topLoser": "TSLA",
+      "loserPct": -5.97,
+      "watchlistTickers": [
+        "AMD",
+        "INTC",
+        "ORCL",
+        "CAT",
+        "META",
+        "TSLA",
+        "NFLX",
+        "AAPL",
+        "MSFT",
+        "CRM"
+      ]
+    },
+    {
+      "date": "2026-09-03",
+      "topWinner": "ORCL",
+      "winnerPct": 5.73,
+      "topLoser": "XOM",
+      "loserPct": -1.17,
+      "watchlistTickers": [
+        "ORCL",
+        "TSLA",
+        "GS",
+        "META",
+        "CRM",
+        "XOM",
+        "DIS",
+        "PFE",
+        "MA",
+        "COST"
+      ]
+    },
+    {
+      "date": "2026-09-02",
+      "topWinner": "ORCL",
+      "winnerPct": 3.21,
+      "topLoser": "COST",
+      "loserPct": -1.26,
+      "watchlistTickers": [
+        "ORCL",
+        "NVDA",
+        "META",
+        "NFLX",
+        "DIS",
+        "COST",
+        "MSFT",
+        "AMD",
+        "CRM",
+        "HD"
+      ]
+    },
+    {
+      "date": "2026-09-01",
+      "topWinner": "AAPL",
+      "winnerPct": 2.56,
+      "topLoser": "ORCL",
+      "loserPct": -5.33,
+      "watchlistTickers": [
+        "AAPL",
+        "CVX",
+        "XOM",
+        "JNJ",
+        "UNH",
+        "ORCL",
+        "TSLA",
+        "HD",
+        "GS",
+        "CAT"
+      ]
+    },
+    {
+      "date": "2026-08-31",
+      "topWinner": "TSLA",
+      "winnerPct": 5.5,
+      "topLoser": "AMZN",
+      "loserPct": -2.49,
+      "watchlistTickers": [
+        "TSLA",
+        "XOM",
+        "CVX",
+        "PFE",
+        "WMT",
+        "AMZN",
+        "GOOGL",
+        "MSFT",
+        "MA",
+        "ORCL"
+      ]
+    },
+    {
+      "date": "2026-08-28",
+      "topWinner": "AMZN",
+      "winnerPct": 4,
+      "topLoser": "NVDA",
+      "loserPct": -4.66,
+      "watchlistTickers": [
+        "AMZN",
+        "NFLX",
+        "BAC",
+        "GOOGL",
+        "MSFT",
+        "NVDA",
+        "INTC",
+        "AMD",
+        "CAT",
+        "TSLA"
+      ]
+    }
+  ]
+}

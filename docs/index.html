@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Market Brief Agent — Live Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel: #131720;
+    --border: #232838;
+    --text: #e6e9f0;
+    --muted: #8b93a7;
+    --green: #3ddc97;
+    --red: #ff6b6b;
+    --accent: #6ea8fe;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 40px 24px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  header h1 { margin: 0 0 6px; font-size: 28px; }
+  header p.tag { margin: 0; color: var(--muted); font-size: 15px; }
+  header .links { margin-top: 14px; }
+  header .links a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 14px;
+    margin-right: 16px;
+  }
+  header .links a:hover { text-decoration: underline; }
+  .disclaimer {
+    max-width: 1100px;
+    margin: 0 auto 24px;
+    padding: 14px 18px;
+    background: rgba(255, 193, 7, 0.08);
+    border: 1px solid rgba(255, 193, 7, 0.35);
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: #e8d089;
+  }
+  main { max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+  section { margin-bottom: 40px; }
+  h2 {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 14px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .stat-card .value { font-size: 24px; font-weight: 600; }
+  .stat-card .label { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+  .chart-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .bucket-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .bucket-group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .bucket-group h3 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; }
+  .flag {
+    display: inline-block;
+    font-size: 10.5px;
+    color: #e8d089;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: 6px;
+  }
+  .methodology p { color: #c6cbda; font-size: 14.5px; }
+  .brief-list { display: flex; flex-direction: column; gap: 8px; }
+  .brief-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13.5px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .brief-row a { color: var(--text); text-decoration: none; font-weight: 500; }
+  .brief-row a:hover { color: var(--accent); }
+  .brief-row .movers { color: var(--muted); }
+  footer {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 12.5px;
+    border-top: 1px solid var(--border);
+  }
+  .loading { color: var(--muted); padding: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Market Brief Agent</h1>
+  <p class="tag">Automated nightly market analysis (Claude + live market data + news) with an evidence-based, self-grading paper-trading layer on top.</p>
+  <div class="links">
+    <a href="https://github.com/JackSmiley1/market-brief-agent" target="_blank">Source on GitHub →</a>
+    <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/status-memo.md" target="_blank">Full status memo →</a>
+  </div>
+</header>
+
+<div class="disclaimer">
+  Research project, Phase 1. All trades shown are simulated on Alpaca's <strong>paper trading</strong> API — zero real capital, no live orders, no real users. Numbers below are reported as-is, including when they're negative or statistically inconclusive.
+</div>
+
+<main>
+  <section id="overview-section">
+    <h2>Overview</h2>
+    <div class="stat-grid" id="overview-stats">
+      <div class="loading">Loading…</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Simulated Equity Curve</h2>
+    <div class="chart-wrap">
+      <canvas id="equityChart" height="90"></canvas>
+    </div>
+  </section>
+
+  <section>
+    <h2>Performance by Sizing Lever</h2>
+    <div class="bucket-grid" id="bucket-container">
+      <div class="loading">Loading…</div>
+    </div>
+  </section>
+
+  <section class="methodology">
+    <h2>Methodology</h2>
+    <p>Every nightly pick gets a self-rated confidence level and an event-risk flag from Claude's own read of the setup. Position size is cut for low confidence, scheduled-event risk, and short positions — not by assumption, but because each one was shown to correlate with worse real outcomes in this system's own trade history.</p>
+    <p id="methodology-detail" class="loading">Loading…</p>
+    <p>Before any comparison above is treated as a reason to change those sizing rules, it has to clear a minimum sample size (<span id="min-n-inline">20</span> closed trades on both sides of the comparison). Buckets below that line are labeled <span class="flag">small sample</span> and are directional only — this is a deliberate guardrail against tuning the strategy on noise.</p>
+  </section>
+
+  <section>
+    <h2>Recent Briefs</h2>
+    <div class="brief-list" id="brief-list">
+      <div class="loading">Loading…</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Generated automatically every trading night by GitHub Actions. Last updated: <span id="generated-at">—</span>.
+</footer>
+
+<script>
+async function main() {
+  const res = await fetch('./data.json', { cache: 'no-store' });
+  const data = await res.json();
+
+  document.getElementById('generated-at').textContent = new Date(data.generatedAt).toLocaleString();
+  document.getElementById('min-n-inline').textContent = data.minSampleSize;
+
+  // ---- Overview stats ----
+  const o = data.overview;
+  const fmtPct = (n) => n === null || n === undefined ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  const cls = (n) => n === null || n === undefined ? '' : (n >= 0 ? 'pos' : 'neg');
+  const stats = [
+    { label: 'Closed paper trades', value: o.closedTrades },
+    { label: 'Avg return / trade', value: fmtPct(o.avgReturnPct), cls: cls(o.avgReturnPct) },
+    { label: 'Total realized P&L', value: (o.totalPnl >= 0 ? '+' : '') + '$' + o.totalPnl?.toFixed(2), cls: cls(o.totalPnl) },
+    { label: 'Win rate', value: o.winRatePct + '%' },
+    { label: 'Directional hit rate', value: fmtPct(o.directionalHitRatePct) + ' (n=' + o.directionalResolvedN + ')' },
+  ];
+  document.getElementById('overview-stats').innerHTML = stats.map(s =>
+    '<div class="stat-card"><div class="value ' + (s.cls||'') + '">' + s.value + '</div><div class="label">' + s.label + '</div></div>'
+  ).join('');
+
+  // ---- Equity curve ----
+  const ctx = document.getElementById('equityChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.equityCurve.map((p, i) => i + 1),
+      datasets: [{
+        label: 'Cumulative simulated P&L ($)',
+        data: data.equityCurve.map(p => p.cumulativePnl),
+        borderColor: '#6ea8fe',
+        backgroundColor: 'rgba(110,168,254,0.08)',
+        fill: true,
+        tension: 0.15,
+        pointRadius: 0,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: '#8b93a7' } } },
+      scales: {
+        x: { title: { display: true, text: 'Closed trade #', color: '#8b93a7' }, ticks: { color: '#8b93a7' }, grid: { color: '#232838' } },
+        y: { ticks: { color: '#8b93a7' }, grid: { color: '#232838' } },
+      }
+    }
+  });
+
+  // ---- Buckets ----
+  const groupTitles = { direction: 'By Direction', confidence: 'By Confidence', eventRisk: 'By Event Risk' };
+  const labelNames = { long: 'Long', short: 'Short', high: 'High', medium: 'Medium', low: 'Low', event_risk: 'Event risk', no_event_risk: 'No event risk' };
+  let bucketHtml = '';
+  for (const key of Object.keys(data.buckets)) {
+    const rows = data.buckets[key];
+    if (!rows.length) continue;
+    bucketHtml += '<div class="bucket-group"><h3>' + groupTitles[key] + '</h3><table><thead><tr><th></th><th>n</th><th>Avg return</th><th>Win rate</th><th>Total P&L</th></tr></thead><tbody>';
+    for (const r of rows) {
+      bucketHtml += '<tr><td>' + (labelNames[r.label] || r.label) + (r.meetsMinN ? '' : '<span class="flag">small sample</span>') + '</td>' +
+        '<td>' + r.n + '</td>' +
+        '<td class="' + cls(r.avgReturnPct) + '">' + fmtPct(r.avgReturnPct) + '</td>' +
+        '<td>' + r.winRatePct + '%</td>' +
+        '<td class="' + cls(r.totalPnl) + '">' + (r.totalPnl >= 0 ? '+' : '') + '$' + r.totalPnl.toFixed(2) + '</td></tr>';
+    }
+    bucketHtml += '</tbody></table></div>';
+  }
+  document.getElementById('bucket-container').innerHTML = bucketHtml || '<div class="loading">No bucketed data yet.</div>';
+
+  // ---- Methodology detail (real numbers, not hardcoded) ----
+  const sa = data.methodology.sizingAdjustments;
+  document.getElementById('methodology-detail').textContent =
+    'Current cuts: low confidence ×' + sa.lowConfidence + ', event risk ×' + sa.eventRisk + ', short direction ×' + sa.shortDirection +
+    ' — applied on top of a $' + data.methodology.baseNotionalUsd + ' base position, stacking when more than one applies.';
+
+  // ---- Recent briefs ----
+  const briefHtml = data.recentBriefs.map(b => {
+    const url = 'https://github.com/JackSmiley1/market-brief-agent/blob/main/logs/briefs/' + b.date + '.md';
+    const winner = b.topWinner ? b.topWinner + ' ' + fmtPct(b.winnerPct) : '—';
+    const loser = b.topLoser ? b.topLoser + ' ' + fmtPct(b.loserPct) : '—';
+    return '<div class="brief-row"><a href="' + url + '" target="_blank">' + b.date + '</a>' +
+      '<span class="movers">Top winner: ' + winner + ' · Top loser: ' + loser + '</span></div>';
+  }).join('');
+  document.getElementById('brief-list').innerHTML = briefHtml || '<div class="loading">No briefs yet.</div>';
+}
+
+main().catch(err => {
+  document.body.insertAdjacentHTML('afterbegin',
+    '<div style="background:#3a1f1f;color:#ff9a9a;padding:14px 24px;">Failed to load data.json: ' + err.message + '</div>');
+});
+</script>
+
+</body>
+</html>

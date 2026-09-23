@@ -7,7 +7,8 @@
     "accuracy": "node src/computeAccuracy.js",
     "pnl": "node src/computePnL.js",
     "confidence": "node src/computeConfidence.js",
-    "checkpoint": "node src/checkpoint.js"
+    "checkpoint": "node src/checkpoint.js",
+    "export-site": "node src/exportSite.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

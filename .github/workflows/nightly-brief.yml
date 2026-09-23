@@ -19,10 +19,12 @@ jobs:
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
-      - name: Commit brief back to repo
+      - name: Export public dashboard data
+        run: npm run export-site
+      - name: Commit brief + dashboard data back to repo
         run: |
           git config user.name "brief-bot"
           git config user.email "actions@github.com"
-          git add logs/
+          git add logs/ docs/data.json
           git commit -m "Nightly brief: $(date +'%Y-%m-%d')" || echo "No changes"
           git push
