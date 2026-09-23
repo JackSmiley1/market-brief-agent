@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-09-23T19:30:19.991Z",
+  "generatedAt": "2026-09-23T19:31:57.048Z",
   "minSampleSize": 20,
   "overview": {
-    "closedTrades": 77,
-    "avgReturnPct": -0.43,
-    "totalPnl": -266.28,
-    "totalNotional": 73750,
-    "winRatePct": 51.9,
-    "directionalHitRatePct": 67.3,
-    "directionalResolvedN": 107
+    "closedTrades": 87,
+    "avgReturnPct": -0.424,
+    "totalPnl": -287.55,
+    "totalNotional": 78500,
+    "winRatePct": 51.7,
+    "directionalHitRatePct": 66.7,
+    "directionalResolvedN": 120
   },
   "equityCurve": [
     {
@@ -318,67 +318,107 @@
     {
       "date": "2026-09-17",
       "cumulativePnl": -266.28
+    },
+    {
+      "date": "2026-09-18",
+      "cumulativePnl": -248.55
+    },
+    {
+      "date": "2026-09-18",
+      "cumulativePnl": -274.02
+    },
+    {
+      "date": "2026-09-18",
+      "cumulativePnl": -268.2
+    },
+    {
+      "date": "2026-09-18",
+      "cumulativePnl": -273.04
+    },
+    {
+      "date": "2026-09-21",
+      "cumulativePnl": -272.47
+    },
+    {
+      "date": "2026-09-21",
+      "cumulativePnl": -267.99
+    },
+    {
+      "date": "2026-09-22",
+      "cumulativePnl": -320.77
+    },
+    {
+      "date": "2026-09-22",
+      "cumulativePnl": -277.62
+    },
+    {
+      "date": "2026-09-22",
+      "cumulativePnl": -285.42
+    },
+    {
+      "date": "2026-09-22",
+      "cumulativePnl": -287.55
     }
   ],
   "buckets": {
     "direction": [
       {
         "label": "long",
-        "n": 41,
-        "totalPnl": -100.93,
-        "totalNotional": 41000,
-        "avgReturnPct": -0.247,
-        "winRatePct": 53.7,
+        "n": 43,
+        "totalPnl": -40.05,
+        "totalNotional": 42500,
+        "avgReturnPct": -0.052,
+        "winRatePct": 55.8,
         "meetsMinN": true
       },
       {
         "label": "short",
-        "n": 36,
-        "totalPnl": -165.35,
-        "totalNotional": 32750,
-        "avgReturnPct": -0.639,
-        "winRatePct": 50,
+        "n": 44,
+        "totalPnl": -247.5,
+        "totalNotional": 36000,
+        "avgReturnPct": -0.786,
+        "winRatePct": 47.7,
         "meetsMinN": true
       }
     ],
     "confidence": [
       {
         "label": "high",
-        "n": 2,
-        "totalPnl": -25.58,
-        "totalNotional": 2000,
-        "avgReturnPct": -1.28,
-        "winRatePct": 50,
+        "n": 3,
+        "totalPnl": -19.76,
+        "totalNotional": 2500,
+        "avgReturnPct": -0.37,
+        "winRatePct": 66.7,
         "meetsMinN": false
       },
       {
         "label": "medium",
-        "n": 33,
-        "totalPnl": 81.58,
-        "totalNotional": 30500,
-        "avgReturnPct": 0.156,
-        "winRatePct": 54.5,
+        "n": 38,
+        "totalPnl": 91.1,
+        "totalNotional": 33500,
+        "avgReturnPct": 0.127,
+        "winRatePct": 52.6,
         "meetsMinN": true
       },
       {
         "label": "low",
-        "n": 14,
-        "totalPnl": -212.13,
-        "totalNotional": 13250,
-        "avgReturnPct": -1.769,
-        "winRatePct": 57.1,
+        "n": 18,
+        "totalPnl": -248.74,
+        "totalNotional": 14500,
+        "avgReturnPct": -1.645,
+        "winRatePct": 55.6,
         "meetsMinN": false
       }
     ],
     "eventRisk": [
       {
         "label": "no_event_risk",
-        "n": 10,
-        "totalPnl": -49.79,
-        "totalNotional": 6750,
-        "avgReturnPct": -0.895,
-        "winRatePct": 40,
-        "meetsMinN": false
+        "n": 20,
+        "totalPnl": -71.06,
+        "totalNotional": 11500,
+        "avgReturnPct": -0.634,
+        "winRatePct": 45,
+        "meetsMinN": true
       }
     ]
   },
@@ -391,6 +431,63 @@
     }
   },
   "recentBriefs": [
+    {
+      "date": "2026-09-22",
+      "topWinner": "HD",
+      "winnerPct": 2.75,
+      "topLoser": "JPM",
+      "loserPct": -3.44,
+      "watchlistTickers": [
+        "HD",
+        "WMT",
+        "INTC",
+        "AMD",
+        "TSLA",
+        "JPM",
+        "BAC",
+        "V",
+        "MA",
+        "BA"
+      ]
+    },
+    {
+      "date": "2026-09-21",
+      "topWinner": "INTC",
+      "winnerPct": 12.02,
+      "topLoser": "XOM",
+      "loserPct": -3,
+      "watchlistTickers": [
+        "INTC",
+        "META",
+        "AMD",
+        "TSLA",
+        "QQQ",
+        "XOM",
+        "CVX",
+        "HD",
+        "CRM",
+        "JNJ"
+      ]
+    },
+    {
+      "date": "2026-09-18",
+      "topWinner": "AMD",
+      "winnerPct": 2.72,
+      "topLoser": "NFLX",
+      "loserPct": -4.65,
+      "watchlistTickers": [
+        "AMD",
+        "CAT",
+        "NVDA",
+        "AMZN",
+        "BA",
+        "NFLX",
+        "DIS",
+        "META",
+        "CRM",
+        "ORCL"
+      ]
+    },
     {
       "date": "2026-09-17",
       "topWinner": "INTC",
@@ -598,63 +695,6 @@
         "AMD",
         "CRM",
         "HD"
-      ]
-    },
-    {
-      "date": "2026-09-01",
-      "topWinner": "AAPL",
-      "winnerPct": 2.56,
-      "topLoser": "ORCL",
-      "loserPct": -5.33,
-      "watchlistTickers": [
-        "AAPL",
-        "CVX",
-        "XOM",
-        "JNJ",
-        "UNH",
-        "ORCL",
-        "TSLA",
-        "HD",
-        "GS",
-        "CAT"
-      ]
-    },
-    {
-      "date": "2026-08-31",
-      "topWinner": "TSLA",
-      "winnerPct": 5.5,
-      "topLoser": "AMZN",
-      "loserPct": -2.49,
-      "watchlistTickers": [
-        "TSLA",
-        "XOM",
-        "CVX",
-        "PFE",
-        "WMT",
-        "AMZN",
-        "GOOGL",
-        "MSFT",
-        "MA",
-        "ORCL"
-      ]
-    },
-    {
-      "date": "2026-08-28",
-      "topWinner": "AMZN",
-      "winnerPct": 4,
-      "topLoser": "NVDA",
-      "loserPct": -4.66,
-      "watchlistTickers": [
-        "AMZN",
-        "NFLX",
-        "BAC",
-        "GOOGL",
-        "MSFT",
-        "NVDA",
-        "INTC",
-        "AMD",
-        "CAT",
-        "TSLA"
       ]
     }
   ]
