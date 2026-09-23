@@ -4,220 +4,434 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Market Brief Agent — Live Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
   :root {
-    --bg: #0b0e14;
-    --panel: #131720;
-    --border: #232838;
-    --text: #e6e9f0;
-    --muted: #8b93a7;
-    --green: #3ddc97;
-    --red: #ff6b6b;
+    /* Dark navy, not pure black — reduces eye strain on long sessions and
+       gives elevated surfaces room to read as "raised" against it. */
+    --bg: hsl(226, 22%, 7%);
+    --panel: hsl(226, 18%, 11%);
+    --panel-hover: hsl(226, 18%, 13%);
+    --border: hsl(226, 16%, 18%);
+    --border-soft: hsl(226, 16%, 15%);
+    --text: hsl(220, 25%, 95%);
+    --muted: hsl(220, 12%, 60%);
+    --muted-dim: hsl(220, 12%, 45%);
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f5c451;
     --accent: #6ea8fe;
+    --accent-dim: hsl(217, 91%, 65%, 0.12);
+    --radius: 14px;
+    --radius-sm: 9px;
+    --space-1: 4px; --space-2: 8px; --space-3: 16px; --space-4: 24px;
+    --space-5: 32px; --space-6: 48px; --space-7: 64px; --space-8: 96px;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    background: var(--bg);
+    background:
+      radial-gradient(900px 500px at 15% -10%, hsla(217, 91%, 60%, 0.08), transparent 60%),
+      radial-gradient(700px 500px at 100% 0%, hsla(150, 70%, 50%, 0.05), transparent 55%),
+      var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    line-height: 1.5;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.011em;
   }
-  header {
-    padding: 40px 24px 24px;
-    max-width: 1100px;
-    margin: 0 auto;
+  .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+
+  .shell { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---- Top bar ---- */
+  .topbar {
+    border-bottom: 1px solid var(--border-soft);
+    padding: 18px 0;
+    position: sticky; top: 0; z-index: 20;
+    background: hsla(226, 22%, 7%, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
-  header h1 { margin: 0 0 6px; font-size: 28px; }
-  header p.tag { margin: 0; color: var(--muted); font-size: 15px; }
-  header .links { margin-top: 14px; }
-  header .links a {
-    color: var(--accent);
-    text-decoration: none;
-    font-size: 14px;
-    margin-right: 16px;
+  .topbar .shell { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+  .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .topbar nav { display: flex; gap: 22px; }
+  .topbar nav a { color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: color .15s; }
+  .topbar nav a:hover { color: var(--text); }
+
+  /* ---- Hero ---- */
+  .hero { padding: var(--space-7) 0 var(--space-5); }
+  .hero h1 {
+    margin: 0 0 var(--space-2);
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
   }
-  header .links a:hover { text-decoration: underline; }
+  .hero p.tag {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16.5px;
+    max-width: 640px;
+    line-height: 1.6;
+  }
+  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: var(--space-4); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 500;
+    padding: 5px 11px; border-radius: 100px;
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .badge b { color: var(--text); font-weight: 600; }
+
   .disclaimer {
-    max-width: 1100px;
-    margin: 0 auto 24px;
+    margin: var(--space-5) 0;
     padding: 14px 18px;
-    background: rgba(255, 193, 7, 0.08);
-    border: 1px solid rgba(255, 193, 7, 0.35);
-    border-radius: 8px;
+    background: hsla(38, 92%, 60%, 0.06);
+    border: 1px solid hsla(38, 92%, 60%, 0.25);
+    border-radius: var(--radius-sm);
     font-size: 13.5px;
-    color: #e8d089;
+    color: hsl(42, 60%, 75%);
+    display: flex; gap: 10px; align-items: flex-start;
   }
-  main { max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
-  section { margin-bottom: 40px; }
+  .disclaimer .ic { flex-shrink: 0; margin-top: 1px; }
+
+  main { padding-bottom: var(--space-8); }
+  section { margin-bottom: var(--space-7); }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4); gap: 12px; flex-wrap: wrap; }
   h2 {
-    font-size: 15px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-    margin: 0 0 14px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 8px;
-  }
-  .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-  }
-  .stat-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-  }
-  .stat-card .value { font-size: 24px; font-weight: 600; }
-  .stat-card .label { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
-  .pos { color: var(--green); }
-  .neg { color: var(--red); }
-  .chart-wrap {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
-  }
-  .bucket-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 16px;
-  }
-  .bucket-group {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 18px;
-  }
-  .bucket-group h3 {
-    margin: 0 0 10px;
     font-size: 13px;
-    color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
+    color: var(--muted-dim);
+    margin: 0;
+    font-weight: 700;
   }
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--border); }
-  th { color: var(--muted); font-weight: 500; }
+  .section-sub { color: var(--muted); font-size: 13.5px; margin: -10px 0 var(--space-4); max-width: 640px; }
+
+  /* ---- Invest bar ---- */
+  .invest-card {
+    background: linear-gradient(180deg, var(--panel), hsl(226, 18%, 10%));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-5);
+  }
+  .invest-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .invest-input-wrap {
+    flex: 1 1 320px;
+    display: flex; align-items: center;
+    background: hsl(226, 20%, 8%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 4px 0 16px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .invest-input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .invest-input-wrap span.prefix { color: var(--muted); font-size: 15px; font-weight: 500; white-space: nowrap; }
+  .invest-input-wrap input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-size: 15px; font-family: inherit;
+    padding: 13px 10px;
+  }
+  .invest-input-wrap input::placeholder { color: var(--muted-dim); }
+  .btn {
+    appearance: none; border: none; cursor: pointer;
+    font-family: inherit; font-weight: 600; font-size: 14px;
+    padding: 13px 22px; border-radius: var(--radius-sm);
+    transition: transform .1s, filter .15s, opacity .15s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: hsl(226, 30%, 10%); }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-ghost { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--panel-hover); }
+  .invest-hint { color: var(--muted-dim); font-size: 12.5px; margin-top: 10px; }
+  #invest-status { font-size: 13.5px; margin-top: 12px; padding: 10px 14px; border-radius: 8px; display: none; }
+  #invest-status.show { display: block; }
+  #invest-status.ok { background: hsla(142, 70%, 50%, 0.08); border: 1px solid hsla(142, 70%, 50%, 0.25); color: hsl(142, 55%, 70%); }
+  #invest-status.err { background: hsla(0, 80%, 60%, 0.08); border: 1px solid hsla(0, 80%, 60%, 0.25); color: hsl(0, 70%, 78%); }
+
+  /* ---- PIN modal ---- */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0; background: hsla(226, 30%, 4%, 0.65);
+    backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: var(--space-5); width: 100%; max-width: 360px;
+    box-shadow: 0 24px 60px -12px hsla(226, 40%, 2%, 0.6);
+  }
+  .modal h3 { margin: 0 0 6px; font-size: 17px; }
+  .modal p { margin: 0 0 var(--space-4); color: var(--muted); font-size: 13.5px; }
+  .pin-input {
+    width: 100%; background: hsl(226, 20%, 8%); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text); font-size: 22px; letter-spacing: 0.5em;
+    text-align: center; padding: 14px; font-family: 'JetBrains Mono', monospace;
+    outline: none;
+  }
+  .pin-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .modal-actions { display: flex; gap: 10px; margin-top: var(--space-4); }
+  .modal-actions .btn { flex: 1; }
+
+  /* ---- Stat grid ---- */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+  .stat-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; transition: border-color .15s;
+  }
+  .stat-card:hover { border-color: var(--border-soft); }
+  .stat-card .value { font-size: 25px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .stat-card .label { color: var(--muted); font-size: 12.5px; margin-top: 5px; }
+  .pos { color: var(--green); } .neg { color: var(--red); }
+
+  .chart-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+
+  .bucket-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .bucket-group { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+  .bucket-group h3 { margin: 0 0 12px; font-size: 12px; color: var(--muted-dim); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border-soft); }
+  th { color: var(--muted-dim); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  tr:last-child td { border-bottom: none; }
   .flag {
-    display: inline-block;
-    font-size: 10.5px;
-    color: #e8d089;
-    background: rgba(255, 193, 7, 0.1);
-    border: 1px solid rgba(255, 193, 7, 0.3);
-    border-radius: 4px;
-    padding: 1px 5px;
-    margin-left: 6px;
+    display: inline-block; font-size: 10px; font-weight: 600;
+    color: var(--amber); background: hsla(38, 92%, 60%, 0.1); border: 1px solid hsla(38, 92%, 60%, 0.25);
+    border-radius: 4px; padding: 1px 6px; margin-left: 6px; letter-spacing: 0.02em;
   }
-  .methodology p { color: #c6cbda; font-size: 14.5px; }
+
+  .methodology { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-5); }
+  .methodology p { color: hsl(220, 15%, 78%); font-size: 14.5px; margin: 0 0 var(--space-3); }
+  .methodology p:last-child { margin-bottom: 0; }
+
   .brief-list { display: flex; flex-direction: column; gap: 8px; }
   .brief-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-size: 13.5px;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 12px 18px; font-size: 13.5px; flex-wrap: wrap; gap: 8px;
+    transition: border-color .15s;
   }
-  .brief-row a { color: var(--text); text-decoration: none; font-weight: 500; }
+  .brief-row:hover { border-color: var(--border-soft); }
+  .brief-row a { color: var(--text); text-decoration: none; font-weight: 600; }
   .brief-row a:hover { color: var(--accent); }
-  .brief-row .movers { color: var(--muted); }
+  .brief-row .movers { color: var(--muted); font-size: 13px; }
+
   footer {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 24px;
-    color: var(--muted);
-    font-size: 12.5px;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--border-soft);
+    padding: var(--space-5) 0;
+    color: var(--muted-dim); font-size: 12.5px;
   }
-  .loading { color: var(--muted); padding: 20px; }
+  footer .shell { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  .loading { color: var(--muted-dim); padding: 24px; text-align: center; font-size: 13.5px; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 28px; }
+    .shell { padding: 0 18px; }
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Market Brief Agent</h1>
-  <p class="tag">Automated nightly market analysis (Claude + live market data + news) with an evidence-based, self-grading paper-trading layer on top.</p>
-  <div class="links">
-    <a href="https://github.com/JackSmiley1/market-brief-agent" target="_blank">Source on GitHub →</a>
-    <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/status-memo.md" target="_blank">Full status memo →</a>
+<div class="topbar">
+  <div class="shell">
+    <div class="brand"><span class="dot"></span> Market Brief Agent</div>
+    <nav>
+      <a href="https://github.com/JackSmiley1/market-brief-agent" target="_blank">GitHub</a>
+      <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/status-memo.md" target="_blank">Status Memo</a>
+      <a href="#invest">Try It</a>
+    </nav>
   </div>
-</header>
-
-<div class="disclaimer">
-  Research project, Phase 1. All trades shown are simulated on Alpaca's <strong>paper trading</strong> API — zero real capital, no live orders, no real users. Numbers below are reported as-is, including when they're negative or statistically inconclusive.
 </div>
 
-<main>
-  <section id="overview-section">
-    <h2>Overview</h2>
-    <div class="stat-grid" id="overview-stats">
-      <div class="loading">Loading…</div>
+<div class="shell">
+  <div class="hero">
+    <h1>Market Brief Agent</h1>
+    <p class="tag">An autonomous research pipeline: nightly Claude-driven market analysis, evidence-based simulated position sizing, and statistical guardrails against tuning on noise — grading itself against reality every night.</p>
+    <div class="badge-row">
+      <span class="badge">Runs <b>nightly</b>, autonomously</span>
+      <span class="badge">Sizing derived from <b id="badge-n">—</b> real trades</span>
+      <span class="badge">Guardrail: <b>n ≥ 20</b> before any rule changes</span>
     </div>
-  </section>
+  </div>
 
-  <section>
-    <h2>Simulated Equity Curve</h2>
-    <div class="chart-wrap">
-      <canvas id="equityChart" height="90"></canvas>
-    </div>
-  </section>
+  <div class="disclaimer">
+    <span class="ic">⚠</span>
+    <span>Research project, Phase 1. All trades shown are simulated on Alpaca's <strong>paper trading</strong> API — zero real capital, no live orders, no real users. Numbers below are reported as-is, including when they're negative or statistically inconclusive.</span>
+  </div>
 
-  <section>
-    <h2>Portfolio Risk (Live)</h2>
-    <div class="chart-wrap" id="risk-wrap">
-      <div class="loading">Loading…</div>
-    </div>
-  </section>
+  <main>
+    <section id="invest">
+      <div class="section-head"><h2>Try It — Ask The Agent</h2></div>
+      <div class="invest-card">
+        <div class="invest-row">
+          <div class="invest-input-wrap">
+            <span class="prefix">Invest in:</span>
+            <input id="invest-input" type="text" placeholder="a company or index, e.g. NVDA or QQQ" maxlength="40" />
+          </div>
+          <button class="btn btn-primary" id="invest-btn">Simulate Investment</button>
+        </div>
+        <div class="invest-hint">Runs a real Claude-generated analysis and, if a setup clears the bar, opens a <strong>simulated</strong> paper position — same pipeline as the nightly system. Never real capital. Confirmation required.</div>
+        <div id="invest-status"></div>
+      </div>
+    </section>
 
-  <section>
-    <h2>Performance by Sizing Lever</h2>
-    <div class="bucket-grid" id="bucket-container">
-      <div class="loading">Loading…</div>
-    </div>
-  </section>
+    <section id="overview-section">
+      <div class="section-head"><h2>Overview</h2></div>
+      <div class="stat-grid" id="overview-stats"><div class="loading">Loading…</div></div>
+    </section>
 
-  <section class="methodology">
-    <h2>Methodology</h2>
-    <p>Every nightly pick gets a self-rated confidence level and an event-risk flag from Claude's own read of the setup. Position size is cut for low confidence, scheduled-event risk, and short positions — not by assumption, but because each one was shown to correlate with worse real outcomes in this system's own trade history.</p>
-    <p id="methodology-detail" class="loading">Loading…</p>
-    <p>Before any comparison above is treated as a reason to change those sizing rules, it has to clear a minimum sample size (<span id="min-n-inline">20</span> closed trades on both sides of the comparison). Buckets below that line are labeled <span class="flag">small sample</span> and are directional only — this is a deliberate guardrail against tuning the strategy on noise.</p>
-  </section>
+    <section>
+      <div class="section-head"><h2>Simulated Equity Curve</h2></div>
+      <div class="chart-wrap"><canvas id="equityChart" height="90"></canvas></div>
+    </section>
 
-  <section>
-    <h2>Recent Briefs</h2>
-    <div class="brief-list" id="brief-list">
-      <div class="loading">Loading…</div>
-    </div>
-  </section>
+    <section>
+      <div class="section-head"><h2>Portfolio Risk — Live</h2></div>
+      <div class="chart-wrap" id="risk-wrap"><div class="loading">Loading…</div></div>
+    </section>
 
-  <section id="on-demand-section" style="display:none;">
-    <h2>On-Demand Trades</h2>
-    <p style="color:var(--muted); font-size:13.5px; margin-top:-6px;">User-prompted, ad hoc trades — analyzed and (if flagged) opened on request rather than by the fixed nightly watchlist. Excluded from the sizing-lever evidence above on purpose, since they're a different, uncontrolled selection process.</p>
-    <div class="brief-list" id="on-demand-list"></div>
-  </section>
-</main>
+    <section>
+      <div class="section-head"><h2>Performance by Sizing Lever</h2></div>
+      <div class="bucket-grid" id="bucket-container"><div class="loading">Loading…</div></div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Methodology</h2></div>
+      <div class="methodology">
+        <p>Every nightly pick gets a self-rated confidence level and an event-risk flag from Claude's own read of the setup. Position size is cut for low confidence, scheduled-event risk, and short positions — not by assumption, but because each one was shown to correlate with worse real outcomes in this system's own trade history.</p>
+        <p id="methodology-detail" class="loading">Loading…</p>
+        <p>Before any comparison above is treated as a reason to change those sizing rules, it has to clear a minimum sample size (<span id="min-n-inline">20</span> closed trades on both sides of the comparison). Buckets below that line are labeled <span class="flag">small sample</span> and are directional only — this is a deliberate guardrail against tuning the strategy on noise.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Recent Briefs</h2></div>
+      <div class="brief-list" id="brief-list"><div class="loading">Loading…</div></div>
+    </section>
+
+    <section id="on-demand-section" style="display:none;">
+      <div class="section-head"><h2>On-Demand Trades</h2></div>
+      <p class="section-sub">User-prompted, ad hoc trades — analyzed and (if flagged) opened on request rather than by the fixed nightly watchlist. Excluded from the sizing-lever evidence above on purpose, since they're a different, uncontrolled selection process.</p>
+      <div class="brief-list" id="on-demand-list"></div>
+    </section>
+  </main>
+</div>
 
 <footer>
-  Generated automatically every trading night by GitHub Actions. Last updated: <span id="generated-at">—</span>.
+  <div class="shell">
+    <span>Generated automatically every trading night by GitHub Actions.</span>
+    <span>Last updated: <span id="generated-at" class="mono">—</span></span>
+  </div>
 </footer>
 
+<!-- ---- PIN confirmation modal ---- -->
+<div class="modal-backdrop" id="pin-backdrop">
+  <div class="modal">
+    <h3>Confirm Simulated Trade</h3>
+    <p id="pin-modal-desc">Enter your PIN to run this on-demand analysis.</p>
+    <input class="pin-input mono" id="pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••" />
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="pin-cancel">Cancel</button>
+      <button class="btn btn-primary" id="pin-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script>
+// ============================================================================
+// INVEST BAR CONFIG
+// Fill this in once the Cloudflare Worker (see /worker/README.md) is
+// deployed. Until then, the bar is fully visible and functional up through
+// the PIN confirmation step, then shows a clear "not connected yet" message
+// instead of silently failing — never pretend a trade was submitted when it
+// wasn't.
+// ============================================================================
+const WORKER_URL = ""; // e.g. "https://market-brief-invest.<your-subdomain>.workers.dev"
+
+function setupInvestBar() {
+  const input = document.getElementById('invest-input');
+  const btn = document.getElementById('invest-btn');
+  const status = document.getElementById('invest-status');
+  const backdrop = document.getElementById('pin-backdrop');
+  const pinInput = document.getElementById('pin-input');
+  const pinDesc = document.getElementById('pin-modal-desc');
+  const pinConfirm = document.getElementById('pin-confirm');
+  const pinCancel = document.getElementById('pin-cancel');
+
+  function showStatus(msg, ok) {
+    status.textContent = msg;
+    status.className = 'show ' + (ok ? 'ok' : 'err');
+  }
+
+  function openModal() {
+    const ticker = input.value.trim();
+    if (!ticker) { showStatus('Enter a ticker or index first.', false); return; }
+    pinDesc.textContent = 'Enter your PIN to run a simulated analysis + trade on "' + ticker + '".';
+    pinInput.value = '';
+    backdrop.classList.add('show');
+    setTimeout(() => pinInput.focus(), 50);
+  }
+  function closeModal() { backdrop.classList.remove('show'); }
+
+  btn.addEventListener('click', openModal);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(); });
+  pinCancel.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
+  pinInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') pinConfirm.click(); });
+
+  pinConfirm.addEventListener('click', async () => {
+    const pin = pinInput.value.trim();
+    const ticker = input.value.trim();
+    if (!/^\d{4}$/.test(pin)) { pinInput.style.borderColor = 'var(--red)'; return; }
+    closeModal();
+
+    if (!WORKER_URL) {
+      showStatus("Not connected yet — the backend trigger (Cloudflare Worker) hasn't been deployed. See /worker/README.md.", false);
+      return;
+    }
+
+    btn.disabled = true;
+    showStatus('Submitting — this runs a real analysis and can take up to a minute…', true);
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker, pin }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok) {
+        showStatus('Submitted. Results (analysis + any simulated trade) will appear in "On-Demand Trades" below after the next dashboard refresh (~1 min).', true);
+        input.value = '';
+      } else {
+        showStatus('Request rejected: ' + (body.error || res.statusText) + (res.status === 401 ? ' (wrong PIN)' : ''), false);
+      }
+    } catch (err) {
+      showStatus('Could not reach the backend: ' + err.message, false);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
 async function main() {
+  setupInvestBar();
+
   const res = await fetch('./data.json', { cache: 'no-store' });
   const data = await res.json();
 
   document.getElementById('generated-at').textContent = new Date(data.generatedAt).toLocaleString();
   document.getElementById('min-n-inline').textContent = data.minSampleSize;
+  document.getElementById('badge-n').textContent = data.overview.closedTrades;
 
-  // ---- Overview stats ----
   const o = data.overview;
   const fmtPct = (n) => n === null || n === undefined ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
   const cls = (n) => n === null || n === undefined ? '' : (n >= 0 ? 'pos' : 'neg');
@@ -232,7 +446,6 @@ async function main() {
     '<div class="stat-card"><div class="value ' + (s.cls||'') + '">' + s.value + '</div><div class="label">' + s.label + '</div></div>'
   ).join('');
 
-  // ---- Equity curve ----
   const ctx = document.getElementById('equityChart').getContext('2d');
   new Chart(ctx, {
     type: 'line',
@@ -242,53 +455,51 @@ async function main() {
         label: 'Cumulative simulated P&L ($)',
         data: data.equityCurve.map(p => p.cumulativePnl),
         borderColor: '#6ea8fe',
-        backgroundColor: 'rgba(110,168,254,0.08)',
+        backgroundColor: 'rgba(110,168,254,0.10)',
         fill: true,
-        tension: 0.15,
+        tension: 0.2,
         pointRadius: 0,
-        borderWidth: 2,
+        borderWidth: 2.5,
       }]
     },
     options: {
       responsive: true,
-      plugins: { legend: { labels: { color: '#8b93a7' } } },
+      plugins: { legend: { labels: { color: '#8b93a7', font: { family: 'Inter' } } } },
       scales: {
-        x: { title: { display: true, text: 'Closed trade #', color: '#8b93a7' }, ticks: { color: '#8b93a7' }, grid: { color: '#232838' } },
-        y: { ticks: { color: '#8b93a7' }, grid: { color: '#232838' } },
+        x: { title: { display: true, text: 'Closed trade #', color: '#8b93a7', font: { family: 'Inter' } }, ticks: { color: '#8b93a7' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#8b93a7' }, grid: { color: 'rgba(255,255,255,0.04)' } },
       }
     }
   });
 
-  // ---- Portfolio risk (live exposure vs. caps) ----
   const risk = data.portfolioRisk;
   if (risk) {
     const posPct = Math.min(100, (risk.currentOpenPositions / risk.maxConcurrentPositions) * 100);
     const notionalPct = Math.min(100, (risk.currentDeployedUsd / risk.maxTotalNotionalUsd) * 100);
-    const barColor = (pct) => pct >= 90 ? 'var(--red)' : pct >= 60 ? '#e8d089' : 'var(--green)';
+    const barColor = (pct) => pct >= 90 ? 'var(--red)' : pct >= 60 ? 'var(--amber)' : 'var(--green)';
     document.getElementById('risk-wrap').innerHTML = `
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:28px;">
         <div>
-          <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:6px;">
-            <span>Open positions</span><span>${risk.currentOpenPositions} / ${risk.maxConcurrentPositions}</span>
+          <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:8px;">
+            <span style="color:var(--muted)">Open positions</span><span class="mono">${risk.currentOpenPositions} / ${risk.maxConcurrentPositions}</span>
           </div>
-          <div style="background:#1c2130; border-radius:6px; height:8px; overflow:hidden;">
-            <div style="width:${posPct}%; height:100%; background:${barColor(posPct)};"></div>
+          <div style="background:hsl(226,20%,16%); border-radius:6px; height:7px; overflow:hidden;">
+            <div style="width:${posPct}%; height:100%; background:${barColor(posPct)}; transition: width .4s;"></div>
           </div>
         </div>
         <div>
-          <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:6px;">
-            <span>Deployed notional</span><span>$${risk.currentDeployedUsd.toLocaleString()} / $${risk.maxTotalNotionalUsd.toLocaleString()}</span>
+          <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:8px;">
+            <span style="color:var(--muted)">Deployed notional</span><span class="mono">$${risk.currentDeployedUsd.toLocaleString()} / $${risk.maxTotalNotionalUsd.toLocaleString()}</span>
           </div>
-          <div style="background:#1c2130; border-radius:6px; height:8px; overflow:hidden;">
-            <div style="width:${notionalPct}%; height:100%; background:${barColor(notionalPct)};"></div>
+          <div style="background:hsl(226,20%,16%); border-radius:6px; height:7px; overflow:hidden;">
+            <div style="width:${notionalPct}%; height:100%; background:${barColor(notionalPct)}; transition: width .4s;"></div>
           </div>
         </div>
       </div>
-      <p style="color:var(--muted); font-size:13px; margin:14px 0 0;">Hard caps enforced at order time (see PORTFOLIO_LIMITS in config.js) — new positions are skipped, not queued, once either limit is reached. Counts all currently open/unsettled positions regardless of source (nightly or on-demand).</p>
+      <p style="color:var(--muted-dim); font-size:12.5px; margin:16px 0 0;">Hard caps enforced at order time (see PORTFOLIO_LIMITS in config.js) — new positions are skipped, not queued, once either limit is reached. Counts all currently open/unsettled positions regardless of source.</p>
     `;
   }
 
-  // ---- Buckets ----
   const groupTitles = { direction: 'By Direction', confidence: 'By Confidence', eventRisk: 'By Event Risk' };
   const labelNames = { long: 'Long', short: 'Short', high: 'High', medium: 'Medium', low: 'Low', event_risk: 'Event risk', no_event_risk: 'No event risk' };
   let bucketHtml = '';
@@ -307,13 +518,11 @@ async function main() {
   }
   document.getElementById('bucket-container').innerHTML = bucketHtml || '<div class="loading">No bucketed data yet.</div>';
 
-  // ---- Methodology detail (real numbers, not hardcoded) ----
   const sa = data.methodology.sizingAdjustments;
   document.getElementById('methodology-detail').textContent =
     'Current cuts: low confidence ×' + sa.lowConfidence + ', event risk ×' + sa.eventRisk + ', short direction ×' + sa.shortDirection +
     ' — applied on top of a $' + data.methodology.baseNotionalUsd + ' base position, stacking when more than one applies.';
 
-  // ---- Recent briefs ----
   const briefHtml = data.recentBriefs.map(b => {
     const url = 'https://github.com/JackSmiley1/market-brief-agent/blob/main/logs/briefs/' + b.date + '.md';
     const winner = b.topWinner ? b.topWinner + ' ' + fmtPct(b.winnerPct) : '—';
@@ -323,7 +532,6 @@ async function main() {
   }).join('');
   document.getElementById('brief-list').innerHTML = briefHtml || '<div class="loading">No briefs yet.</div>';
 
-  // ---- On-demand trades (optional section, hidden until there's data) ----
   if (data.onDemand && data.onDemand.length > 0) {
     document.getElementById('on-demand-section').style.display = '';
     document.getElementById('on-demand-list').innerHTML = data.onDemand.map(t => {
