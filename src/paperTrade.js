@@ -1,6 +1,6 @@
 import axios from "axios";
 import { db } from "./db.js";
-import { ALPACA_TRADING_BASE, computeNotional } from "./config.js";
+import { ALPACA_TRADING_BASE, computeNotional, PORTFOLIO_LIMITS } from "./config.js";
 
 const headers = {
   "APCA-API-KEY-ID": process.env.ALPACA_KEY_ID,
@@ -90,6 +90,15 @@ const markExitFailedStmt = db.prepare(`UPDATE paper_trades SET status = 'exit_fa
 // of hitting that rejection repeatedly.
 const unresolvedPositionStmt = db.prepare(
   `SELECT 1 FROM paper_trades WHERE ticker = ? AND status NOT IN ('closed', 'entry_failed', 'exit_failed') LIMIT 1`
+);
+
+// Portfolio-level exposure check (see PORTFOLIO_LIMITS in config.js).
+// exit_pending is deliberately included — a close order that hasn't filled
+// yet still means the account is holding that position, so it still counts
+// as capital at risk right up until reconciliation confirms the exit.
+const currentExposureStmt = db.prepare(
+  `SELECT COUNT(*) AS n, COALESCE(SUM(notional), 0) AS notional
+   FROM paper_trades WHERE status IN ('entry_pending', 'open', 'exit_pending')`
 );
 
 const pendingExitsStmt = db.prepare(
@@ -191,12 +200,27 @@ export async function closeMaturePositions() {
 // the notional buys used for longs) — not used as the actual fill price,
 // which still comes from the reconciled order itself.
 export async function openNewPositions(date, items, priceMap = {}, source = "nightly") {
+  // Snapshot current exposure once, then track it running as this batch
+  // opens positions — each new order counts against the cap for the rest
+  // of this same call, not just against what was already open before it
+  // started (otherwise a single oversized batch could blow past the cap
+  // in one pass since every item would see the same "before" snapshot).
+  let { n: openCount, notional: openNotional } = currentExposureStmt.get();
+
   for (const item of items) {
     const ticker = item.ticker;
     const direction = item.direction === "short" ? "short" : "long"; // default long on any malformed/missing value
     const notional = computeNotional({ confidence: item.confidence, eventRisk: item.eventRisk, direction });
     if (unresolvedPositionStmt.get(ticker)) {
       console.log(`paperTrade: skipping re-entry — ${ticker} (${date}) already has an unresolved position from an earlier cycle.`);
+      continue;
+    }
+    if (openCount + 1 > PORTFOLIO_LIMITS.maxConcurrentPositions || openNotional + notional > PORTFOLIO_LIMITS.maxTotalNotionalUsd) {
+      console.warn(
+        `paperTrade: skipping ${ticker} (${date}, source=${source}) — portfolio exposure cap reached ` +
+        `(currently ${openCount} position(s), $${openNotional} deployed; limits: ${PORTFOLIO_LIMITS.maxConcurrentPositions} positions / $${PORTFOLIO_LIMITS.maxTotalNotionalUsd}). ` +
+        `Not treated as a failure — no row written, this pick is simply not taken this cycle.`
+      );
       continue;
     }
     try {
@@ -213,6 +237,8 @@ export async function openNewPositions(date, items, priceMap = {}, source = "nig
         order = await submitBuyOrder(ticker, notional);
       }
       insertEntryStmt.run(date, ticker, order.id, notional, direction, source);
+      openCount += 1;
+      openNotional += notional;
       console.log(`paperTrade: ${direction} order submitted — ${ticker} (${date}), order ${order.id}, $${notional} notional (confidence=${item.confidence ?? "?"}, eventRisk=${item.eventRisk ?? "?"}, source=${source})`);
     } catch (err) {
       console.error(`paperTrade: failed to submit ${direction} order for ${ticker} (${date}):`, describeError(err));

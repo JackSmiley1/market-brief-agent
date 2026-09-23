@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T19:53:12.019Z",
+  "generatedAt": "2026-09-23T19:56:50.536Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 87,
@@ -429,6 +429,12 @@
       "eventRisk": 0.5,
       "shortDirection": 0.5
     }
+  },
+  "portfolioRisk": {
+    "currentOpenPositions": 6,
+    "currentDeployedUsd": 3750,
+    "maxConcurrentPositions": 15,
+    "maxTotalNotionalUsd": 6000
   },
   "recentBriefs": [
     {

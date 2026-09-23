@@ -54,3 +54,23 @@ export function computeNotional({ confidence, eventRisk, direction }) {
   if (direction === "short") notional *= SIZING_ADJUSTMENTS.shortDirection;
   return Math.round(notional);
 }
+
+// Portfolio-level exposure caps — the gap the per-position sizing above
+// never covered. computeNotional controls how big any ONE position is;
+// nothing previously controlled how many were open AT ONCE or how much
+// total capital was deployed simultaneously. A normal night opens 3-5
+// nightly picks (~$2,000-4,000 notional combined at current sizing) plus
+// whatever the prior night's positions still winding down (exit_pending)
+// add on top — these caps are set generously above that normal range
+// (roughly 1.5-2x a typical night) so ordinary operation is never blocked,
+// while still providing a real ceiling against a pathological batch: a bug
+// that repeatedly re-enters, an on-demand session run back-to-back many
+// times, or a night where the model flags an unusually large watchlist.
+// Counts/sums ALL open exposure regardless of source (nightly + on_demand)
+// — this is about real (simulated) capital currently at risk in the one
+// Alpaca paper account, not about keeping the sizing-evidence analysis
+// clean (that's what the source column is for, see db.js).
+export const PORTFOLIO_LIMITS = {
+  maxConcurrentPositions: 15,
+  maxTotalNotionalUsd: 6000,
+};

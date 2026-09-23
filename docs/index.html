@@ -171,6 +171,13 @@
   </section>
 
   <section>
+    <h2>Portfolio Risk (Live)</h2>
+    <div class="chart-wrap" id="risk-wrap">
+      <div class="loading">Loading…</div>
+    </div>
+  </section>
+
+  <section>
     <h2>Performance by Sizing Lever</h2>
     <div class="bucket-grid" id="bucket-container">
       <div class="loading">Loading…</div>
@@ -251,6 +258,35 @@ async function main() {
       }
     }
   });
+
+  // ---- Portfolio risk (live exposure vs. caps) ----
+  const risk = data.portfolioRisk;
+  if (risk) {
+    const posPct = Math.min(100, (risk.currentOpenPositions / risk.maxConcurrentPositions) * 100);
+    const notionalPct = Math.min(100, (risk.currentDeployedUsd / risk.maxTotalNotionalUsd) * 100);
+    const barColor = (pct) => pct >= 90 ? 'var(--red)' : pct >= 60 ? '#e8d089' : 'var(--green)';
+    document.getElementById('risk-wrap').innerHTML = `
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:6px;">
+            <span>Open positions</span><span>${risk.currentOpenPositions} / ${risk.maxConcurrentPositions}</span>
+          </div>
+          <div style="background:#1c2130; border-radius:6px; height:8px; overflow:hidden;">
+            <div style="width:${posPct}%; height:100%; background:${barColor(posPct)};"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:6px;">
+            <span>Deployed notional</span><span>$${risk.currentDeployedUsd.toLocaleString()} / $${risk.maxTotalNotionalUsd.toLocaleString()}</span>
+          </div>
+          <div style="background:#1c2130; border-radius:6px; height:8px; overflow:hidden;">
+            <div style="width:${notionalPct}%; height:100%; background:${barColor(notionalPct)};"></div>
+          </div>
+        </div>
+      </div>
+      <p style="color:var(--muted); font-size:13px; margin:14px 0 0;">Hard caps enforced at order time (see PORTFOLIO_LIMITS in config.js) — new positions are skipped, not queued, once either limit is reached. Counts all currently open/unsettled positions regardless of source (nightly or on-demand).</p>
+    `;
+  }
 
   // ---- Buckets ----
   const groupTitles = { direction: 'By Direction', confidence: 'By Confidence', eventRisk: 'By Event Risk' };

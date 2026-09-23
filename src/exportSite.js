@@ -2,7 +2,7 @@ import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { db } from "./db.js";
-import { PAPER_TRADE_BASE_NOTIONAL, SIZING_ADJUSTMENTS } from "./config.js";
+import { PAPER_TRADE_BASE_NOTIONAL, SIZING_ADJUSTMENTS, PORTFOLIO_LIMITS } from "./config.js";
 
 // Turns logs/brief-data.db into a single static JSON file the dashboard
 // (docs/index.html) fetches client-side. Runs nightly in CI right after the
@@ -43,6 +43,16 @@ const closed = db
      ORDER BY COALESCE(p.exit_filled_at, p.date)`
   )
   .all();
+
+// Current portfolio exposure right now, regardless of source — same query
+// paperTrade.js's cap check uses, so the dashboard shows exactly what the
+// live enforcement sees, not a separately-computed approximation of it.
+const currentExposure = db
+  .prepare(
+    `SELECT COUNT(*) AS n, COALESCE(SUM(notional), 0) AS notional
+     FROM paper_trades WHERE status IN ('entry_pending', 'open', 'exit_pending')`
+  )
+  .get();
 
 const onDemandClosed = db
   .prepare(
@@ -123,6 +133,12 @@ const output = {
   methodology: {
     baseNotionalUsd: PAPER_TRADE_BASE_NOTIONAL,
     sizingAdjustments: SIZING_ADJUSTMENTS,
+  },
+  portfolioRisk: {
+    currentOpenPositions: currentExposure.n,
+    currentDeployedUsd: currentExposure.notional,
+    maxConcurrentPositions: PORTFOLIO_LIMITS.maxConcurrentPositions,
+    maxTotalNotionalUsd: PORTFOLIO_LIMITS.maxTotalNotionalUsd,
   },
   recentBriefs,
   onDemand: onDemandClosed.map((r) => ({
