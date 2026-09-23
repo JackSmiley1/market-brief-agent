@@ -1,0 +1,68 @@
+name: On-Demand Trade
+
+# Triggered by the dashboard's "Invest in:" bar (via a Cloudflare Worker
+# that validates the PIN and calls this workflow's dispatch API — see
+# /worker/README.md) or manually from the Actions tab. Runs the exact same
+# onDemandTrade.js used locally (see that file for the full explanation of
+# source tagging / why these trades are excluded from the nightly evidence
+# analysis) — this workflow is just how it gets triggered remotely and
+# publishes its result, not a different code path.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: 'Ticker or comma-separated tickers (e.g. NVDA or NVDA,AMD)'
+        required: true
+        type: string
+      context:
+        description: 'Optional context for the analysis'
+        required: false
+        type: string
+        default: 'On-demand request via dashboard'
+      analyzeOnly:
+        description: 'Analyze only — do not open a simulated trade'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# Same group as nightly-brief.yml — see that file's comment. Queues instead
+# of racing if an on-demand trade happens to land at the same moment as the
+# scheduled nightly run, since both read/write the same committed db file.
+concurrency:
+  group: market-brief-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-on-demand:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with: { node-version: '22' }
+      - run: npm install
+      - name: Run on-demand analysis (+ simulated trade unless analyzeOnly)
+        run: |
+          if [ "${{ inputs.analyzeOnly }}" = "true" ]; then
+            node src/onDemandTrade.js "${{ inputs.ticker }}" "${{ inputs.context }}" --analyze-only
+          else
+            node src/onDemandTrade.js "${{ inputs.ticker }}" "${{ inputs.context }}"
+          fi
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+      - name: Export public dashboard data
+        run: npm run export-site
+      - name: Commit result back to repo
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/ docs/data.json
+          git commit -m "On-demand trade: ${{ inputs.ticker }} ($(date +'%Y-%m-%d %H:%M'))" || echo "No changes"
+          git pull --rebase || true
+          git push

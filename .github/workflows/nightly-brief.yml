@@ -5,6 +5,15 @@ on:
   workflow_dispatch: {}
 permissions:
   contents: write   # GITHUB_TOKEN defaults to read-only; the commit-back step needs write access
+# Shared with on-demand-trade.yml: both workflows write to the same
+# logs/brief-data.db and commit+push. Without this, an on-demand trade
+# triggered at the same moment as the nightly run could race it — two
+# runners editing their own checked-out copy of the same sqlite file, one
+# push succeeding and the other failing non-fast-forward. Same group name
+# in both files makes GitHub queue them instead of running concurrently.
+concurrency:
+  group: market-brief-pipeline
+  cancel-in-progress: false
 jobs:
   run-brief:
     runs-on: ubuntu-latest
@@ -27,4 +36,5 @@ jobs:
           git config user.email "actions@github.com"
           git add logs/ docs/data.json
           git commit -m "Nightly brief: $(date +'%Y-%m-%d')" || echo "No changes"
+          git pull --rebase || true
           git push
