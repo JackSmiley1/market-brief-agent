@@ -9,7 +9,9 @@
     "confidence": "node src/computeConfidence.js",
     "checkpoint": "node src/checkpoint.js",
     "export-site": "node src/exportSite.js",
-    "invest": "node src/onDemandTrade.js"
+    "invest": "node src/onDemandTrade.js",
+    "reflect": "node src/reflect.js",
+    "lessons": "node src/lessons.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

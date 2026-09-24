@@ -28,6 +28,17 @@ jobs:
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+      - name: Reflect on recent losing trades (Reflexion-style lesson synthesis)
+        # Runs AFTER the brief, not before: it needs tonight's paper-trading
+        # cycle (just reconciled above) to see the fullest, freshest set of
+        # closed losses. Its own gate (MIN_NEW_LOSSES in reflect.js) means
+        # this is a no-op most nights — it only calls the API and writes a
+        # row when there's actually a big enough new batch to reflect on.
+        # Whatever it writes here feeds into the NEXT night's brief, not
+        # tonight's (already generated above).
+        run: npm run reflect
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       - name: Export public dashboard data
         run: npm run export-site
       - name: Commit brief + dashboard data back to repo

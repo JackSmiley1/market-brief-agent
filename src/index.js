@@ -12,6 +12,7 @@ import {
   getMostRecentBriefDate,
 } from "./saveBrief.js";
 import { runPaperTradingCycle } from "./paperTrade.js";
+import { db } from "./db.js";
 
 function todayISO() {
   // toISOString() reports UTC, which has already rolled to the next
@@ -69,12 +70,21 @@ async function run() {
   const { date: previousDate, items: previousWatchlist } = loadMostRecentWatchlist(date);
   const followUpResults = matchPreviousWatchlist(previousWatchlist, marketData);
 
+  // Most recent Reflexion-style lesson (see reflect.js) — advisory context
+  // only, folded into the prompt in buildPrompt.js. Null on nights where no
+  // lesson has been recorded yet (gate not cleared) or none exists at all.
+  const latestLessonRow = db
+    .prepare(`SELECT lesson_text FROM lessons ORDER BY id DESC LIMIT 1`)
+    .get();
+  const latestLesson = latestLessonRow?.lesson_text ?? null;
+
   const { briefText, followUpItems, gradingItems } = await generateBrief({
     marketData,
     marketNews,
     moverNews,
     date,
     followUpResults,
+    latestLesson,
   });
   saveBriefMarkdown(date, briefText);
   saveWatchlistFollowUp(date, followUpItems);

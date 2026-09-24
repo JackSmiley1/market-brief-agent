@@ -3,8 +3,8 @@ import { SYSTEM_PROMPT, buildUserMessage, ON_DEMAND_SYSTEM_PROMPT, buildOnDemand
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-export async function generateBrief({ marketData, marketNews, moverNews, date, followUpResults }) {
-  const userMessage = buildUserMessage({ marketData, marketNews, moverNews, date, followUpResults });
+export async function generateBrief({ marketData, marketNews, moverNews, date, followUpResults, latestLesson }) {
+  const userMessage = buildUserMessage({ marketData, marketNews, moverNews, date, followUpResults, latestLesson });
 
   const response = await client.messages.create({
     model: "claude-sonnet-5",

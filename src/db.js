@@ -108,3 +108,23 @@ addColumnIfMissing("watchlist_followups", "confidence TEXT");
 // risk at all. Used by paperTrade.js to size positions down, not just
 // tracked passively. Null for historical rows (never rated).
 addColumnIfMissing("watchlist_followups", "event_risk INTEGER");
+
+// Reflection loop (see reflect.js) — a Reflexion-style mechanism distinct
+// from the numeric sizing rules in config.js. Sizing answers "how much to
+// risk"; this answers "what pattern should tonight's picks watch out for,"
+// synthesized in natural language from a batch of the system's own recent
+// losing trades (original setup reasoning + actual outcome), not just their
+// win/loss tally. Gated the same way checkpoint.js gates sizing changes —
+// only runs on a large-enough new batch of losses, and is explicitly allowed
+// to conclude "no clear pattern" rather than forcing an insight. based_on_ids
+// stores which paper_trades rows a lesson was drawn from (comma-separated),
+// so a lesson is never silently re-derived from trades already reflected on.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS lessons (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL,
+    based_on_trade_count INTEGER NOT NULL,
+    based_on_ids TEXT NOT NULL,
+    lesson_text TEXT NOT NULL
+  );
+`);

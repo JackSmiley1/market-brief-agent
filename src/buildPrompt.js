@@ -63,12 +63,23 @@ FIRST, output a single fenced code block labeled "on-demand-call" containing a J
 THEN, after that block, write 2-4 sentences of plain-language analysis explaining the call (or explaining why you're passing on all of them).`;
 }
 
-export function buildUserMessage({ marketData, marketNews, moverNews, date, followUpResults = [] }) {
+export function buildUserMessage({ marketData, marketNews, moverNews, date, followUpResults = [], latestLesson = null }) {
   const winners = [...marketData].sort((a, b) => b.pctChange - a.pctChange).slice(0, 5);
   const losers = [...marketData].sort((a, b) => a.pctChange - b.pctChange).slice(0, 5);
 
   const followUpBlock = followUpResults.length > 0
     ? `\nYESTERDAY'S FLAGGED WATCHLIST (with today's actual results):\n${JSON.stringify(followUpResults, null, 2)}\n`
+    : "";
+
+  // Output of the reflection loop (see reflect.js / the `lessons` table) —
+  // a natural-language pattern drawn from a past batch of this system's own
+  // losing trades. Deliberately framed as advisory, not a rule: it's a
+  // qualitative read on a small-ish sample, not a statistically validated
+  // sizing input (that's config.js's job). Only ever the single most recent
+  // lesson — older ones stay in the db for reflect.js's own dedup logic but
+  // aren't re-shown here every night.
+  const lessonBlock = latestLesson
+    ? `\nLESSON FROM PAST LOSING TRADES (advisory context, not a hard rule — weigh it, don't apply it mechanically):\n${latestLesson}\n`
     : "";
 
   const followUpSectionInstruction = followUpResults.length > 0
@@ -89,7 +100,7 @@ ${JSON.stringify(marketNews, null, 2)}
 
 COMPANY NEWS FOR TOP MOVERS:
 ${JSON.stringify(moverNews, null, 2)}
-${followUpBlock}
+${followUpBlock}${lessonBlock}
 FIRST, before writing anything else, output a single fenced code block labeled "watchlist-followup" containing a JSON object with two keys, in exactly this form:
 \`\`\`watchlist-followup
 {
