@@ -176,6 +176,13 @@
     border-radius: var(--radius-sm); color: var(--text); font-size: 22px; letter-spacing: 0.5em;
     text-align: center; padding: 14px; font-family: 'JetBrains Mono', monospace;
     outline: none;
+    /* type="text" (not "password") on purpose — a browser's password
+       manager treats type="password" as a real login credential, which
+       triggers breach-checking / save prompts for a 4-digit UX gate that
+       was never meant to be one. This CSS keeps the masked-dot look
+       without that side effect (Chrome/Safari/Edge support it; Firefox
+       falls back to showing plain digits, an acceptable tradeoff). */
+    -webkit-text-security: disc;
   }
   .pin-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
   .modal-actions { display: flex; gap: 10px; margin-top: var(--space-4); }
@@ -338,7 +345,7 @@
   <div class="modal">
     <h3>Confirm Simulated Trade</h3>
     <p id="pin-modal-desc">Enter your PIN to run this on-demand analysis.</p>
-    <input class="pin-input mono" id="pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••" />
+    <input class="pin-input mono" id="pin-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" data-lpignore="true" data-1p-ignore maxlength="4" placeholder="••••" />
     <div class="modal-actions">
       <button class="btn btn-ghost" id="pin-cancel">Cancel</button>
       <button class="btn btn-primary" id="pin-confirm">Confirm</button>
@@ -387,6 +394,9 @@ function setupInvestBar() {
   pinCancel.addEventListener('click', closeModal);
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
   pinInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') pinConfirm.click(); });
+  pinInput.addEventListener('input', () => {
+    pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 4);
+  });
 
   pinConfirm.addEventListener('click', async () => {
     const pin = pinInput.value.trim();
