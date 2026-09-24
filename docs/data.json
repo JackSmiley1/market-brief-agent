@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-09-24T02:01:55.020Z",
+  "generatedAt": "2026-09-24T14:19:13.715Z",
   "minSampleSize": 20,
   "overview": {
-    "closedTrades": 89,
-    "avgReturnPct": -0.451,
-    "totalPnl": -299.88,
-    "totalNotional": 79250,
-    "winRatePct": 50.6,
+    "closedTrades": 93,
+    "avgReturnPct": -0.482,
+    "totalPnl": -337.13,
+    "totalNotional": 82250,
+    "winRatePct": 48.4,
     "directionalHitRatePct": 65.6,
     "directionalResolvedN": 125
   },
@@ -366,26 +366,42 @@
     {
       "date": "2026-09-23",
       "cumulativePnl": -299.88
+    },
+    {
+      "date": "2026-09-24",
+      "cumulativePnl": -308.44
+    },
+    {
+      "date": "2026-09-24",
+      "cumulativePnl": -309.5
+    },
+    {
+      "date": "2026-09-24",
+      "cumulativePnl": -315.14
+    },
+    {
+      "date": "2026-09-24",
+      "cumulativePnl": -337.13
     }
   ],
   "buckets": {
     "direction": [
       {
         "label": "long",
-        "n": 43,
-        "totalPnl": -40.05,
-        "totalNotional": 42500,
-        "avgReturnPct": -0.052,
-        "winRatePct": 55.8,
+        "n": 45,
+        "totalPnl": -67.68,
+        "totalNotional": 44500,
+        "avgReturnPct": -0.111,
+        "winRatePct": 53.3,
         "meetsMinN": true
       },
       {
         "label": "short",
-        "n": 46,
-        "totalPnl": -259.83,
-        "totalNotional": 36750,
-        "avgReturnPct": -0.824,
-        "winRatePct": 45.7,
+        "n": 48,
+        "totalPnl": -269.45,
+        "totalNotional": 37750,
+        "avgReturnPct": -0.829,
+        "winRatePct": 43.8,
         "meetsMinN": true
       }
     ],
@@ -401,11 +417,11 @@
       },
       {
         "label": "medium",
-        "n": 39,
-        "totalPnl": 82.27,
-        "totalNotional": 34000,
-        "avgReturnPct": 0.076,
-        "winRatePct": 51.3,
+        "n": 43,
+        "totalPnl": 45.02,
+        "totalNotional": 37000,
+        "avgReturnPct": -0.039,
+        "winRatePct": 46.5,
         "meetsMinN": true
       },
       {
@@ -421,11 +437,11 @@
     "eventRisk": [
       {
         "label": "no_event_risk",
-        "n": 22,
-        "totalPnl": -83.39,
-        "totalNotional": 12250,
-        "avgReturnPct": -0.727,
-        "winRatePct": 40.9,
+        "n": 26,
+        "totalPnl": -120.64,
+        "totalNotional": 15250,
+        "avgReturnPct": -0.793,
+        "winRatePct": 34.6,
         "meetsMinN": true
       }
     ]
@@ -439,8 +455,8 @@
     }
   },
   "portfolioRisk": {
-    "currentOpenPositions": 8,
-    "currentDeployedUsd": 5000,
+    "currentOpenPositions": 4,
+    "currentDeployedUsd": 2000,
     "maxConcurrentPositions": 15,
     "maxTotalNotionalUsd": 6000
   },
