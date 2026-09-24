@@ -486,7 +486,7 @@ async function main() {
   if (o.currentStreak) {
     stats.push({
       label: 'Current streak',
-      value: o.currentStreak.count + ' ' + (o.currentStreak.type === 'win' ? 'win' : 'loss') + (o.currentStreak.count > 1 ? 's' : ''),
+      value: o.currentStreak.count + ' ' + (o.currentStreak.type === 'win' ? (o.currentStreak.count > 1 ? 'wins' : 'win') : (o.currentStreak.count > 1 ? 'losses' : 'loss')),
       cls: o.currentStreak.type === 'win' ? 'pos' : 'neg',
     });
   }
