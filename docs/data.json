@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T14:19:13.715Z",
+  "generatedAt": "2026-09-24T16:55:46.446Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 93,
@@ -8,379 +8,766 @@
     "totalNotional": 82250,
     "winRatePct": 48.4,
     "directionalHitRatePct": 65.6,
-    "directionalResolvedN": 125
+    "directionalResolvedN": 125,
+    "maxDrawdownUsd": 337.13,
+    "bestTrade": {
+      "ticker": "ORCL",
+      "date": "2026-09-02",
+      "pnlPct": 6.02
+    },
+    "worstTrade": {
+      "ticker": "CRM",
+      "date": "2026-08-25",
+      "pnlPct": -15.59
+    },
+    "currentStreak": {
+      "type": "loss",
+      "count": 8
+    }
   },
   "equityCurve": [
     {
       "date": "2026-08-19",
+      "ticker": "CAT",
+      "direction": "long",
+      "tradePnl": -26.9,
+      "tradePnlPct": -2.69,
       "cumulativePnl": -26.9
     },
     {
       "date": "2026-08-19",
+      "ticker": "XOM",
+      "direction": "long",
+      "tradePnl": 5.9,
+      "tradePnlPct": 0.59,
       "cumulativePnl": -21
     },
     {
       "date": "2026-08-19",
+      "ticker": "META",
+      "direction": "long",
+      "tradePnl": -28.66,
+      "tradePnlPct": -2.87,
       "cumulativePnl": -49.66
     },
     {
       "date": "2026-08-19",
+      "ticker": "CRM",
+      "direction": "long",
+      "tradePnl": 10.84,
+      "tradePnlPct": 1.08,
       "cumulativePnl": -38.82
     },
     {
       "date": "2026-08-20",
+      "ticker": "JNJ",
+      "direction": "long",
+      "tradePnl": 1.07,
+      "tradePnlPct": 0.11,
       "cumulativePnl": -37.75
     },
     {
       "date": "2026-08-20",
+      "ticker": "ORCL",
+      "direction": "long",
+      "tradePnl": 9.4,
+      "tradePnlPct": 0.94,
       "cumulativePnl": -28.35
     },
     {
       "date": "2026-08-20",
+      "ticker": "INTC",
+      "direction": "long",
+      "tradePnl": -59.66,
+      "tradePnlPct": -5.97,
       "cumulativePnl": -88.01
     },
     {
       "date": "2026-08-21",
+      "ticker": "AMD",
+      "direction": "long",
+      "tradePnl": 7.48,
+      "tradePnlPct": 0.75,
       "cumulativePnl": -80.53
     },
     {
       "date": "2026-08-21",
+      "ticker": "CAT",
+      "direction": "long",
+      "tradePnl": 17.83,
+      "tradePnlPct": 1.78,
       "cumulativePnl": -62.7
     },
     {
       "date": "2026-08-21",
+      "ticker": "PFE",
+      "direction": "long",
+      "tradePnl": -13.21,
+      "tradePnlPct": -1.32,
       "cumulativePnl": -75.91
     },
     {
       "date": "2026-08-21",
+      "ticker": "BAC",
+      "direction": "long",
+      "tradePnl": -11.48,
+      "tradePnlPct": -1.15,
       "cumulativePnl": -87.39
     },
     {
       "date": "2026-08-24",
+      "ticker": "COST",
+      "direction": "long",
+      "tradePnl": 13.66,
+      "tradePnlPct": 1.37,
       "cumulativePnl": -73.73
     },
     {
       "date": "2026-08-24",
+      "ticker": "XOM",
+      "direction": "long",
+      "tradePnl": -20.11,
+      "tradePnlPct": -2.01,
       "cumulativePnl": -93.84
     },
     {
       "date": "2026-08-24",
+      "ticker": "BA",
+      "direction": "long",
+      "tradePnl": -18.94,
+      "tradePnlPct": -1.89,
       "cumulativePnl": -112.78
     },
     {
       "date": "2026-08-24",
+      "ticker": "WMT",
+      "direction": "long",
+      "tradePnl": 12.66,
+      "tradePnlPct": 1.27,
       "cumulativePnl": -100.12
     },
     {
       "date": "2026-08-25",
+      "ticker": "GS",
+      "direction": "short",
+      "tradePnl": -0.63,
+      "tradePnlPct": -0.06,
       "cumulativePnl": -100.75
     },
     {
       "date": "2026-08-25",
+      "ticker": "ORCL",
+      "direction": "short",
+      "tradePnl": -15.73,
+      "tradePnlPct": -1.84,
       "cumulativePnl": -116.48
     },
     {
       "date": "2026-08-25",
+      "ticker": "TSLA",
+      "direction": "short",
+      "tradePnl": 10.7,
+      "tradePnlPct": 1.5,
       "cumulativePnl": -105.78
     },
     {
       "date": "2026-08-25",
+      "ticker": "INTC",
+      "direction": "short",
+      "tradePnl": -32.27,
+      "tradePnlPct": -3.38,
       "cumulativePnl": -138.05
     },
     {
       "date": "2026-08-26",
+      "ticker": "COST",
+      "direction": "long",
+      "tradePnl": -5.84,
+      "tradePnlPct": -0.58,
       "cumulativePnl": -143.89
     },
     {
       "date": "2026-08-26",
+      "ticker": "NVDA",
+      "direction": "short",
+      "tradePnl": -11.68,
+      "tradePnlPct": -1.39,
       "cumulativePnl": -155.57
     },
     {
       "date": "2026-08-26",
+      "ticker": "MA",
+      "direction": "short",
+      "tradePnl": -0.25,
+      "tradePnlPct": -0.04,
       "cumulativePnl": -155.82
     },
     {
       "date": "2026-08-27",
+      "ticker": "XOM",
+      "direction": "short",
+      "tradePnl": 1.11,
+      "tradePnlPct": 0.12,
       "cumulativePnl": -154.71
     },
     {
       "date": "2026-08-27",
+      "ticker": "AMD",
+      "direction": "long",
+      "tradePnl": -4.19,
+      "tradePnlPct": -0.42,
       "cumulativePnl": -158.9
     },
     {
       "date": "2026-08-27",
+      "ticker": "CRM",
+      "direction": "short",
+      "tradePnl": -126.37,
+      "tradePnlPct": -15.59,
       "cumulativePnl": -285.27
     },
     {
       "date": "2026-08-28",
+      "ticker": "GS",
+      "direction": "long",
+      "tradePnl": 4.62,
+      "tradePnlPct": 0.46,
       "cumulativePnl": -280.65
     },
     {
       "date": "2026-08-28",
+      "ticker": "NVDA",
+      "direction": "short",
+      "tradePnl": -12.19,
+      "tradePnlPct": -1.36,
       "cumulativePnl": -292.84
     },
     {
       "date": "2026-08-28",
+      "ticker": "META",
+      "direction": "long",
+      "tradePnl": 2.64,
+      "tradePnlPct": 0.26,
       "cumulativePnl": -290.2
     },
     {
       "date": "2026-08-28",
+      "ticker": "ORCL",
+      "direction": "long",
+      "tradePnl": 6.53,
+      "tradePnlPct": 0.65,
       "cumulativePnl": -283.67
     },
     {
       "date": "2026-08-31",
+      "ticker": "CRM",
+      "direction": "long",
+      "tradePnl": 21.35,
+      "tradePnlPct": 2.13,
       "cumulativePnl": -262.32
     },
     {
       "date": "2026-08-31",
+      "ticker": "BAC",
+      "direction": "short",
+      "tradePnl": -12.36,
+      "tradePnlPct": -1.26,
       "cumulativePnl": -274.68
     },
     {
       "date": "2026-08-31",
+      "ticker": "HD",
+      "direction": "short",
+      "tradePnl": 5.64,
+      "tradePnlPct": 0.57,
       "cumulativePnl": -269.04
     },
     {
       "date": "2026-08-31",
+      "ticker": "INTC",
+      "direction": "short",
+      "tradePnl": -6.65,
+      "tradePnlPct": -0.73,
       "cumulativePnl": -275.69
     },
     {
       "date": "2026-09-01",
+      "ticker": "CAT",
+      "direction": "short",
+      "tradePnl": 8.2,
+      "tradePnlPct": 1.03,
       "cumulativePnl": -267.49
     },
     {
       "date": "2026-09-01",
+      "ticker": "AMD",
+      "direction": "short",
+      "tradePnl": 21.41,
+      "tradePnlPct": 2.27,
       "cumulativePnl": -246.08
     },
     {
       "date": "2026-09-01",
+      "ticker": "NVDA",
+      "direction": "short",
+      "tradePnl": 11.1,
+      "tradePnlPct": 1.27,
       "cumulativePnl": -234.98
     },
     {
       "date": "2026-09-01",
+      "ticker": "GOOGL",
+      "direction": "long",
+      "tradePnl": -26.03,
+      "tradePnlPct": -2.6,
       "cumulativePnl": -261.01
     },
     {
       "date": "2026-09-01",
+      "ticker": "IWM",
+      "direction": "short",
+      "tradePnl": 6.58,
+      "tradePnlPct": 0.74,
       "cumulativePnl": -254.43
     },
     {
       "date": "2026-09-02",
+      "ticker": "PFE",
+      "direction": "long",
+      "tradePnl": -9.78,
+      "tradePnlPct": -0.98,
       "cumulativePnl": -264.21
     },
     {
       "date": "2026-09-02",
+      "ticker": "ORCL",
+      "direction": "short",
+      "tradePnl": 24.39,
+      "tradePnlPct": 2.81,
       "cumulativePnl": -239.82
     },
     {
       "date": "2026-09-02",
+      "ticker": "TSLA",
+      "direction": "long",
+      "tradePnl": -6.13,
+      "tradePnlPct": -0.61,
       "cumulativePnl": -245.95
     },
     {
       "date": "2026-09-02",
+      "ticker": "XOM",
+      "direction": "long",
+      "tradePnl": -2.77,
+      "tradePnlPct": -0.28,
       "cumulativePnl": -248.72
     },
     {
       "date": "2026-09-03",
+      "ticker": "GS",
+      "direction": "short",
+      "tradePnl": -7.31,
+      "tradePnlPct": -0.72,
       "cumulativePnl": -256.03
     },
     {
       "date": "2026-09-03",
+      "ticker": "HD",
+      "direction": "short",
+      "tradePnl": 4.45,
+      "tradePnlPct": 0.46,
       "cumulativePnl": -251.58
     },
     {
       "date": "2026-09-03",
+      "ticker": "CVX",
+      "direction": "long",
+      "tradePnl": 6.68,
+      "tradePnlPct": 0.67,
       "cumulativePnl": -244.9
     },
     {
       "date": "2026-09-03",
+      "ticker": "AAPL",
+      "direction": "long",
+      "tradePnl": 0.94,
+      "tradePnlPct": 0.09,
       "cumulativePnl": -243.96
     },
     {
       "date": "2026-09-04",
+      "ticker": "AMD",
+      "direction": "short",
+      "tradePnl": -33.8,
+      "tradePnlPct": -3.77,
       "cumulativePnl": -277.76
     },
     {
       "date": "2026-09-04",
+      "ticker": "COST",
+      "direction": "short",
+      "tradePnl": -4.94,
+      "tradePnlPct": -0.54,
       "cumulativePnl": -282.7
     },
     {
       "date": "2026-09-04",
+      "ticker": "ORCL",
+      "direction": "long",
+      "tradePnl": 60.22,
+      "tradePnlPct": 6.02,
       "cumulativePnl": -222.48
     },
     {
       "date": "2026-09-04",
+      "ticker": "NVDA",
+      "direction": "long",
+      "tradePnl": 27.89,
+      "tradePnlPct": 2.79,
       "cumulativePnl": -194.59
     },
     {
       "date": "2026-09-08",
+      "ticker": "META",
+      "direction": "short",
+      "tradePnl": -8.54,
+      "tradePnlPct": -1.4,
       "cumulativePnl": -203.13
     },
     {
       "date": "2026-09-08",
+      "ticker": "TSLA",
+      "direction": "short",
+      "tradePnl": 2.3,
+      "tradePnlPct": 0.32,
       "cumulativePnl": -200.83
     },
     {
       "date": "2026-09-08",
+      "ticker": "XOM",
+      "direction": "long",
+      "tradePnl": 6.14,
+      "tradePnlPct": 0.61,
       "cumulativePnl": -194.69
     },
     {
       "date": "2026-09-09",
+      "ticker": "NFLX",
+      "direction": "short",
+      "tradePnl": 2.64,
+      "tradePnlPct": 0.29,
       "cumulativePnl": -192.05
     },
     {
       "date": "2026-09-09",
+      "ticker": "ORCL",
+      "direction": "long",
+      "tradePnl": -27.45,
+      "tradePnlPct": -2.75,
       "cumulativePnl": -219.5
     },
     {
       "date": "2026-09-09",
+      "ticker": "AMD",
+      "direction": "long",
+      "tradePnl": 31.59,
+      "tradePnlPct": 3.16,
       "cumulativePnl": -187.91
     },
     {
       "date": "2026-09-09",
+      "ticker": "INTC",
+      "direction": "long",
+      "tradePnl": 13.3,
+      "tradePnlPct": 1.33,
       "cumulativePnl": -174.61
     },
     {
       "date": "2026-09-10",
+      "ticker": "CRM",
+      "direction": "short",
+      "tradePnl": 20.21,
+      "tradePnlPct": 2.01,
       "cumulativePnl": -154.4
     },
     {
       "date": "2026-09-10",
+      "ticker": "NVDA",
+      "direction": "short",
+      "tradePnl": 22.04,
+      "tradePnlPct": 2.44,
       "cumulativePnl": -132.36
     },
     {
       "date": "2026-09-11",
+      "ticker": "UNH",
+      "direction": "short",
+      "tradePnl": 10.81,
+      "tradePnlPct": 1.36,
       "cumulativePnl": -121.55
     },
     {
       "date": "2026-09-11",
+      "ticker": "META",
+      "direction": "long",
+      "tradePnl": 1.87,
+      "tradePnlPct": 0.19,
       "cumulativePnl": -119.68
     },
     {
       "date": "2026-09-11",
+      "ticker": "ORCL",
+      "direction": "short",
+      "tradePnl": -36.86,
+      "tradePnlPct": -3.9,
       "cumulativePnl": -156.54
     },
     {
       "date": "2026-09-11",
+      "ticker": "GOOGL",
+      "direction": "short",
+      "tradePnl": -26.52,
+      "tradePnlPct": -2.69,
       "cumulativePnl": -183.06
     },
     {
       "date": "2026-09-11",
+      "ticker": "XOM",
+      "direction": "long",
+      "tradePnl": -15.08,
+      "tradePnlPct": -1.51,
       "cumulativePnl": -198.14
     },
     {
       "date": "2026-09-14",
+      "ticker": "INTC",
+      "direction": "long",
+      "tradePnl": -68.93,
+      "tradePnlPct": -6.89,
       "cumulativePnl": -267.07
     },
     {
       "date": "2026-09-14",
+      "ticker": "AAPL",
+      "direction": "long",
+      "tradePnl": 11.81,
+      "tradePnlPct": 1.18,
       "cumulativePnl": -255.26
     },
     {
       "date": "2026-09-14",
+      "ticker": "NVDA",
+      "direction": "short",
+      "tradePnl": 38.77,
+      "tradePnlPct": 4.4,
       "cumulativePnl": -216.49
     },
     {
       "date": "2026-09-15",
+      "ticker": "UNH",
+      "direction": "short",
+      "tradePnl": 1.14,
+      "tradePnlPct": 0.3,
       "cumulativePnl": -215.35
     },
     {
       "date": "2026-09-15",
+      "ticker": "AMD",
+      "direction": "long",
+      "tradePnl": 24.23,
+      "tradePnlPct": 2.42,
       "cumulativePnl": -191.12
     },
     {
       "date": "2026-09-15",
+      "ticker": "ORCL",
+      "direction": "short",
+      "tradePnl": -5.57,
+      "tradePnlPct": -1.3,
       "cumulativePnl": -196.69
     },
     {
       "date": "2026-09-16",
+      "ticker": "BAC",
+      "direction": "short",
+      "tradePnl": 2,
+      "tradePnlPct": 0.42,
       "cumulativePnl": -194.69
     },
     {
       "date": "2026-09-16",
+      "ticker": "GS",
+      "direction": "short",
+      "tradePnl": 9.17,
+      "tradePnlPct": 0.93,
       "cumulativePnl": -185.52
     },
     {
       "date": "2026-09-16",
+      "ticker": "NFLX",
+      "direction": "long",
+      "tradePnl": -21.92,
+      "tradePnlPct": -2.19,
       "cumulativePnl": -207.44
     },
     {
       "date": "2026-09-16",
+      "ticker": "NVDA",
+      "direction": "short",
+      "tradePnl": -1.24,
+      "tradePnlPct": -0.29,
       "cumulativePnl": -208.68
     },
     {
       "date": "2026-09-17",
+      "ticker": "CVX",
+      "direction": "long",
+      "tradePnl": -23.72,
+      "tradePnlPct": -2.37,
       "cumulativePnl": -232.4
     },
     {
       "date": "2026-09-17",
+      "ticker": "JPM",
+      "direction": "long",
+      "tradePnl": -8.78,
+      "tradePnlPct": -0.88,
       "cumulativePnl": -241.18
     },
     {
       "date": "2026-09-17",
+      "ticker": "ORCL",
+      "direction": "short",
+      "tradePnl": -25.1,
+      "tradePnlPct": -5.99,
       "cumulativePnl": -266.28
     },
     {
       "date": "2026-09-18",
+      "ticker": "INTC",
+      "direction": "long",
+      "tradePnl": 17.73,
+      "tradePnlPct": 3.55,
       "cumulativePnl": -248.55
     },
     {
       "date": "2026-09-18",
+      "ticker": "GS",
+      "direction": "short",
+      "tradePnl": -25.47,
+      "tradePnlPct": -2.75,
       "cumulativePnl": -274.02
     },
     {
       "date": "2026-09-18",
+      "ticker": "BA",
+      "direction": "short",
+      "tradePnl": 5.82,
+      "tradePnlPct": 1.45,
       "cumulativePnl": -268.2
     },
     {
       "date": "2026-09-18",
+      "ticker": "XOM",
+      "direction": "short",
+      "tradePnl": -4.84,
+      "tradePnlPct": -1,
       "cumulativePnl": -273.04
     },
     {
       "date": "2026-09-21",
+      "ticker": "ORCL",
+      "direction": "short",
+      "tradePnl": 0.57,
+      "tradePnlPct": 0.39,
       "cumulativePnl": -272.47
     },
     {
       "date": "2026-09-21",
+      "ticker": "CRM",
+      "direction": "short",
+      "tradePnl": 4.48,
+      "tradePnlPct": 0.92,
       "cumulativePnl": -267.99
     },
     {
       "date": "2026-09-22",
+      "ticker": "META",
+      "direction": "short",
+      "tradePnl": -52.78,
+      "tradePnlPct": -7.76,
       "cumulativePnl": -320.77
     },
     {
       "date": "2026-09-22",
+      "ticker": "AMD",
+      "direction": "long",
+      "tradePnl": 43.15,
+      "tradePnlPct": 4.31,
       "cumulativePnl": -277.62
     },
     {
       "date": "2026-09-22",
+      "ticker": "NFLX",
+      "direction": "short",
+      "tradePnl": -7.8,
+      "tradePnlPct": -1.81,
       "cumulativePnl": -285.42
     },
     {
       "date": "2026-09-22",
+      "ticker": "DIS",
+      "direction": "short",
+      "tradePnl": -2.13,
+      "tradePnlPct": -1.03,
       "cumulativePnl": -287.55
     },
     {
       "date": "2026-09-23",
+      "ticker": "XOM",
+      "direction": "short",
+      "tradePnl": -8.83,
+      "tradePnlPct": -1.87,
       "cumulativePnl": -296.38
     },
     {
       "date": "2026-09-23",
+      "ticker": "INTC",
+      "direction": "short",
+      "tradePnl": -3.5,
+      "tradePnlPct": -1.45,
       "cumulativePnl": -299.88
     },
     {
       "date": "2026-09-24",
+      "ticker": "MA",
+      "direction": "short",
+      "tradePnl": -8.56,
+      "tradePnlPct": -1.54,
       "cumulativePnl": -308.44
     },
     {
       "date": "2026-09-24",
+      "ticker": "JPM",
+      "direction": "short",
+      "tradePnl": -1.06,
+      "tradePnlPct": -0.31,
       "cumulativePnl": -309.5
     },
     {
       "date": "2026-09-24",
+      "ticker": "WMT",
+      "direction": "long",
+      "tradePnl": -5.64,
+      "tradePnlPct": -0.56,
       "cumulativePnl": -315.14
     },
     {
       "date": "2026-09-24",
+      "ticker": "HD",
+      "direction": "long",
+      "tradePnl": -21.99,
+      "tradePnlPct": -2.2,
       "cumulativePnl": -337.13
     }
   ],
@@ -446,6 +833,134 @@
       }
     ]
   },
+  "byTicker": [
+    {
+      "label": "AMD",
+      "n": 7,
+      "totalPnl": 89.87,
+      "totalNotional": 7000,
+      "avgReturnPct": 1.246,
+      "winRatePct": 71.4,
+      "meetsMinN": false
+    },
+    {
+      "label": "NVDA",
+      "n": 7,
+      "totalPnl": 74.69,
+      "totalNotional": 6500,
+      "avgReturnPct": 1.123,
+      "winRatePct": 57.1,
+      "meetsMinN": false
+    },
+    {
+      "label": "TSLA",
+      "n": 3,
+      "totalPnl": 6.87,
+      "totalNotional": 3000,
+      "avgReturnPct": 0.403,
+      "winRatePct": 66.7,
+      "meetsMinN": false
+    },
+    {
+      "label": "COST",
+      "n": 3,
+      "totalPnl": 2.88,
+      "totalNotional": 3000,
+      "avgReturnPct": 0.083,
+      "winRatePct": 33.3,
+      "meetsMinN": false
+    },
+    {
+      "label": "CAT",
+      "n": 3,
+      "totalPnl": -0.87,
+      "totalNotional": 3000,
+      "avgReturnPct": 0.04,
+      "winRatePct": 66.7,
+      "meetsMinN": false
+    },
+    {
+      "label": "HD",
+      "n": 3,
+      "totalPnl": -11.9,
+      "totalNotional": 3000,
+      "avgReturnPct": -0.39,
+      "winRatePct": 66.7,
+      "meetsMinN": false
+    },
+    {
+      "label": "GS",
+      "n": 5,
+      "totalPnl": -19.62,
+      "totalNotional": 3750,
+      "avgReturnPct": -0.428,
+      "winRatePct": 40,
+      "meetsMinN": false
+    },
+    {
+      "label": "ORCL",
+      "n": 10,
+      "totalPnl": -9.6,
+      "totalNotional": 8250,
+      "avgReturnPct": -0.497,
+      "winRatePct": 50,
+      "meetsMinN": false
+    },
+    {
+      "label": "BAC",
+      "n": 3,
+      "totalPnl": -21.84,
+      "totalNotional": 2500,
+      "avgReturnPct": -0.663,
+      "winRatePct": 33.3,
+      "meetsMinN": false
+    },
+    {
+      "label": "XOM",
+      "n": 8,
+      "totalPnl": -38.48,
+      "totalNotional": 7000,
+      "avgReturnPct": -0.669,
+      "winRatePct": 37.5,
+      "meetsMinN": false
+    },
+    {
+      "label": "NFLX",
+      "n": 3,
+      "totalPnl": -27.08,
+      "totalNotional": 2500,
+      "avgReturnPct": -1.237,
+      "winRatePct": 33.3,
+      "meetsMinN": false
+    },
+    {
+      "label": "CRM",
+      "n": 5,
+      "totalPnl": -69.49,
+      "totalNotional": 4500,
+      "avgReturnPct": -1.89,
+      "winRatePct": 80,
+      "meetsMinN": false
+    },
+    {
+      "label": "INTC",
+      "n": 7,
+      "totalPnl": -139.98,
+      "totalNotional": 5750,
+      "avgReturnPct": -1.934,
+      "winRatePct": 28.6,
+      "meetsMinN": false
+    },
+    {
+      "label": "META",
+      "n": 5,
+      "totalPnl": -85.47,
+      "totalNotional": 4250,
+      "avgReturnPct": -2.316,
+      "winRatePct": 40,
+      "meetsMinN": false
+    }
+  ],
   "methodology": {
     "baseNotionalUsd": 1000,
     "sizingAdjustments": {

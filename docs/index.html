@@ -115,6 +115,20 @@
   }
   .section-sub { color: var(--muted); font-size: 13.5px; margin: -10px 0 var(--space-4); max-width: 640px; }
 
+  .range-toggle { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 3px; }
+  .range-btn {
+    appearance: none; border: none; background: none; cursor: pointer;
+    color: var(--muted); font-family: inherit; font-size: 12.5px; font-weight: 600;
+    padding: 6px 12px; border-radius: 6px; transition: all .15s;
+  }
+  .range-btn:hover { color: var(--text); }
+  .range-btn.active { background: var(--accent); color: hsl(226, 30%, 10%); }
+
+  th.sortable { cursor: pointer; user-select: none; }
+  th.sortable:hover { color: var(--text); }
+  th.sortable .sort-arrow { opacity: 0.5; margin-left: 3px; font-size: 10px; }
+  th.sortable.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+
   /* ---- Invest bar ---- */
   .invest-card {
     background: linear-gradient(180deg, var(--panel), hsl(226, 18%, 10%));
@@ -297,7 +311,14 @@
     </section>
 
     <section>
-      <div class="section-head"><h2>Simulated Equity Curve</h2></div>
+      <div class="section-head">
+        <h2>Simulated Equity Curve</h2>
+        <div class="range-toggle" id="range-toggle">
+          <button class="range-btn" data-range="10">Last 10</button>
+          <button class="range-btn" data-range="30">Last 30</button>
+          <button class="range-btn active" data-range="all">All</button>
+        </div>
+      </div>
       <div class="chart-wrap"><canvas id="equityChart" height="90"></canvas></div>
     </section>
 
@@ -308,7 +329,14 @@
 
     <section>
       <div class="section-head"><h2>Performance by Sizing Lever</h2></div>
+      <p class="section-sub">Click any column header to sort. Small-sample buckets are flagged, not hidden.</p>
       <div class="bucket-grid" id="bucket-container"><div class="loading">Loading…</div></div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Performance by Ticker</h2></div>
+      <p class="section-sub">n ≥ 3 only — one or two trades on a name isn't a pattern yet.</p>
+      <div class="bucket-grid" id="ticker-container"><div class="loading">Loading…</div></div>
     </section>
 
     <section>
@@ -451,35 +479,91 @@ async function main() {
     { label: 'Total realized P&L', value: (o.totalPnl >= 0 ? '+' : '') + '$' + o.totalPnl?.toFixed(2), cls: cls(o.totalPnl) },
     { label: 'Win rate', value: o.winRatePct + '%' },
     { label: 'Directional hit rate', value: fmtPct(o.directionalHitRatePct) + ' (n=' + o.directionalResolvedN + ')' },
+    { label: 'Max drawdown', value: '-$' + (o.maxDrawdownUsd ?? 0).toFixed(2), cls: 'neg' },
   ];
+  if (o.bestTrade) stats.push({ label: 'Best trade', value: o.bestTrade.ticker + ' ' + fmtPct(o.bestTrade.pnlPct), cls: 'pos' });
+  if (o.worstTrade) stats.push({ label: 'Worst trade', value: o.worstTrade.ticker + ' ' + fmtPct(o.worstTrade.pnlPct), cls: 'neg' });
+  if (o.currentStreak) {
+    stats.push({
+      label: 'Current streak',
+      value: o.currentStreak.count + ' ' + (o.currentStreak.type === 'win' ? 'win' : 'loss') + (o.currentStreak.count > 1 ? 's' : ''),
+      cls: o.currentStreak.type === 'win' ? 'pos' : 'neg',
+    });
+  }
   document.getElementById('overview-stats').innerHTML = stats.map(s =>
     '<div class="stat-card"><div class="value ' + (s.cls||'') + '">' + s.value + '</div><div class="label">' + s.label + '</div></div>'
   ).join('');
 
+  // ---- Equity curve: interactive (range toggle + rich per-point tooltips) ----
   const ctx = document.getElementById('equityChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: data.equityCurve.map((p, i) => i + 1),
+  let equityChart = null;
+  const fullCurve = data.equityCurve;
+
+  function renderChart(range) {
+    const slice = range === 'all' ? fullCurve : fullCurve.slice(-Number(range));
+    const chartData = {
+      labels: slice.map((p, i) => i + 1),
       datasets: [{
         label: 'Cumulative simulated P&L ($)',
-        data: data.equityCurve.map(p => p.cumulativePnl),
+        data: slice.map(p => p.cumulativePnl),
         borderColor: '#6ea8fe',
         backgroundColor: 'rgba(110,168,254,0.10)',
         fill: true,
         tension: 0.2,
         pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#6ea8fe',
         borderWidth: 2.5,
       }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { labels: { color: '#8b93a7', font: { family: 'Inter' } } } },
-      scales: {
-        x: { title: { display: true, text: 'Closed trade #', color: '#8b93a7', font: { family: 'Inter' } }, ticks: { color: '#8b93a7' }, grid: { color: 'rgba(255,255,255,0.04)' } },
-        y: { ticks: { color: '#8b93a7' }, grid: { color: 'rgba(255,255,255,0.04)' } },
-      }
+    };
+    if (equityChart) {
+      equityChart.data = chartData;
+      equityChart.update();
+      return;
     }
+    equityChart = new Chart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: '#8b93a7', font: { family: 'Inter' } } },
+          tooltip: {
+            backgroundColor: 'hsl(226, 22%, 10%)',
+            borderColor: 'hsl(226, 16%, 24%)',
+            borderWidth: 1,
+            padding: 10,
+            titleFont: { family: 'Inter', weight: '600' },
+            bodyFont: { family: 'Inter' },
+            callbacks: {
+              title: (items) => {
+                const p = equityChart.data.labels && slice[items[0].dataIndex];
+                return p ? p.ticker + ' (' + p.direction + ') — ' + p.date : '';
+              },
+              label: (item) => {
+                const p = slice[item.dataIndex];
+                const tradeStr = p.tradePnl >= 0 ? '+$' + p.tradePnl.toFixed(2) : '-$' + Math.abs(p.tradePnl).toFixed(2);
+                return ['This trade: ' + tradeStr + ' (' + (p.tradePnlPct >= 0 ? '+' : '') + p.tradePnlPct.toFixed(2) + '%)', 'Cumulative: $' + p.cumulativePnl.toFixed(2)];
+              },
+            },
+          },
+        },
+        scales: {
+          x: { title: { display: true, text: 'Closed trade #', color: '#8b93a7', font: { family: 'Inter' } }, ticks: { color: '#8b93a7' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+          y: { ticks: { color: '#8b93a7' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        }
+      }
+    });
+  }
+  renderChart('all');
+
+  document.querySelectorAll('#range-toggle .range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#range-toggle .range-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderChart(btn.dataset.range);
+    });
   });
 
   const risk = data.portfolioRisk;
@@ -510,23 +594,75 @@ async function main() {
     `;
   }
 
+  // ---- Sortable tables (shared by sizing-lever buckets and the ticker table) ----
+  const tableState = {}; // tableId -> { rows, labelNames, sortKey, sortDir }
+
+  function tableRowHtml(r, labelNames) {
+    return '<tr><td>' + (labelNames[r.label] || r.label) + (r.meetsMinN ? '' : '<span class="flag">small sample</span>') + '</td>' +
+      '<td>' + r.n + '</td>' +
+      '<td class="' + cls(r.avgReturnPct) + '">' + fmtPct(r.avgReturnPct) + '</td>' +
+      '<td>' + r.winRatePct + '%</td>' +
+      '<td class="' + cls(r.totalPnl) + '">' + (r.totalPnl >= 0 ? '+' : '') + '$' + r.totalPnl.toFixed(2) + '</td></tr>';
+  }
+
+  function renderTableBody(tableId) {
+    const state = tableState[tableId];
+    const { rows, labelNames, sortKey, sortDir } = state;
+    const sorted = [...rows].sort((a, b) => {
+      const av = sortKey === 'label' ? (labelNames[a.label] || a.label) : a[sortKey];
+      const bv = sortKey === 'label' ? (labelNames[b.label] || b.label) : b[sortKey];
+      if (typeof av === 'string') return sortDir * av.localeCompare(bv);
+      return sortDir * (av - bv);
+    });
+    document.querySelector('#' + tableId + ' tbody').innerHTML = sorted.map(r => tableRowHtml(r, labelNames)).join('');
+  }
+
+  function buildSortableTable(tableId, title, rows, labelNames) {
+    tableState[tableId] = { rows, labelNames, sortKey: 'avgReturnPct', sortDir: -1 };
+    const headers = [
+      { key: 'label', label: '' }, { key: 'n', label: 'n' },
+      { key: 'avgReturnPct', label: 'Avg return' }, { key: 'winRatePct', label: 'Win rate' },
+      { key: 'totalPnl', label: 'Total P&L' },
+    ];
+    const theadHtml = headers.map(h =>
+      '<th class="sortable' + (h.key === 'avgReturnPct' ? ' sorted' : '') + '" data-table="' + tableId + '" data-key="' + h.key + '">' +
+        h.label + '<span class="sort-arrow">' + (h.key === 'avgReturnPct' ? '▼' : '') + '</span></th>'
+    ).join('');
+    return '<div class="bucket-group"><h3>' + title + '</h3><table id="' + tableId + '"><thead><tr>' + theadHtml + '</tr></thead><tbody></tbody></table></div>';
+  }
+
+  document.addEventListener('click', (e) => {
+    const th = e.target.closest('th.sortable');
+    if (!th) return;
+    const tableId = th.dataset.table, key = th.dataset.key;
+    const state = tableState[tableId];
+    if (state.sortKey === key) state.sortDir *= -1; else { state.sortKey = key; state.sortDir = key === 'label' ? 1 : -1; }
+    document.querySelectorAll('#' + tableId + ' th').forEach(h => { h.classList.remove('sorted'); h.querySelector('.sort-arrow').textContent = ''; });
+    th.classList.add('sorted');
+    th.querySelector('.sort-arrow').textContent = state.sortDir === 1 ? '▲' : '▼';
+    renderTableBody(tableId);
+  });
+
   const groupTitles = { direction: 'By Direction', confidence: 'By Confidence', eventRisk: 'By Event Risk' };
   const labelNames = { long: 'Long', short: 'Short', high: 'High', medium: 'Medium', low: 'Low', event_risk: 'Event risk', no_event_risk: 'No event risk' };
   let bucketHtml = '';
   for (const key of Object.keys(data.buckets)) {
     const rows = data.buckets[key];
     if (!rows.length) continue;
-    bucketHtml += '<div class="bucket-group"><h3>' + groupTitles[key] + '</h3><table><thead><tr><th></th><th>n</th><th>Avg return</th><th>Win rate</th><th>Total P&L</th></tr></thead><tbody>';
-    for (const r of rows) {
-      bucketHtml += '<tr><td>' + (labelNames[r.label] || r.label) + (r.meetsMinN ? '' : '<span class="flag">small sample</span>') + '</td>' +
-        '<td>' + r.n + '</td>' +
-        '<td class="' + cls(r.avgReturnPct) + '">' + fmtPct(r.avgReturnPct) + '</td>' +
-        '<td>' + r.winRatePct + '%</td>' +
-        '<td class="' + cls(r.totalPnl) + '">' + (r.totalPnl >= 0 ? '+' : '') + '$' + r.totalPnl.toFixed(2) + '</td></tr>';
-    }
-    bucketHtml += '</tbody></table></div>';
+    bucketHtml += buildSortableTable('table-' + key, groupTitles[key], rows, labelNames);
   }
   document.getElementById('bucket-container').innerHTML = bucketHtml || '<div class="loading">No bucketed data yet.</div>';
+  for (const key of Object.keys(data.buckets)) {
+    if (data.buckets[key].length) renderTableBody('table-' + key);
+  }
+
+  // ---- By-ticker table ----
+  if (data.byTicker && data.byTicker.length) {
+    document.getElementById('ticker-container').innerHTML = buildSortableTable('table-ticker', 'All Tickers', data.byTicker, {});
+    renderTableBody('table-ticker');
+  } else {
+    document.getElementById('ticker-container').innerHTML = '<div class="loading">No ticker has 3+ closed trades yet.</div>';
+  }
 
   const sa = data.methodology.sizingAdjustments;
   document.getElementById('methodology-detail').textContent =

@@ -93,10 +93,24 @@ const directionalHitRatePct = resolvedN > 0 ? Number(((validOutcomes.played_out 
 // Equity curve: cumulative realized P&L over time, one point per closed trade
 // in resolution order. This is a paper-trading curve on simulated capital,
 // labeled as such on the dashboard — never presented as real returns.
+// Carries ticker/direction/per-trade P&L too (not just the cumulative line)
+// so the dashboard can show a real tooltip per point instead of just "trade
+// #12" with no context.
 let cumulative = 0;
+let peak = 0;
+let maxDrawdown = 0;
 const equityCurve = closed.map((r) => {
   cumulative += r.realized_pnl;
-  return { date: r.exit_filled_at ? r.exit_filled_at.slice(0, 10) : r.date, cumulativePnl: Number(cumulative.toFixed(2)) };
+  peak = Math.max(peak, cumulative);
+  maxDrawdown = Math.max(maxDrawdown, peak - cumulative);
+  return {
+    date: r.exit_filled_at ? r.exit_filled_at.slice(0, 10) : r.date,
+    ticker: r.ticker,
+    direction: r.direction,
+    tradePnl: Number(r.realized_pnl.toFixed(2)),
+    tradePnlPct: r.realized_pnl_pct,
+    cumulativePnl: Number(cumulative.toFixed(2)),
+  };
 });
 
 function bucketRows(keyFn, labels) {
@@ -113,6 +127,42 @@ const buckets = {
     "no_event_risk",
   ]),
 };
+
+// Per-ticker breakdown (n>=3 — below that it's one or two trades, not a
+// pattern). This already existed in checkpoint.js's console output but was
+// never surfaced on the dashboard itself; it's genuinely useful ("which
+// names has this actually been right about") and belongs alongside the
+// other sizing-lever breakdowns.
+const byTickerMap = {};
+for (const r of closed) (byTickerMap[r.ticker] ??= []).push(r);
+const byTicker = Object.entries(byTickerMap)
+  .map(([ticker, rows]) => ({ label: ticker, ...summarize(rows) }))
+  .filter((t) => t.n >= 3)
+  .sort((a, b) => b.avgReturnPct - a.avgReturnPct);
+
+// Best/worst single trade and current streak — cheap, real, genuinely
+// informative numbers that were being computed locally (computePnL.js) but
+// never made it to the public dashboard.
+const bestTrade = closed.length
+  ? [...closed].sort((a, b) => b.realized_pnl_pct - a.realized_pnl_pct)[0]
+  : null;
+const worstTrade = closed.length
+  ? [...closed].sort((a, b) => a.realized_pnl_pct - b.realized_pnl_pct)[0]
+  : null;
+
+let currentStreak = 0;
+let streakType = null;
+for (let i = closed.length - 1; i >= 0; i--) {
+  const isWin = closed[i].realized_pnl > 0;
+  if (streakType === null) {
+    streakType = isWin ? "win" : "loss";
+    currentStreak = 1;
+  } else if ((isWin && streakType === "win") || (!isWin && streakType === "loss")) {
+    currentStreak += 1;
+  } else {
+    break;
+  }
+}
 
 const recentBriefs = db
   .prepare(
@@ -140,9 +190,14 @@ const output = {
     winRatePct: overallSummary?.winRatePct ?? null,
     directionalHitRatePct,
     directionalResolvedN: resolvedN,
+    maxDrawdownUsd: Number(maxDrawdown.toFixed(2)),
+    bestTrade: bestTrade && { ticker: bestTrade.ticker, date: bestTrade.date, pnlPct: bestTrade.realized_pnl_pct },
+    worstTrade: worstTrade && { ticker: worstTrade.ticker, date: worstTrade.date, pnlPct: worstTrade.realized_pnl_pct },
+    currentStreak: streakType && { type: streakType, count: currentStreak },
   },
   equityCurve,
   buckets,
+  byTicker,
   methodology: {
     baseNotionalUsd: PAPER_TRADE_BASE_NOTIONAL,
     sizingAdjustments: SIZING_ADJUSTMENTS,
