@@ -2,7 +2,7 @@ import "dotenv/config";
 import { fetchMarketData } from "./fetchMarketData.js";
 import { fetchCompanyNews } from "./fetchNews.js";
 import { generateOnDemandCall } from "./generateBrief.js";
-import { openNewPositions } from "./paperTrade.js";
+import { openNewPositions, reconcileEntries, reconcileExits } from "./paperTrade.js";
 
 // On-demand / prompted analysis — the counterpart to the nightly fixed-
 // watchlist pipeline (index.js). Lets you ask about a specific ticker or
@@ -48,6 +48,16 @@ async function run() {
   const date = todayISO();
 
   console.log(`On-demand analysis for ${symbols.join(", ")} — ${date}${analyzeOnly ? " (analyze-only, no simulated trade)" : ""}`);
+
+  // Reconcile anything left pending from a PRIOR entry/exit — nightly or
+  // on-demand, this is source-agnostic, same as the nightly pipeline's own
+  // reconcile step. Without this, an on-demand-opened position's fill only
+  // ever gets recorded whenever the next scheduled nightly run happens to
+  // reconcile it, even if the user triggers another on-demand request
+  // sooner — there's no reason to make them wait for the cron just to see
+  // yesterday's on-demand trade actually fill.
+  await reconcileEntries();
+  await reconcileExits();
 
   const marketData = await fetchMarketData(symbols);
   if (marketData.length === 0) {

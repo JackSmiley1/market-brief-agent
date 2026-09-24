@@ -62,6 +62,19 @@ const onDemandClosed = db
   )
   .all();
 
+// Positions submitted but not yet closed — without this, a trade triggered
+// from the dashboard is invisible for a full trading cycle (order queues
+// after-hours, fills at next open, closes the session after that). Shown
+// separately on the dashboard as "pending" so a trigger produces immediate
+// visible feedback instead of apparent silence.
+const onDemandPending = db
+  .prepare(
+    `SELECT date, ticker, direction, status, notional
+     FROM paper_trades WHERE source = 'on_demand' AND status != 'closed'
+     ORDER BY date DESC LIMIT 20`
+  )
+  .all();
+
 const overallSummary = summarize(closed);
 
 // Directional accuracy is a separate metric from P&L — whether the flagged
@@ -147,6 +160,13 @@ const output = {
     direction: r.direction,
     pnl: r.realized_pnl,
     pnlPct: r.realized_pnl_pct,
+  })),
+  onDemandPending: onDemandPending.map((r) => ({
+    date: r.date,
+    ticker: r.ticker,
+    direction: r.direction,
+    status: r.status,
+    notional: r.notional,
   })),
 };
 

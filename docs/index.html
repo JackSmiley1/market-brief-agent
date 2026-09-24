@@ -532,13 +532,21 @@ async function main() {
   }).join('');
   document.getElementById('brief-list').innerHTML = briefHtml || '<div class="loading">No briefs yet.</div>';
 
-  if (data.onDemand && data.onDemand.length > 0) {
+  const hasClosed = data.onDemand && data.onDemand.length > 0;
+  const hasPending = data.onDemandPending && data.onDemandPending.length > 0;
+  if (hasClosed || hasPending) {
     document.getElementById('on-demand-section').style.display = '';
-    document.getElementById('on-demand-list').innerHTML = data.onDemand.map(t => {
+    const pendingHtml = hasPending ? data.onDemandPending.map(t => {
+      const statusLabel = { entry_pending: 'Order queued', open: 'Open — holding', exit_pending: 'Closing' }[t.status] || t.status;
+      return '<div class="brief-row"><span>' + t.date + ' — ' + t.ticker + ' (' + t.direction + ')</span>' +
+        '<span class="movers"><span class="flag" style="color:var(--accent); border-color:var(--accent); background:var(--accent-dim);">' + statusLabel + '</span> $' + t.notional + ' notional</span></div>';
+    }).join('') : '';
+    const closedHtml = hasClosed ? data.onDemand.map(t => {
       const pnlCls = cls(t.pnlPct);
       return '<div class="brief-row"><span>' + t.date + ' — ' + t.ticker + ' (' + t.direction + ')</span>' +
         '<span class="movers ' + pnlCls + '">' + fmtPct(t.pnlPct) + ' ($' + t.pnl.toFixed(2) + ')</span></div>';
-    }).join('');
+    }).join('') : '';
+    document.getElementById('on-demand-list').innerHTML = pendingHtml + closedHtml || '<div class="loading">No on-demand trades yet.</div>';
   }
 }
 

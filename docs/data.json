@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-23T19:56:50.536Z",
+  "generatedAt": "2026-09-24T01:57:12.177Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 87,
@@ -704,5 +704,6 @@
       ]
     }
   ],
-  "onDemand": []
+  "onDemand": [],
+  "onDemandPending": []
 }
