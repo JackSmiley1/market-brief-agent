@@ -28,7 +28,14 @@
 const ALLOWED_ORIGIN = "https://jacksmiley1.github.io";
 const REPO = "JackSmiley1/market-brief-agent";
 const WORKFLOW_FILE = "on-demand-trade.yml";
-const TICKER_RE = /^[A-Za-z]{1,6}(,[A-Za-z]{1,6}){0,4}$/; // 1-5 comma-separated 1-6 letter symbols
+// 1-5 comma-separated letter-only entries, up to 20 chars each — wide enough
+// to accept either a real ticker (AAPL) or a common single-word company/
+// index name (Apple, Nvidia), since the GitHub Actions job now resolves
+// names to tickers itself (see NAME_TO_TICKER in onDemandTrade.js). Still
+// rejects spaces, digits, and punctuation — this is a garbage filter before
+// the request ever reaches GitHub, not the real validation (that happens
+// against actual market data in the job itself).
+const TICKER_RE = /^[A-Za-z]{1,20}(,[A-Za-z]{1,20}){0,4}$/;
 
 function withCors(resp) {
   resp.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);

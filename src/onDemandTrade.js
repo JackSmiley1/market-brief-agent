@@ -20,6 +20,35 @@ import { openNewPositions, reconcileEntries, reconcileExits } from "./paperTrade
 // Without --analyze-only, any tickers Claude actually flags (it's allowed
 // to flag none) get a simulated paper position opened immediately, same
 // sizing rules (SIZING_ADJUSTMENTS in config.js) as the nightly system.
+//
+// Accepts either a real ticker (AAPL) or a common single-word company/index
+// name (Apple, Tesla, S&P) — resolved via NAME_TO_TICKER below. Anything not
+// in that map is assumed to already be a ticker and passed through
+// unchanged; fetchMarketData below will fail cleanly (clear error, no crash)
+// if it turns out not to be a real one. Deliberately NOT a general-purpose
+// company-name search (that would mean an extra API call and a new failure
+// mode for every request) — just covers the names someone demoing this is
+// actually likely to type.
+const NAME_TO_TICKER = {
+  apple: "AAPL", microsoft: "MSFT", google: "GOOGL", alphabet: "GOOGL",
+  amazon: "AMZN", meta: "META", facebook: "META", tesla: "TSLA",
+  nvidia: "NVDA", jpmorgan: "JPM", jpmorganchase: "JPM",
+  bankofamerica: "BAC", goldmansachs: "GS", goldman: "GS",
+  visa: "V", mastercard: "MA", exxon: "XOM", exxonmobil: "XOM",
+  chevron: "CVX", jnj: "JNJ", johnsonandjohnson: "JNJ",
+  unitedhealth: "UNH", pfizer: "PFE", walmart: "WMT", costco: "COST",
+  homedepot: "HD", disney: "DIS", netflix: "NFLX", amd: "AMD",
+  intel: "INTC", salesforce: "CRM", oracle: "ORCL", boeing: "BA",
+  caterpillar: "CAT",
+  // Indices / ETFs
+  sp500: "SPY", spy: "SPY", nasdaq: "QQQ", qqq: "QQQ",
+  dow: "DIA", dowjones: "DIA", russell: "IWM", russell2000: "IWM",
+};
+
+function resolveTicker(input) {
+  const normalized = input.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return NAME_TO_TICKER[normalized] || input.toUpperCase();
+}
 
 function todayISO() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
@@ -44,10 +73,15 @@ async function run() {
     process.exit(1);
   }
 
-  const symbols = tickerArg.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
+  const rawInputs = tickerArg.split(",").map((s) => s.trim()).filter(Boolean);
+  const symbols = rawInputs.map(resolveTicker);
+  const resolvedNames = rawInputs
+    .map((raw, i) => (raw.toUpperCase() !== symbols[i] ? `${raw} → ${symbols[i]}` : null))
+    .filter(Boolean);
   const date = todayISO();
 
   console.log(`On-demand analysis for ${symbols.join(", ")} — ${date}${analyzeOnly ? " (analyze-only, no simulated trade)" : ""}`);
+  if (resolvedNames.length > 0) console.log(`Resolved company name(s): ${resolvedNames.join(", ")}`);
 
   // Reconcile anything left pending from a PRIOR entry/exit — nightly or
   // on-demand, this is source-agnostic, same as the nightly pipeline's own
