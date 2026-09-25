@@ -109,6 +109,22 @@ addColumnIfMissing("watchlist_followups", "confidence TEXT");
 // tracked passively. Null for historical rows (never rated).
 addColumnIfMissing("watchlist_followups", "event_risk INTEGER");
 
+// peer_catalyst: Claude's own self-rated flag for whether a setup names a
+// specific peer company's earnings/guidance/news, or a specific sector-wide
+// trigger, as the reason this ticker should move — vs. an isolated,
+// unconfirmed, or purely technical setup with no peer/sector read-through.
+// Added 2026-09-25 after research (internal trade-history analysis + a
+// cross-check against real 2026 short-selling outcomes) found this was the
+// single strongest differentiator among this system's own short trades:
+// peer/sector-catalyst shorts averaged +0.64% (n=12, 75% win rate) vs.
+// -1.53% for everything else. That sample is well below the project's own
+// n>=20 bar (see checkpoint.js), so this field exists to TRACK the pattern,
+// not to size against it yet — no sizing rule reads this column. Once
+// enough trades accumulate on both sides, checkpoint.js/exportSite.js can
+// tell us honestly whether it holds up. Null for historical rows (added
+// after they were rated) and for long picks this hasn't been validated on.
+addColumnIfMissing("watchlist_followups", "peer_catalyst INTEGER");
+
 // Reflection loop (see reflect.js) — a Reflexion-style mechanism distinct
 // from the numeric sizing rules in config.js. Sizing answers "how much to
 // risk"; this answers "what pattern should tonight's picks watch out for,"

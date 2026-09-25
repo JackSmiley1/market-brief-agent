@@ -48,7 +48,7 @@ function line(label, summary) {
 const closed = db
   .prepare(
     `SELECT p.date, p.ticker, p.direction, p.notional, p.realized_pnl, p.realized_pnl_pct,
-            w.confidence, w.event_risk
+            w.confidence, w.event_risk, w.peer_catalyst
      FROM paper_trades p
      LEFT JOIN watchlist_followups w ON p.date = w.date AND p.ticker = w.ticker
      WHERE p.status = 'closed' AND p.source = 'nightly'
@@ -104,6 +104,20 @@ if (closed.length === 0) {
   out.push(line("event risk = false", summarize(closed.filter((r) => r.event_risk === 0))));
   const unflagged = closed.filter((r) => r.event_risk === null || r.event_risk === undefined).length;
   if (unflagged > 0) out.push(`  (${unflagged} closed trade(s) have no event-risk flag — pre-dates that field, excluded above)`);
+  out.push("");
+
+  // Peer/sector-catalyst tracking (shorts only — see db.js comment on
+  // peer_catalyst for why). Not yet a sizing lever, just visibility into
+  // whether the September 25 research hypothesis is holding up as more
+  // trades accumulate. Reported the same way as the other dimensions so it
+  // gets the same scrutiny, not special-cased into looking more proven than
+  // it is.
+  const shortsOnly = closed.filter((r) => (r.direction ?? "long") === "short");
+  out.push("## By peer/sector catalyst — SHORTS ONLY (new hypothesis, not yet a sizing lever)");
+  out.push(line("peer/sector catalyst cited", summarize(shortsOnly.filter((r) => r.peer_catalyst === 1))));
+  out.push(line("isolated / unconfirmed", summarize(shortsOnly.filter((r) => r.peer_catalyst === 0))));
+  const unratedPeer = shortsOnly.filter((r) => r.peer_catalyst === null || r.peer_catalyst === undefined).length;
+  if (unratedPeer > 0) out.push(`  (${unratedPeer} closed short(s) have no peer-catalyst rating — pre-dates that field, excluded above)`);
   out.push("");
 
   out.push("## By ticker (n >= 3 only — anything below that is one or two trades, not a pattern)");

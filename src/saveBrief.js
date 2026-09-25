@@ -44,7 +44,7 @@ export function appendBriefLog(date, row) {
 
 const deleteFollowUpsForDateStmt = db.prepare(`DELETE FROM watchlist_followups WHERE date = ?`);
 const insertFollowUpStmt = db.prepare(
-  `INSERT INTO watchlist_followups (date, ticker, setup, confidence, event_risk) VALUES (?, ?, ?, ?, ?)`
+  `INSERT INTO watchlist_followups (date, ticker, setup, confidence, event_risk, peer_catalyst) VALUES (?, ?, ?, ?, ?, ?)`
 );
 
 const validConfidence = new Set(["high", "medium", "low"]);
@@ -66,7 +66,9 @@ export function saveWatchlistFollowUp(date, items) {
       // SQLite has no native boolean; store 1/0/null explicitly rather
       // than relying on JS truthiness coercion for a missing field.
       const eventRisk = typeof item.eventRisk === "boolean" ? (item.eventRisk ? 1 : 0) : null;
-      insertFollowUpStmt.run(date, item.ticker, item.setup, confidence, eventRisk);
+      // See db.js comment on peer_catalyst — tracked, not yet used for sizing.
+      const peerCatalyst = typeof item.peerCatalyst === "boolean" ? (item.peerCatalyst ? 1 : 0) : null;
+      insertFollowUpStmt.run(date, item.ticker, item.setup, confidence, eventRisk, peerCatalyst);
     }
     db.exec("COMMIT");
   } catch (err) {

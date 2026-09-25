@@ -679,8 +679,8 @@ async function main() {
     renderTableBody(tableId);
   });
 
-  const groupTitles = { direction: 'By Direction', confidence: 'By Confidence', eventRisk: 'By Event Risk' };
-  const labelNames = { long: 'Long', short: 'Short', high: 'High', medium: 'Medium', low: 'Low', event_risk: 'Event risk', no_event_risk: 'No event risk' };
+  const groupTitles = { direction: 'By Direction', confidence: 'By Confidence', eventRisk: 'By Event Risk', peerCatalystShorts: 'By Peer/Sector Catalyst — Shorts Only' };
+  const labelNames = { long: 'Long', short: 'Short', high: 'High', medium: 'Medium', low: 'Low', event_risk: 'Event risk', no_event_risk: 'No event risk', peer_catalyst: 'Peer/sector catalyst cited', isolated_unconfirmed: 'Isolated / unconfirmed' };
   let bucketHtml = '';
   for (const key of Object.keys(data.buckets)) {
     const rows = data.buckets[key];

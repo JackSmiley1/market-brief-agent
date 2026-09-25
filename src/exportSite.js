@@ -36,7 +36,7 @@ function summarize(rows) {
 const closed = db
   .prepare(
     `SELECT p.date, p.ticker, p.direction, p.notional, p.realized_pnl, p.realized_pnl_pct, p.exit_filled_at,
-            w.confidence, w.event_risk
+            w.confidence, w.event_risk, w.peer_catalyst
      FROM paper_trades p
      LEFT JOIN watchlist_followups w ON p.date = w.date AND p.ticker = w.ticker
      WHERE p.status = 'closed' AND p.source = 'nightly'
@@ -146,6 +146,16 @@ const buckets = {
     "no_event_risk",
   ]),
 };
+
+// Shorts-only, tracked-not-enforced hypothesis (added 2026-09-25 — see the
+// peer_catalyst comment in db.js). Reported on its own so it's clearly
+// scoped to shorts rather than implying it's been validated for longs too.
+const shortsOnly = closed.filter((r) => (r.direction ?? "long") === "short");
+const peerCatalystBuckets = [
+  { label: "peer_catalyst", ...summarize(shortsOnly.filter((r) => r.peer_catalyst === 1)) },
+  { label: "isolated_unconfirmed", ...summarize(shortsOnly.filter((r) => r.peer_catalyst === 0)) },
+].filter((b) => b.n);
+if (peerCatalystBuckets.length) buckets.peerCatalystShorts = peerCatalystBuckets;
 
 // Per-ticker breakdown (n>=3 — below that it's one or two trades, not a
 // pattern). This already existed in checkpoint.js's console output but was
