@@ -342,6 +342,32 @@
 
   .loading { color: var(--muted-dim); padding: 24px; text-align: center; font-size: 13.5px; }
 
+  /* ---- Roadmap preview cards ----
+     Deliberately styled to read as NOT a live feature: dashed border,
+     desaturated icon badge, muted "Preview" pill instead of the vibrant
+     colors used for real data elsewhere on this page. The goal is that
+     nobody glancing at this section could mistake it for something that
+     actually works today. */
+  .preview-card {
+    background: var(--panel); border: 1px dashed var(--border-soft); border-radius: var(--radius);
+    padding: 22px 24px; opacity: 0.88;
+  }
+  .preview-card .icon-badge {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: hsla(0, 0%, 100%, 0.05); color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .preview-card .icon-badge svg { width: 17px; height: 17px; }
+  .preview-card h3 { margin: 0 0 6px; font-size: 15px; font-weight: 700; color: var(--text); }
+  .preview-card p { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+  .preview-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--muted-dim); background: hsla(0, 0%, 100%, 0.04); border: 1px solid var(--border-soft);
+    border-radius: 100px; padding: 4px 10px;
+  }
+
   @media (max-width: 600px) {
     .hero h1 { font-size: 28px; }
     .shell { padding: 0 18px; }
@@ -452,6 +478,21 @@
       <div class="section-head"><h2>On-Demand Trades</h2></div>
       <p class="section-sub">User-prompted, ad hoc trades: analyzed and (if flagged) opened on request rather than by the fixed nightly watchlist. Excluded from the sizing-lever evidence above on purpose, since they're a different, uncontrolled selection process.</p>
       <div class="brief-list" id="on-demand-list"></div>
+    </section>
+
+    <section id="roadmap-preview">
+      <div class="section-head"><h2>Coming In A Future Phase</h2></div>
+      <p class="section-sub">Preview only, not functional today. Each of these requires real legal/licensing work before it could launch. See the full <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:var(--muted); text-decoration:underline;">roadmap</a> for exactly what that involves.</p>
+      <div class="bucket-grid">
+        <div class="preview-card">
+          <div class="icon-badge">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6"/><path d="M8 2v6l4 2"/></svg>
+          </div>
+          <span class="preview-pill">Preview</span>
+          <h3 style="margin-top:12px;">Index &amp; Mutual Funds</h3>
+          <p>Broad market funds, like an S&amp;P 500 index or Vanguard-style fund, alongside individual tickers, so a pick can be a whole market instead of one company.</p>
+        </div>
+      </div>
     </section>
   </main>
 </div>
