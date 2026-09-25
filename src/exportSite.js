@@ -194,6 +194,18 @@ for (let i = closed.length - 1; i >= 0; i--) {
   }
 }
 
+// Most recent day's fund/index ETF snapshots (see config.js's
+// FUND_WATCHLIST and db.js's fund_snapshots table) — real, live daily
+// performance for the dashboard's Mutual Funds tab. Empty until the nightly
+// pipeline has run at least once since this feature was added.
+const latestFundDateRow = db.prepare(`SELECT MAX(date) AS d FROM fund_snapshots`).get();
+const fundSnapshots = latestFundDateRow?.d
+  ? db
+      .prepare(`SELECT ticker, label, close, pct_change FROM fund_snapshots WHERE date = ? ORDER BY ticker`)
+      .all(latestFundDateRow.d)
+      .map((r) => ({ ticker: r.ticker, label: r.label, close: r.close, pctChange: r.pct_change }))
+  : [];
+
 const recentBriefs = db
   .prepare(
     `SELECT date, top_winner, winner_pct, top_loser, loser_pct, watchlist_tickers
@@ -239,6 +251,10 @@ const output = {
     maxTotalNotionalUsd: PORTFOLIO_LIMITS.maxTotalNotionalUsd,
   },
   recentBriefs,
+  fundSnapshots: {
+    asOfDate: latestFundDateRow?.d ?? null,
+    items: fundSnapshots,
+  },
   lessons,
   onDemand: onDemandClosed.map((r) => ({
     date: r.date,

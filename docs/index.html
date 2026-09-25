@@ -507,6 +507,13 @@
   </div>
   <main>
     <section>
+      <div class="section-head">
+        <h2>Live Index &amp; Fund Performance</h2>
+      </div>
+      <p class="section-sub" id="fund-asof">Real daily closes, fetched by the same nightly pipeline as everything else on this site — not traded or sized, just recorded. ETF proxies, not literal mutual fund share classes (Vanguard's VFIAX/VTSAX aren't quotable through this data feed) — VOO/VTI are Vanguard's own ETF equivalents of the same underlying index.</p>
+      <div class="stat-grid" id="fund-stats"><div class="loading">Loading…</div></div>
+    </section>
+    <section>
       <div class="section-head"><h2>What This Would Add</h2></div>
       <div class="bucket-grid">
         <div class="preview-card">
@@ -515,7 +522,7 @@
           </div>
           <span class="preview-pill">Preview</span>
           <h3 style="margin-top:12px;">Index &amp; Mutual Funds</h3>
-          <p>Broad market funds, like an S&amp;P 500 index or Vanguard-style fund, alongside individual tickers, so a pick can be a whole market instead of one company.</p>
+          <p>Actual buy/sell/hold ability, not just price tracking — broad market funds alongside individual tickers, so a pick can be a whole market instead of one company.</p>
         </div>
         <div class="preview-card">
           <div class="icon-badge">
@@ -544,6 +551,20 @@
     <section>
       <div class="section-head"><h2>Live Market Data</h2></div>
       <div class="stat-grid" id="crypto-stats"><div class="loading">Loading live prices…</div></div>
+    </section>
+    <section>
+      <div class="section-head"><h2>Top 5 Movers (24h)</h2></div>
+      <p class="section-sub">Ranked by 24-hour percent change across the top 100 coins by market cap.</p>
+      <div class="bucket-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        <div>
+          <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Gainers</h3>
+          <div id="crypto-gainers"><div class="loading">Loading…</div></div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Losers</h3>
+          <div id="crypto-losers"><div class="loading">Loading…</div></div>
+        </div>
+      </div>
     </section>
     <section>
       <div class="section-head"><h2>What This Would Add</h2></div>
@@ -965,6 +986,73 @@ async function main() {
     }).join('') : '';
     document.getElementById('on-demand-list').innerHTML = pendingHtml + closedHtml || '<div class="loading">No on-demand trades yet.</div>';
   }
+
+  renderFundStats(data.fundSnapshots);
+}
+
+// Real fund/index ETF performance for the Mutual Funds tab — comes straight
+// from data.json (same fetch as everything else on the page, no separate
+// network call), populated nightly by the pipeline fetching config.js's
+// FUND_WATCHLIST via the same Alpaca call already used for the main
+// watchlist. Cheap to render immediately regardless of which tab is active,
+// unlike the crypto section below which only fetches once that tab opens.
+function renderFundStats(fundSnapshots) {
+  const el = document.getElementById('fund-stats');
+  const asOfEl = document.getElementById('fund-asof');
+  if (!el) return;
+  const items = fundSnapshots && fundSnapshots.items ? fundSnapshots.items : [];
+  if (items.length === 0) {
+    el.innerHTML = '<div class="loading">No fund data yet — populated by the next nightly run.</div>';
+    return;
+  }
+  if (asOfEl && fundSnapshots.asOfDate) {
+    asOfEl.textContent = 'As of ' + fundSnapshots.asOfDate + '. ' + asOfEl.textContent;
+  }
+  const fmtPct = (n) => n === null || n === undefined ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  const cls = (n) => n === null || n === undefined ? '' : (n >= 0 ? 'pos' : 'neg');
+  const html = items.map((f) => {
+    const color = tickerColor(f.ticker);
+    const priceStr = f.close === null || f.close === undefined ? 'n/a' : '$' + f.close.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    return '<div class="stat-card">' +
+      '<div class="icon-badge" style="background:' + color + '26; color:' + color + '">' + iconSvg('layers') + '</div>' +
+      '<div><div class="value ' + cls(f.pctChange) + '">' + priceStr + '</div>' +
+      '<div class="label">' + f.label + ' · ' + fmtPct(f.pctChange) + '</div></div></div>';
+  }).join('');
+  el.innerHTML = html;
+}
+
+// Top 5 gainers / losers (24h) across the top 100 coins by market cap, via
+// the same CoinGecko markets endpoint pattern as loadCryptoPrices above —
+// free, keyless, CORS-friendly, no secret exposed client-side.
+async function loadCryptoMovers() {
+  const gEl = document.getElementById('crypto-gainers');
+  const lEl = document.getElementById('crypto-losers');
+  try {
+    const res = await fetch(
+      'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h',
+      { cache: 'no-store' }
+    );
+    if (!res.ok) throw new Error('CoinGecko request failed (' + res.status + ')');
+    const coins = (await res.json()).filter((c) => typeof c.price_change_percentage_24h === 'number');
+
+    const fmtPct = (n) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+    const rowHtml = (c) => {
+      const cls = c.price_change_percentage_24h >= 0 ? 'pos' : 'neg';
+      return '<div class="brief-row"><span>' + (c.symbol || '').toUpperCase() + ' <span class="movers">' + c.name + '</span></span>' +
+        '<span class="movers ' + cls + '">' + fmtPct(c.price_change_percentage_24h) + '</span></div>';
+    };
+
+    const sorted = [...coins].sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
+    const gainers = sorted.slice(0, 5);
+    const losers = sorted.slice(-5).reverse();
+
+    gEl.innerHTML = gainers.map(rowHtml).join('') || '<div class="loading">No data.</div>';
+    lEl.innerHTML = losers.map(rowHtml).join('') || '<div class="loading">No data.</div>';
+  } catch (err) {
+    const msg = '<div class="loading">Movers unavailable right now (' + err.message + '). Try reloading.</div>';
+    gEl.innerHTML = msg;
+    lEl.innerHTML = msg;
+  }
 }
 
 main().catch(err => {
@@ -994,6 +1082,7 @@ function switchView(viewName, pushHash) {
   if (viewName === 'crypto' && !cryptoLoaded) {
     cryptoLoaded = true;
     loadCryptoPrices();
+    loadCryptoMovers();
   }
 }
 

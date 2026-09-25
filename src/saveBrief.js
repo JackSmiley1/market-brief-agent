@@ -116,3 +116,27 @@ export function saveGrading(date, items) {
     throw err;
   }
 }
+
+const upsertFundSnapshotStmt = db.prepare(`
+  INSERT INTO fund_snapshots (date, ticker, label, close, pct_change)
+  VALUES (?, ?, ?, ?, ?)
+  ON CONFLICT(date, ticker) DO UPDATE SET label = excluded.label, close = excluded.close, pct_change = excluded.pct_change
+`);
+
+// Persists this run's fund/index ETF closes (see config.js's FUND_WATCHLIST).
+// `fundData` is fetchMarketData's normal per-symbol output; `labelByTicker`
+// maps ticker -> its display label. Upserts by (date, ticker) so a re-run
+// replaces rather than duplicates, same pattern as the rest of this file.
+export function saveFundSnapshots(date, fundData, labelByTicker) {
+  db.exec("BEGIN");
+  try {
+    for (const d of fundData) {
+      const label = labelByTicker[d.symbol] ?? d.symbol;
+      upsertFundSnapshotStmt.run(date, d.symbol, label, d.close, d.pctChange);
+    }
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+}

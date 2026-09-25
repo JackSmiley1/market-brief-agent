@@ -10,9 +10,11 @@ import {
   loadMostRecentWatchlist,
   saveGrading,
   getMostRecentBriefDate,
+  saveFundSnapshots,
 } from "./saveBrief.js";
 import { runPaperTradingCycle } from "./paperTrade.js";
 import { db } from "./db.js";
+import { FUND_WATCHLIST } from "./config.js";
 
 function todayISO() {
   // toISOString() reports UTC, which has already rolled to the next
@@ -98,6 +100,20 @@ async function run() {
     await runPaperTradingCycle(date, followUpItems, priceMap);
   } catch (err) {
     console.error("Paper trading cycle failed (brief was still saved normally):", err.message);
+  }
+
+  // Dashboard's Mutual Funds tab (real, not just preview) — a separate, tiny
+  // fetch of index/fund ETF proxies, never analyzed by Claude or traded, just
+  // recorded as-is. Wrapped the same way as paper trading above: this is
+  // display data, not the pipeline's core output, so a hiccup here should
+  // never be able to block a brief that already generated successfully.
+  try {
+    const fundData = await fetchMarketData(FUND_WATCHLIST.map((f) => f.ticker));
+    const labelByTicker = Object.fromEntries(FUND_WATCHLIST.map((f) => [f.ticker, f.label]));
+    saveFundSnapshots(date, fundData, labelByTicker);
+    console.log(`Fund snapshots saved: ${fundData.length}/${FUND_WATCHLIST.length} tracked fund(s).`);
+  } catch (err) {
+    console.error("Fund snapshot fetch failed (brief was still saved normally):", err.message);
   }
 
   if (previousDate && gradingItems.length > 0) {

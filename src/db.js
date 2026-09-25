@@ -144,3 +144,21 @@ db.exec(`
     lesson_text TEXT NOT NULL
   );
 `);
+
+// Daily closing snapshot for the index/fund ETF proxies in config.js's
+// FUND_WATCHLIST (2026-09-25) — powers the dashboard's Mutual Funds tab with
+// real, live daily performance instead of leaving that tab preview-only.
+// Deliberately its own table, not reusing paper_trades or watchlist_followups:
+// these tickers are never analyzed by Claude, never sized, and never
+// paper-traded, only fetched and recorded as-is via the same fetchMarketData
+// call already used for WATCHLIST (no new API key or extra service needed).
+db.exec(`
+  CREATE TABLE IF NOT EXISTS fund_snapshots (
+    date TEXT NOT NULL,
+    ticker TEXT NOT NULL,
+    label TEXT NOT NULL,
+    close REAL,
+    pct_change REAL,
+    PRIMARY KEY (date, ticker)
+  );
+`);

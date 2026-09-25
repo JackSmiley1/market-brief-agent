@@ -11,6 +11,27 @@ export const WATCHLIST = [
   // adjust freely — this is your Phase 1 universe, not a permanent list
 ];
 
+// Broad index/fund ETF proxies tracked separately from WATCHLIST, purely for
+// the dashboard's Mutual Funds tab — these are never analyzed by Claude,
+// never sized, and never paper-traded, only fetched nightly (via the same
+// fetchMarketData used for WATCHLIST, so no new API key or extra service is
+// needed) and displayed as-is. Honest naming note: Alpaca's market data
+// covers ETFs, not literal mutual fund share classes (e.g. Vanguard's own
+// VFIAX/VTSAX), which generally aren't quotable the same way through a
+// standard brokerage data feed. VOO/VTI are Vanguard's own ETF equivalents
+// of those funds (same underlying index, same manager, different wrapper),
+// which is the closest honest real-data substitute available here — the
+// dashboard says so explicitly rather than implying these are the mutual
+// fund tickers themselves.
+export const FUND_WATCHLIST = [
+  { ticker: "SPY", label: "S&P 500 (SPY)" },
+  { ticker: "VOO", label: "Vanguard S&P 500 ETF (VOO)" },
+  { ticker: "VTI", label: "Vanguard Total Stock Market ETF (VTI)" },
+  { ticker: "QQQ", label: "Nasdaq-100 (QQQ)" },
+  { ticker: "DIA", label: "Dow Jones Industrial Average (DIA)" },
+  { ticker: "IWM", label: "Russell 2000 (IWM)" },
+];
+
 export const ALPACA_DATA_BASE = "https://data.alpaca.markets/v2";
 export const FINNHUB_BASE = "https://finnhub.io/api/v1";
 
