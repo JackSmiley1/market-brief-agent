@@ -7,9 +7,9 @@
 <meta name="description" content="An autonomous research pipeline: nightly Claude-driven market analysis, evidence-based simulated position sizing, and statistical guardrails against tuning on noise. Graded against reality every night. All trades simulated, zero real capital." />
 
 <!-- Inline SVG favicon (no separate asset file to host/track): black square,
-     gold diamond mark, echoing the dashboard's own brand mark (.brand .mark
-     in the nav) rather than a generic default icon. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2308080a'/%3E%3Crect x='12' y='12' width='8' height='8' fill='%23c9a961' transform='rotate(45 16 16)'/%3E%3C/svg%3E" />
+     orange-to-red gradient mark, echoing the dashboard's own brand mark
+     (.brand .mark in the nav) rather than a generic default icon. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff8a4c'/%3E%3Cstop offset='1' stop-color='%23e8483f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%230a0b0d'/%3E%3Crect x='8' y='8' width='16' height='16' rx='5' fill='url(%23g)'/%3E%3C/svg%3E" />
 
 <!-- Open Graph / Twitter card, so sharing this URL (e.g. in an application
      or a message) shows a real title/description instead of a bare link. -->
@@ -27,25 +27,32 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <style>
   :root {
-    /* Near-black, not navy: a private-bank palette of black, silver and
-       gold rather than the blue-tinted dark UI this started as. */
-    --bg: #08080a;
-    --panel: #111113;
-    --panel-hover: #17171a;
-    --border: #2b2a26;
-    --border-soft: #1c1c1e;
-    --text: #f3f1ea;
-    --muted: #a6a29a;
-    --muted-dim: #6d6a63;
-    --green: #4f9d6e;
-    --red: #b8564f;
-    --amber: #c9a961;
-    --accent: #c9a961;
-    --accent-bright: #ddc384;
-    --accent-dim: hsla(42, 45%, 62%, 0.14);
-    --on-accent: #0c0b08;
-    --radius: 8px;
-    --radius-sm: 4px;
+    /* Near-black app palette with a warm orange/gold brand accent, plus a
+       small rotating set of categorical colors (purple/blue/green/pink)
+       used only for per-ticker badges and chart series, never for primary
+       actions/CTAs, so the brand accent stays unambiguous. */
+    --bg: #0a0b0d;
+    --panel: #151719;
+    --panel-hover: #1c1f22;
+    --border: #2a2d31;
+    --border-soft: #1d1f22;
+    --text: #f5f6f7;
+    --muted: #93989f;
+    --muted-dim: #5c6167;
+    --green: #35c98d;
+    --red: #ef5b63;
+    --amber: #f2b544;
+    --accent: #ff8a4c;
+    --accent-2: #e8483f;
+    --accent-bright: #ff9d67;
+    --accent-dim: hsla(18, 100%, 65%, 0.14);
+    --on-accent: #1a0f08;
+    --purple: #8b7cf6;
+    --blue: #4f8ef7;
+    --pink: #ec6f9c;
+    --cat-colors: var(--accent), var(--purple), var(--blue), var(--green), var(--pink), var(--amber);
+    --radius: 18px;
+    --radius-sm: 12px;
     --space-1: 4px; --space-2: 8px; --space-3: 16px; --space-4: 24px;
     --space-5: 32px; --space-6: 48px; --space-7: 64px; --space-8: 96px;
   }
@@ -54,8 +61,8 @@
   body {
     margin: 0;
     background:
-      radial-gradient(900px 500px at 15% -10%, hsla(42, 55%, 55%, 0.05), transparent 60%),
-      radial-gradient(700px 500px at 100% 0%, hsla(0, 0%, 70%, 0.03), transparent 55%),
+      radial-gradient(900px 500px at 15% -10%, hsla(18, 90%, 55%, 0.07), transparent 60%),
+      radial-gradient(700px 500px at 100% 0%, hsla(255, 70%, 65%, 0.04), transparent 55%),
       var(--bg);
     color: var(--text);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -71,18 +78,24 @@
   /* ---- Top bar ---- */
   .topbar {
     border-bottom: 1px solid var(--border-soft);
-    padding: 18px 0;
+    padding: 16px 0;
     position: sticky; top: 0; z-index: 20;
-    background: hsla(226, 22%, 7%, 0.82);
+    background: hsla(220, 10%, 4%, 0.82);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
   .topbar .shell { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: 0.01em; font-family: 'Cormorant Garamond', Georgia, serif; }
-  .brand .mark { width: 8px; height: 8px; background: var(--accent); transform: rotate(45deg); flex-shrink: 0; }
-  .topbar nav { display: flex; gap: 22px; }
-  .topbar nav a { color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: color .15s; }
-  .topbar nav a:hover { color: var(--text); }
+  .brand .mark {
+    width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  }
+  .topbar nav { display: flex; gap: 4px; }
+  .topbar nav a {
+    color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 500;
+    padding: 7px 14px; border-radius: 100px; transition: color .15s, background .15s;
+  }
+  .topbar nav a:hover { color: var(--text); background: var(--panel); }
 
   /* ---- Hero ---- */
   .hero { padding: var(--space-7) 0 var(--space-5); }
@@ -114,11 +127,11 @@
   .disclaimer {
     margin: var(--space-5) 0;
     padding: 14px 18px;
-    background: hsla(42, 45%, 58%, 0.06);
-    border: 1px solid hsla(42, 45%, 58%, 0.25);
+    background: hsla(42, 80%, 58%, 0.07);
+    border: 1px solid hsla(42, 80%, 58%, 0.25);
     border-radius: var(--radius-sm);
     font-size: 13.5px;
-    color: hsl(42, 35%, 72%);
+    color: hsl(42, 55%, 72%);
     display: flex; gap: 10px; align-items: flex-start;
   }
   .disclaimer .ic { flex-shrink: 0; margin-top: 3px; }
@@ -179,8 +192,8 @@
   .btn {
     appearance: none; border: none; cursor: pointer;
     font-family: inherit; font-weight: 600; font-size: 14px;
-    padding: 13px 22px; border-radius: var(--radius-sm);
-    transition: transform .1s, filter .15s, opacity .15s;
+    padding: 13px 24px; border-radius: 100px;
+    transition: transform .1s, filter .15s, opacity .15s, background .15s;
   }
   .btn:active { transform: scale(0.98); }
   .btn-primary { background: var(--accent); color: var(--on-accent); }
@@ -229,13 +242,54 @@
   .stat-card {
     background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 18px 20px; transition: border-color .15s;
+    display: flex; flex-direction: column; gap: 12px;
   }
   .stat-card:hover { border-color: var(--border-soft); }
-  .stat-card .value { font-size: 25px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-  .stat-card .label { color: var(--muted); font-size: 12.5px; margin-top: 5px; }
+  .stat-card .icon-badge {
+    width: 32px; height: 32px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .stat-card .icon-badge svg { width: 16px; height: 16px; }
+  .stat-card .value { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .stat-card .label { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
   .pos { color: var(--green); } .neg { color: var(--red); }
 
+  /* Hero card: the single headline number, styled like a balance card, sitting
+     above the regular stat grid rather than blended into it. */
+  .hero-card {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-radius: var(--radius);
+    padding: 24px 26px;
+    color: var(--on-accent);
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(240px 140px at 100% 0%, hsla(0,0%,100%,0.16), transparent 70%);
+  }
+  .hero-card .label { font-size: 12.5px; font-weight: 600; opacity: 0.75; position: relative; }
+  .hero-card .value { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin-top: 6px; position: relative; font-variant-numeric: tabular-nums; }
+  .hero-card .sub { font-size: 13px; font-weight: 600; margin-top: 6px; opacity: 0.85; position: relative; }
+
   .chart-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+
+  /* ---- Risk rings ---- */
+  .ring-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px; }
+  .ring-card { display: flex; align-items: center; gap: 18px; }
+  .ring-card svg { flex-shrink: 0; transform: rotate(-90deg); }
+  .ring-card .ring-label { color: var(--muted); font-size: 13px; margin-bottom: 4px; }
+  .ring-card .ring-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* ---- Ticker badges (colored initial-letter chips) ---- */
+  .ticker-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 7px;
+    font-size: 10.5px; font-weight: 700; color: #fff;
+    margin-right: 8px; flex-shrink: 0; vertical-align: middle;
+  }
 
   .bucket-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
   .bucket-group { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
@@ -247,8 +301,8 @@
   tr:last-child td { border-bottom: none; }
   .flag {
     display: inline-block; font-size: 10px; font-weight: 600;
-    color: var(--amber); background: hsla(42, 45%, 58%, 0.1); border: 1px solid hsla(42, 45%, 58%, 0.25);
-    border-radius: 3px; padding: 1px 6px; margin-left: 6px; letter-spacing: 0.02em;
+    color: var(--amber); background: hsla(42, 80%, 58%, 0.1); border: 1px solid hsla(42, 80%, 58%, 0.25);
+    border-radius: 4px; padding: 1px 6px; margin-left: 6px; letter-spacing: 0.02em;
   }
 
   .methodology { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-5); }
@@ -501,6 +555,36 @@ function setupInvestBar() {
   });
 }
 
+// Thin-line icon set (16x16, stroke-based, no fills) shared by stat cards
+// and, further down, the ticker badges. Deliberately generic/geometric
+// rather than literal pictograms, consistent with the disclaimer icon.
+const ICONS = {
+  layers: '<path d="M8 2l6 3-6 3-6-3 6-3z"/><path d="M2 8l6 3 6-3"/><path d="M2 11l6 3 6-3"/>',
+  trendUp: '<path d="M2 12l4-4 3 3 5-6"/><path d="M10 5h4v4"/>',
+  trendDown: '<path d="M2 4l4 4 3-3 5 6"/><path d="M10 11h4v-4"/>',
+  target: '<circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2.5"/>',
+  percent: '<circle cx="5" cy="5" r="1.4"/><circle cx="11" cy="11" r="1.4"/><path d="M3 13L13 3"/>',
+  award: '<circle cx="8" cy="6" r="4"/><path d="M5.7 9.3L4.3 14l3.7-2 3.7 2-1.4-4.7"/>',
+  alert: '<path d="M8 2L1.5 14h13L8 2z"/><path d="M8 6.3v3.4"/><circle cx="8" cy="11.7" r="0.6" fill="currentColor" stroke="none"/>',
+  activity: '<path d="M1.5 8h3l2-5 3 10 2-5h3"/>',
+};
+function iconSvg(name) {
+  return '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">' + ICONS[name] + '</svg>';
+}
+// Deterministic color per ticker (small hash over the char codes), so the
+// same ticker always gets the same badge color across every table/section
+// on the page rather than a fresh random one each render.
+const CAT_COLORS = ['#ff8a4c', '#8b7cf6', '#4f8ef7', '#35c98d', '#ec6f9c', '#f2b544'];
+function tickerColor(ticker) {
+  let h = 0;
+  for (let i = 0; i < ticker.length; i++) h = (h * 31 + ticker.charCodeAt(i)) >>> 0;
+  return CAT_COLORS[h % CAT_COLORS.length];
+}
+function tickerBadge(ticker) {
+  const color = tickerColor(ticker);
+  return '<span class="ticker-badge" style="background:' + color + '">' + ticker.charAt(0) + '</span>';
+}
+
 async function main() {
   setupInvestBar();
 
@@ -514,26 +598,42 @@ async function main() {
   const o = data.overview;
   const fmtPct = (n) => n === null || n === undefined ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
   const cls = (n) => n === null || n === undefined ? '' : (n >= 0 ? 'pos' : 'neg');
+
+  // Headline number gets its own gradient hero card; everything else is a
+  // smaller icon-badged card in the grid below it.
+  const heroPnl = o.totalPnl ?? 0;
+  const heroHtml =
+    '<div class="hero-card"><div class="label">Total Realized P&amp;L</div>' +
+    '<div class="value">' + (heroPnl >= 0 ? '+' : '') + '$' + heroPnl.toFixed(2) + '</div>' +
+    '<div class="sub">' + o.closedTrades + ' closed simulated trades · ' + fmtPct(o.avgReturnPct) + ' avg return</div></div>';
+
+  const tintBg = (hex) => hex + '26'; // ~15% alpha hex suffix, for icon-badge backgrounds
+
   const stats = [
-    { label: 'Closed paper trades', value: o.closedTrades },
-    { label: 'Avg return / trade', value: fmtPct(o.avgReturnPct), cls: cls(o.avgReturnPct) },
-    { label: 'Total realized P&L', value: (o.totalPnl >= 0 ? '+' : '') + '$' + o.totalPnl?.toFixed(2), cls: cls(o.totalPnl) },
-    { label: 'Win rate', value: o.winRatePct + '%' },
-    { label: 'Directional hit rate', value: fmtPct(o.directionalHitRatePct) + ' (n=' + o.directionalResolvedN + ')' },
-    { label: 'Max drawdown', value: '-$' + (o.maxDrawdownUsd ?? 0).toFixed(2), cls: 'neg' },
+    { label: 'Win rate', value: o.winRatePct + '%', icon: 'target', color: '#4f8ef7' },
+    { label: 'Directional hit rate', value: fmtPct(o.directionalHitRatePct) + ' (n=' + o.directionalResolvedN + ')', icon: 'percent', color: '#8b7cf6' },
+    { label: 'Max drawdown', value: '-$' + (o.maxDrawdownUsd ?? 0).toFixed(2), cls: 'neg', icon: 'trendDown', color: '#ef5b63' },
   ];
-  if (o.bestTrade) stats.push({ label: 'Best trade', value: o.bestTrade.ticker + ' ' + fmtPct(o.bestTrade.pnlPct), cls: 'pos' });
-  if (o.worstTrade) stats.push({ label: 'Worst trade', value: o.worstTrade.ticker + ' ' + fmtPct(o.worstTrade.pnlPct), cls: 'neg' });
+  if (o.bestTrade) stats.push({ label: 'Best trade', value: o.bestTrade.ticker + ' ' + fmtPct(o.bestTrade.pnlPct), cls: 'pos', icon: 'award', color: '#35c98d' });
+  if (o.worstTrade) stats.push({ label: 'Worst trade', value: o.worstTrade.ticker + ' ' + fmtPct(o.worstTrade.pnlPct), cls: 'neg', icon: 'alert', color: '#ef5b63' });
   if (o.currentStreak) {
+    const streakColor = o.currentStreak.type === 'win' ? '#35c98d' : '#ef5b63';
     stats.push({
       label: 'Current streak',
       value: o.currentStreak.count + ' ' + (o.currentStreak.type === 'win' ? (o.currentStreak.count > 1 ? 'wins' : 'win') : (o.currentStreak.count > 1 ? 'losses' : 'loss')),
       cls: o.currentStreak.type === 'win' ? 'pos' : 'neg',
+      icon: 'activity', color: streakColor,
     });
   }
-  document.getElementById('overview-stats').innerHTML = stats.map(s =>
-    '<div class="stat-card"><div class="value ' + (s.cls||'') + '">' + s.value + '</div><div class="label">' + s.label + '</div></div>'
+  const gridHtml = stats.map(s =>
+    '<div class="stat-card">' +
+      '<div class="icon-badge" style="background:' + tintBg(s.color) + '; color:' + s.color + '">' + iconSvg(s.icon) + '</div>' +
+      '<div><div class="value ' + (s.cls||'') + '">' + s.value + '</div><div class="label">' + s.label + '</div></div>' +
+    '</div>'
   ).join('');
+
+  document.getElementById('overview-stats').innerHTML =
+    '<div style="grid-column:1/-1">' + heroHtml + '</div>' + gridHtml;
 
   // ---- Equity curve: interactive (range toggle + rich per-point tooltips) ----
   const ctx = document.getElementById('equityChart').getContext('2d');
@@ -547,13 +647,13 @@ async function main() {
       datasets: [{
         label: 'Cumulative simulated P&L ($)',
         data: slice.map(p => p.cumulativePnl),
-        borderColor: '#c9a961',
-        backgroundColor: 'rgba(201,169,97,0.10)',
+        borderColor: '#ff8a4c',
+        backgroundColor: 'rgba(255,138,76,0.12)',
         fill: true,
         tension: 0.2,
         pointRadius: 0,
         pointHoverRadius: 5,
-        pointHoverBackgroundColor: '#c9a961',
+        pointHoverBackgroundColor: '#ff8a4c',
         borderWidth: 2.5,
       }]
     };
@@ -611,27 +711,32 @@ async function main() {
   if (risk) {
     const posPct = Math.min(100, (risk.currentOpenPositions / risk.maxConcurrentPositions) * 100);
     const notionalPct = Math.min(100, (risk.currentDeployedUsd / risk.maxTotalNotionalUsd) * 100);
-    const barColor = (pct) => pct >= 90 ? 'var(--red)' : pct >= 60 ? 'var(--amber)' : 'var(--green)';
+    const ringColor = (pct) => pct >= 90 ? '#ef5b63' : pct >= 60 ? '#f2b544' : '#35c98d';
+    // Circular gauge: a plain <svg> with two stacked <circle> elements (a dim
+    // full-circle track, and a colored arc drawn via stroke-dasharray sized
+    // to pct-of-circumference). No chart library needed for two numbers.
+    const ring = (pct, color, label, valueText) => {
+      const r = 30, c = 2 * Math.PI * r;
+      const offset = c - (Math.min(pct, 100) / 100) * c;
+      return `
+        <div class="ring-card">
+          <svg width="72" height="72" viewBox="0 0 72 72">
+            <circle cx="36" cy="36" r="${r}" fill="none" stroke="#1c1c1e" stroke-width="8"/>
+            <circle cx="36" cy="36" r="${r}" fill="none" stroke="${color}" stroke-width="8"
+              stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}"/>
+          </svg>
+          <div>
+            <div class="ring-label">${label}</div>
+            <div class="ring-value mono">${valueText}</div>
+          </div>
+        </div>`;
+    };
     document.getElementById('risk-wrap').innerHTML = `
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:28px;">
-        <div>
-          <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:8px;">
-            <span style="color:var(--muted)">Open positions</span><span class="mono">${risk.currentOpenPositions} / ${risk.maxConcurrentPositions}</span>
-          </div>
-          <div style="background:#1c1c1e; border-radius:4px; height:6px; overflow:hidden;">
-            <div style="width:${posPct}%; height:100%; background:${barColor(posPct)}; transition: width .4s;"></div>
-          </div>
-        </div>
-        <div>
-          <div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:8px;">
-            <span style="color:var(--muted)">Deployed notional</span><span class="mono">$${risk.currentDeployedUsd.toLocaleString()} / $${risk.maxTotalNotionalUsd.toLocaleString()}</span>
-          </div>
-          <div style="background:#1c1c1e; border-radius:4px; height:6px; overflow:hidden;">
-            <div style="width:${notionalPct}%; height:100%; background:${barColor(notionalPct)}; transition: width .4s;"></div>
-          </div>
-        </div>
+      <div class="ring-grid">
+        ${ring(posPct, ringColor(posPct), 'Open positions', risk.currentOpenPositions + ' / ' + risk.maxConcurrentPositions)}
+        ${ring(notionalPct, ringColor(notionalPct), 'Deployed notional', '$' + risk.currentDeployedUsd.toLocaleString() + ' / $' + risk.maxTotalNotionalUsd.toLocaleString())}
       </div>
-      <p style="color:var(--muted-dim); font-size:12.5px; margin:16px 0 0;">Hard caps enforced at order time (see PORTFOLIO_LIMITS in config.js). New positions are skipped, not queued, once either limit is reached. Counts all currently open/unsettled positions regardless of source.</p>
+      <p style="color:var(--muted-dim); font-size:12.5px; margin:20px 0 0;">Hard caps enforced at order time (see PORTFOLIO_LIMITS in config.js). New positions are skipped, not queued, once either limit is reached. Counts all currently open/unsettled positions regardless of source.</p>
     `;
   }
 
@@ -639,7 +744,13 @@ async function main() {
   const tableState = {}; // tableId -> { rows, labelNames, sortKey, sortDir }
 
   function tableRowHtml(r, labelNames) {
-    return '<tr><td>' + (labelNames[r.label] || r.label) + (r.meetsMinN ? '' : '<span class="flag">small sample</span>') + '</td>' +
+    // The ticker table passes {} for labelNames (no renaming needed for a
+    // real ticker symbol) — used here as the signal to prefix a colored
+    // initial-letter badge, rather than badging generic bucket labels like
+    // "Long" or "Medium" where a per-ticker color wouldn't mean anything.
+    const isTickerTable = Object.keys(labelNames).length === 0;
+    const labelHtml = (isTickerTable ? tickerBadge(r.label) : '') + (labelNames[r.label] || r.label);
+    return '<tr><td>' + labelHtml + (r.meetsMinN ? '' : '<span class="flag">small sample</span>') + '</td>' +
       '<td>' + r.n + '</td>' +
       '<td class="' + cls(r.avgReturnPct) + '">' + fmtPct(r.avgReturnPct) + '</td>' +
       '<td>' + r.winRatePct + '%</td>' +
@@ -723,8 +834,8 @@ async function main() {
 
   const briefHtml = data.recentBriefs.map(b => {
     const url = 'https://github.com/JackSmiley1/market-brief-agent/blob/main/logs/briefs/' + b.date + '.md';
-    const winner = b.topWinner ? b.topWinner + ' ' + fmtPct(b.winnerPct) : 'N/A';
-    const loser = b.topLoser ? b.topLoser + ' ' + fmtPct(b.loserPct) : 'N/A';
+    const winner = b.topWinner ? tickerBadge(b.topWinner) + b.topWinner + ' ' + fmtPct(b.winnerPct) : 'N/A';
+    const loser = b.topLoser ? tickerBadge(b.topLoser) + b.topLoser + ' ' + fmtPct(b.loserPct) : 'N/A';
     return '<div class="brief-row"><a href="' + url + '" target="_blank">' + b.date + '</a>' +
       '<span class="movers">Top winner: ' + winner + ' · Top loser: ' + loser + '</span></div>';
   }).join('');
@@ -736,12 +847,12 @@ async function main() {
     document.getElementById('on-demand-section').style.display = '';
     const pendingHtml = hasPending ? data.onDemandPending.map(t => {
       const statusLabel = { entry_pending: 'Order queued', open: 'Open (holding)', exit_pending: 'Closing' }[t.status] || t.status;
-      return '<div class="brief-row"><span>' + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
+      return '<div class="brief-row"><span>' + tickerBadge(t.ticker) + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
         '<span class="movers"><span class="flag" style="color:var(--accent); border-color:var(--accent); background:var(--accent-dim);">' + statusLabel + '</span> $' + t.notional + ' notional</span></div>';
     }).join('') : '';
     const closedHtml = hasClosed ? data.onDemand.map(t => {
       const pnlCls = cls(t.pnlPct);
-      return '<div class="brief-row"><span>' + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
+      return '<div class="brief-row"><span>' + tickerBadge(t.ticker) + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
         '<span class="movers ' + pnlCls + '">' + fmtPct(t.pnlPct) + ' ($' + t.pnl.toFixed(2) + ')</span></div>';
     }).join('') : '';
     document.getElementById('on-demand-list').innerHTML = pendingHtml + closedHtml || '<div class="loading">No on-demand trades yet.</div>';
