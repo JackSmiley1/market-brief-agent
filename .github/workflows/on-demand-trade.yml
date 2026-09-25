@@ -44,6 +44,8 @@ jobs:
       - uses: actions/setup-node@v6
         with: { node-version: '22' }
       - run: npm install
+      - name: Run tests (sizing logic must be correct before it touches real orders)
+        run: npm test
       - name: Run on-demand analysis (+ simulated trade unless analyzeOnly)
         run: |
           if [ "${{ inputs.analyzeOnly }}" = "true" ]; then

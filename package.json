@@ -11,7 +11,8 @@
     "export-site": "node src/exportSite.js",
     "invest": "node src/onDemandTrade.js",
     "reflect": "node src/reflect.js",
-    "lessons": "node src/lessons.js"
+    "lessons": "node src/lessons.js",
+    "test": "node --test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

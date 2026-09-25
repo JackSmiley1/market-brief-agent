@@ -58,7 +58,12 @@ docs/                   the public dashboard (index.html) + generated data.json
 .github/workflows/      nightly-brief.yml, on-demand-trade.yml
 status-memo.md          current, honest state of the project — read this for real numbers
 roadmap.md              long-term vision + what it actually takes to get there
+tests/                  npm test (Node's built-in test runner) — see Tests below
 ```
+
+## Tests
+
+`tests/config.test.js` covers `computeNotional` (the position-sizing formula) end to end — base sizing, each individual cut, the cuts stacking multiplicatively, and the exact worked example from `config.js`'s own comments. Honest scope note: most of `src/` is script-style (side effects against the live database at import time), so this is deliberately the one function that's both pure and the highest-stakes to get wrong, not a claim of full coverage. Runs via `npm test` (Node's built-in test runner, no dependency added), and as a required step before every nightly and on-demand run in both GitHub Actions workflows — a broken sizing formula fails the run loudly instead of silently mis-sizing a real order.
 
 ## Running locally
 
