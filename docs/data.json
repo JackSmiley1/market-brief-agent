@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T23:16:53.644Z",
+  "generatedAt": "2026-09-25T01:27:27.329Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 93,
@@ -1241,6 +1241,14 @@
         "MSFT",
         "CRM"
       ]
+    }
+  ],
+  "lessons": [
+    {
+      "id": 1,
+      "createdAt": "2026-09-24T23:16:53.479Z",
+      "basedOnTradeCount": 48,
+      "lessonText": "Momentum-continuation bets (\"watch whether X extends\") dominate this batch and lose regardless of direction — both longs chasing a rally and shorts chasing a selloff failed repeatedly (CAT, INTC, ORCL, GS, NVDA, XOM, GOOGL), suggesting the \"continuation vs. fade\" framing itself isn't adding edge here.\n\nTrades explicitly noting low or below-average volume confirming the move (CAT, INTC x2, ORCL, TSLA) still lost, including some big misses (INTC -6.89%, -5.97%), so \"weak volume, likely to fade/reverse\" is not a reliable signal in this sample.\n\nPre-earnings or event-adjacent theses (CRM, ORCL x3, NVDA, AMD) produced some of the largest losses (CRM -15.59%, ORCL -5.99%, -3.90%), hinting that positioning ahead of scheduled catalysts carries outsized tail risk regardless of confidence label.\n\nNo clear pattern tied to the confidence field itself — medium and unrated trades both lost similarly, so confidence as recorded doesn't appear predictive here."
     }
   ],
   "onDemand": [],
