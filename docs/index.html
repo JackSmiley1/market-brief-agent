@@ -439,6 +439,21 @@
     </section>
 
     <section>
+      <div class="section-head"><h2>Top 5 Stock Movers</h2></div>
+      <p class="section-sub" id="movers-asof">From the most recent trading session's watchlist scan (real price data, not a trade signal by itself).</p>
+      <div class="bucket-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        <div>
+          <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Gainers</h3>
+          <div id="stock-gainers"><div class="loading">Loading…</div></div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Losers</h3>
+          <div id="stock-losers"><div class="loading">Loading…</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
       <div class="section-head">
         <h2>Simulated Equity Curve</h2>
         <div class="range-toggle" id="range-toggle">
@@ -988,6 +1003,30 @@ async function main() {
   }
 
   renderFundStats(data.fundSnapshots);
+  renderStockMovers(data.dailyMovers);
+}
+
+// Top 5 gainers/losers from the most recent nightly WATCHLIST scan — same
+// data (already comes from data.json, no separate fetch) and layout as the
+// crypto movers section, applied to the system's own stock watchlist.
+function renderStockMovers(dailyMovers) {
+  const gEl = document.getElementById('stock-gainers');
+  const lEl = document.getElementById('stock-losers');
+  const asOfEl = document.getElementById('movers-asof');
+  if (!gEl || !lEl) return;
+  const gainers = (dailyMovers && dailyMovers.gainers) || [];
+  const losers = (dailyMovers && dailyMovers.losers) || [];
+  if (asOfEl && dailyMovers && dailyMovers.asOfDate) {
+    asOfEl.textContent = 'From ' + dailyMovers.asOfDate + '’s watchlist scan (real price data, not a trade signal by itself).';
+  }
+  const fmtPct = (n) => n === null || n === undefined ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  const rowHtml = (m) => {
+    const cls = m.pctChange >= 0 ? 'pos' : 'neg';
+    return '<div class="brief-row"><span>' + tickerBadge(m.ticker) + m.ticker + '</span>' +
+      '<span class="movers ' + cls + '">' + fmtPct(m.pctChange) + '</span></div>';
+  };
+  gEl.innerHTML = gainers.length ? gainers.map(rowHtml).join('') : '<div class="loading">No data yet.</div>';
+  lEl.innerHTML = losers.length ? losers.map(rowHtml).join('') : '<div class="loading">No data yet.</div>';
 }
 
 // Real fund/index ETF performance for the Mutual Funds tab — comes straight

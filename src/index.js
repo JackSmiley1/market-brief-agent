@@ -135,6 +135,11 @@ async function run() {
     topLoser: loser?.symbol,
     loserPct: loser?.pctChange,
     watchlistTickers: topMovers.map((m) => m.symbol),
+    // Full top-5 lists (same winners/losers already computed above for
+    // news-fetching and the prompt) — powers the dashboard's "Top 5 Movers"
+    // section, not just the single top winner/loser used elsewhere.
+    winners: winners.map((w) => ({ ticker: w.symbol, pctChange: w.pctChange })),
+    losers: losers.map((l) => ({ ticker: l.symbol, pctChange: l.pctChange })),
   });
 
   console.log(`Brief saved: logs/briefs/${date}.md`);

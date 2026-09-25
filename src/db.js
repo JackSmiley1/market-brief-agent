@@ -73,6 +73,18 @@ function addColumnIfMissing(table, columnDef) {
   }
 }
 
+// winners_json/losers_json: full top-5 gainers/losers (ticker + pctChange)
+// from that night's WATCHLIST scan — the same list already computed in
+// index.js for news-fetching and Claude's prompt, previously only the
+// single top winner/loser (top_winner/winner_pct/top_loser/loser_pct above)
+// ever made it to storage. Added 2026-09-25 to power a "Top 5 Movers"
+// section on the dashboard's Dashboard tab, alongside the crypto and fund
+// movers sections. JSON text, not a separate table — this is small,
+// display-only data with no query needs beyond "the most recent row's
+// value," so a normalized table would be unnecessary overhead here.
+addColumnIfMissing("briefs", "winners_json TEXT");
+addColumnIfMissing("briefs", "losers_json TEXT");
+
 // direction/qty: added when short-selling support was introduced. Existing
 // rows default to 'long' (accurate — they were all long-only buys prior to
 // this), qty is backfilled by the next reconciliation pass for open rows,

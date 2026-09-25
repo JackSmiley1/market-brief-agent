@@ -20,17 +20,24 @@ export function saveBriefMarkdown(date, briefText) {
 // Upserts by date — re-runs (manual triggers, retries, local testing)
 // replace that day's row instead of creating duplicates.
 const upsertBriefStmt = db.prepare(`
-  INSERT INTO briefs (date, top_winner, winner_pct, top_loser, loser_pct, watchlist_tickers)
-  VALUES (@date, @topWinner, @winnerPct, @topLoser, @loserPct, @watchlistTickers)
+  INSERT INTO briefs (date, top_winner, winner_pct, top_loser, loser_pct, watchlist_tickers, winners_json, losers_json)
+  VALUES (@date, @topWinner, @winnerPct, @topLoser, @loserPct, @watchlistTickers, @winnersJson, @losersJson)
   ON CONFLICT(date) DO UPDATE SET
     top_winner = excluded.top_winner,
     winner_pct = excluded.winner_pct,
     top_loser = excluded.top_loser,
     loser_pct = excluded.loser_pct,
-    watchlist_tickers = excluded.watchlist_tickers
+    watchlist_tickers = excluded.watchlist_tickers,
+    winners_json = excluded.winners_json,
+    losers_json = excluded.losers_json
 `);
 
-// Simple structured row — expand this schema as Phase 2 needs more fields
+// Simple structured row — expand this schema as Phase 2 needs more fields.
+// winners/losers (optional) are the full top-5 gainers/losers arrays
+// ([{ticker, pctChange}, ...]) from that night's WATCHLIST scan — stored as
+// JSON alongside the single topWinner/topLoser fields already here, powering
+// the dashboard's "Top 5 Movers" section without changing what those
+// existing fields mean.
 export function appendBriefLog(date, row) {
   upsertBriefStmt.run({
     date,
@@ -39,6 +46,8 @@ export function appendBriefLog(date, row) {
     topLoser: row.topLoser ?? null,
     loserPct: row.loserPct ?? null,
     watchlistTickers: (row.watchlistTickers ?? []).join("|"),
+    winnersJson: row.winners ? JSON.stringify(row.winners) : null,
+    losersJson: row.losers ? JSON.stringify(row.losers) : null,
   });
 }
 

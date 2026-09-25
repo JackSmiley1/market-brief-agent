@@ -221,6 +221,29 @@ const recentBriefs = db
     watchlistTickers: b.watchlist_tickers ? b.watchlist_tickers.split("|") : [],
   }));
 
+// Full top-5 gainers/losers from the most recent session (see db.js's
+// winners_json/losers_json comment) — powers the Dashboard tab's "Top 5
+// Movers" section. Falls back to empty arrays gracefully for any brief row
+// saved before this field existed (parse errors and missing values both
+// land there, not a thrown error).
+function safeParseMovers(json) {
+  if (!json) return [];
+  try {
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+const latestBriefRow = db
+  .prepare(`SELECT date, winners_json, losers_json FROM briefs ORDER BY date DESC LIMIT 1`)
+  .get();
+const dailyMovers = {
+  asOfDate: latestBriefRow?.date ?? null,
+  gainers: safeParseMovers(latestBriefRow?.winners_json),
+  losers: safeParseMovers(latestBriefRow?.losers_json),
+};
+
 const output = {
   generatedAt: new Date().toISOString(),
   minSampleSize: MIN_N,
@@ -251,6 +274,7 @@ const output = {
     maxTotalNotionalUsd: PORTFOLIO_LIMITS.maxTotalNotionalUsd,
   },
   recentBriefs,
+  dailyMovers,
   fundSnapshots: {
     asOfDate: latestFundDateRow?.d ?? null,
     items: fundSnapshots,
