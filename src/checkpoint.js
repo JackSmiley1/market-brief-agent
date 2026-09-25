@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { db } from "./db.js";
 import { PAPER_TRADE_BASE_NOTIONAL, SIZING_ADJUSTMENTS } from "./config.js";
+import { aggregateTrades } from "./stats.js";
 
 // ---- What this is ----
 //
@@ -29,12 +30,12 @@ function fmtPct(n, digits = 2) {
 }
 
 function summarize(rows) {
-  if (rows.length === 0) return null;
-  const totalPnl = rows.reduce((s, r) => s + r.realized_pnl, 0);
-  const totalNotional = rows.reduce((s, r) => s + r.notional, 0);
-  const avgPnlPct = rows.reduce((s, r) => s + r.realized_pnl_pct, 0) / rows.length;
-  const wins = rows.filter((r) => r.realized_pnl > 0).length;
-  return { n: rows.length, totalPnl, totalNotional, avgPnlPct, wins, winRate: (wins / rows.length) * 100 };
+  const agg = aggregateTrades(rows);
+  if (!agg) return null;
+  // Reproduces this function's exact prior output shape (field named
+  // winRate, not winRatePct; nothing rounded) — see stats.js's comment for
+  // why the shared function itself stays unrounded and unopinionated.
+  return { n: agg.n, totalPnl: agg.totalPnl, totalNotional: agg.totalNotional, avgPnlPct: agg.avgPnlPct, wins: agg.wins, winRate: agg.winRatePct };
 }
 
 function line(label, summary) {

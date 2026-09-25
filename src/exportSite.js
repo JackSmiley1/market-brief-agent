@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { db } from "./db.js";
 import { PAPER_TRADE_BASE_NOTIONAL, SIZING_ADJUSTMENTS, PORTFOLIO_LIMITS } from "./config.js";
+import { aggregateTrades } from "./stats.js";
 
 // Turns logs/brief-data.db into a single static JSON file the dashboard
 // (docs/index.html) fetches client-side. Runs nightly in CI right after the
@@ -15,18 +16,18 @@ import { PAPER_TRADE_BASE_NOTIONAL, SIZING_ADJUSTMENTS, PORTFOLIO_LIMITS } from 
 const MIN_N = 20;
 
 function summarize(rows) {
-  if (rows.length === 0) return null;
-  const totalPnl = rows.reduce((s, r) => s + r.realized_pnl, 0);
-  const totalNotional = rows.reduce((s, r) => s + r.notional, 0);
-  const avgReturnPct = rows.reduce((s, r) => s + r.realized_pnl_pct, 0) / rows.length;
-  const wins = rows.filter((r) => r.realized_pnl > 0).length;
+  const agg = aggregateTrades(rows);
+  if (!agg) return null;
+  // Reproduces this function's exact prior output shape (rounded fields,
+  // avgReturnPct naming, meetsMinN) — see stats.js's comment for why the
+  // shared function itself stays unrounded and unopinionated.
   return {
-    n: rows.length,
-    totalPnl: Number(totalPnl.toFixed(2)),
-    totalNotional,
-    avgReturnPct: Number(avgReturnPct.toFixed(3)),
-    winRatePct: Number(((wins / rows.length) * 100).toFixed(1)),
-    meetsMinN: rows.length >= MIN_N,
+    n: agg.n,
+    totalPnl: Number(agg.totalPnl.toFixed(2)),
+    totalNotional: agg.totalNotional,
+    avgReturnPct: Number(agg.avgPnlPct.toFixed(3)),
+    winRatePct: Number(agg.winRatePct.toFixed(1)),
+    meetsMinN: agg.n >= MIN_N,
   };
 }
 
