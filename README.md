@@ -4,6 +4,7 @@ An autonomous research pipeline that generates a nightly market brief from live 
 
 **Live dashboard:** https://jacksmiley1.github.io/market-brief-agent/
 **Status memo (honest, current-state writeup):** [status-memo.md](./status-memo.md)
+**Long-term roadmap (future phases — personal live trading, multi-user accounts, crypto, and the legal/licensing reality of each):** [roadmap.md](./roadmap.md)
 
 ## What it actually does, end to end
 
@@ -48,10 +49,15 @@ src/
   exportSite.js          generates docs/data.json for the public dashboard
   config.js              watchlist, sizing rules, portfolio risk caps
   db.js                  SQLite schema + migrations
+  saveBrief.js           writes brief markdown + logs, reads back most recent watchlist/brief date
+  computeAccuracy.js     standalone directional-accuracy report (superseded day-to-day by checkpoint.js)
+  computePnL.js          standalone P&L report (superseded day-to-day by checkpoint.js)
+  computeConfidence.js   standalone confidence-bucket report (superseded day-to-day by checkpoint.js)
 worker/                 Cloudflare Worker for the dashboard's on-demand invest bar
 docs/                   the public dashboard (index.html) + generated data.json
 .github/workflows/      nightly-brief.yml, on-demand-trade.yml
 status-memo.md          current, honest state of the project — read this for real numbers
+roadmap.md              long-term vision + what it actually takes to get there
 ```
 
 ## Running locally
