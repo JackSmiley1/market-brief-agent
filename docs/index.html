@@ -97,6 +97,13 @@
   }
   .topbar nav a:hover { color: var(--text); background: var(--panel); }
 
+  /* ---- Page tabs (Dashboard / Mutual Funds / Crypto) ---- */
+  .tab-nav a { font-weight: 600; }
+  .tab-nav a.active { color: var(--on-accent); background: var(--accent); }
+  .tab-nav a.active:hover { color: var(--on-accent); background: var(--accent); }
+  .view { display: none; }
+  .view.active { display: block; }
+
   /* ---- Hero ---- */
   .hero { padding: var(--space-7) 0 var(--space-5); }
   .hero h1 {
@@ -377,18 +384,24 @@
 <body>
 
 <div class="topbar">
-  <div class="shell">
-    <div class="brand"><span class="mark"></span> Market Brief Agent</div>
+  <div class="shell" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:26px; flex-wrap:wrap;">
+      <div class="brand"><span class="mark"></span> Market Brief Agent</div>
+      <nav class="tab-nav">
+        <a href="#" class="tab-link active" data-view="dashboard">Dashboard</a>
+        <a href="#mutual-funds" class="tab-link" data-view="mutual-funds">Mutual Funds</a>
+        <a href="#crypto" class="tab-link" data-view="crypto">Crypto</a>
+      </nav>
+    </div>
     <nav>
       <a href="https://github.com/JackSmiley1/market-brief-agent" target="_blank">GitHub</a>
       <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/status-memo.md" target="_blank">Status Memo</a>
-      <a href="#invest">Try It</a>
-      <a href="#lessons-section">Lessons</a>
     </nav>
   </div>
 </div>
 
 <div class="shell">
+<div id="view-dashboard" class="view active">
   <div class="hero">
     <h1>Market Brief Agent</h1>
     <p class="tag">An autonomous research pipeline: nightly Claude-driven market analysis, evidence-based simulated position sizing, and statistical guardrails against tuning on noise. Graded against reality every night.</p>
@@ -479,10 +492,22 @@
       <p class="section-sub">User-prompted, ad hoc trades: analyzed and (if flagged) opened on request rather than by the fixed nightly watchlist. Excluded from the sizing-lever evidence above on purpose, since they're a different, uncontrolled selection process.</p>
       <div class="brief-list" id="on-demand-list"></div>
     </section>
+  </main>
+</div>
+<!-- /view-dashboard -->
 
-    <section id="roadmap-preview">
-      <div class="section-head"><h2>Coming In A Future Phase</h2></div>
-      <p class="section-sub">Preview only, not functional today. Each of these requires real legal/licensing work before it could launch. See the full <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:var(--muted); text-decoration:underline;">roadmap</a> for exactly what that involves.</p>
+<div id="view-mutual-funds" class="view">
+  <div class="hero">
+    <h1>Mutual Funds</h1>
+    <p class="tag">Broad market and index fund investing, alongside the individual-ticker picks the nightly pipeline already makes.</p>
+  </div>
+  <div class="disclaimer">
+    <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
+    <span>Preview only, not functional today. This requires becoming, or partnering with, a licensed broker-dealer before it could launch for real. See the full <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for exactly what that involves.</span>
+  </div>
+  <main>
+    <section>
+      <div class="section-head"><h2>What This Would Add</h2></div>
       <div class="bucket-grid">
         <div class="preview-card">
           <div class="icon-badge">
@@ -492,10 +517,52 @@
           <h3 style="margin-top:12px;">Index &amp; Mutual Funds</h3>
           <p>Broad market funds, like an S&amp;P 500 index or Vanguard-style fund, alongside individual tickers, so a pick can be a whole market instead of one company.</p>
         </div>
+        <div class="preview-card">
+          <div class="icon-badge">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6.5"/><path d="M2 8h12M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13" /></svg>
+          </div>
+          <span class="preview-pill">Preview</span>
+          <h3 style="margin-top:12px;">International Markets</h3>
+          <p>Access to London and Asian exchanges alongside US markets, each requiring its own separate foreign regulatory authorization first.</p>
+        </div>
       </div>
     </section>
   </main>
 </div>
+<!-- /view-mutual-funds -->
+
+<div id="view-crypto" class="view">
+  <div class="hero">
+    <h1>Crypto</h1>
+    <p class="tag">Live market data for context today; simulated crypto trading is a planned future phase, not yet built.</p>
+  </div>
+  <div class="disclaimer">
+    <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
+    <span>The prices below are real, live market data (via CoinGecko), refreshed on load. They are informational only: nothing here is held, traded, or owned by this system in Phase 1. See the <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for what real crypto trading would require.</span>
+  </div>
+  <main>
+    <section>
+      <div class="section-head"><h2>Live Market Data</h2></div>
+      <div class="stat-grid" id="crypto-stats"><div class="loading">Loading live prices…</div></div>
+    </section>
+    <section>
+      <div class="section-head"><h2>What This Would Add</h2></div>
+      <div class="bucket-grid">
+        <div class="preview-card">
+          <div class="icon-badge">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6"/><path d="M6 6.5c0-1 .9-1.5 2-1.5s2 .5 2 1.5-1 1.3-2 1.5c-1.1.2-2 .7-2 1.7s.9 1.5 2 1.5 2-.5 2-1.5"/><path d="M8 3.5v1M8 11.5v1"/></svg>
+          </div>
+          <span class="preview-pill">Preview</span>
+          <h3 style="margin-top:12px;">Simulated Crypto Trading</h3>
+          <p>The same evidence-based paper-trading pipeline used for stocks, extended to crypto, on a licensed crypto-as-a-service partner rather than a self-built money-transmitter license.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<!-- /view-crypto -->
+</div>
+<!-- /shell -->
 
 <footer>
   <div class="shell">
@@ -904,6 +971,84 @@ main().catch(err => {
   document.body.insertAdjacentHTML('afterbegin',
     '<div style="background:#3a1f1f;color:#ff9a9a;padding:14px 24px;">Failed to load data.json: ' + err.message + '</div>');
 });
+
+// --- Tab navigation (Dashboard / Mutual Funds / Crypto) ---
+// Pure client-side view switching for this static, single-file page: no
+// server, no separate HTML files, just toggling which .view is displayed
+// and mirroring the choice into location.hash so a link/refresh lands on
+// the right tab.
+const VIEWS = ['dashboard', 'mutual-funds', 'crypto'];
+let cryptoLoaded = false;
+
+function switchView(viewName, pushHash) {
+  if (!VIEWS.includes(viewName)) viewName = 'dashboard';
+  VIEWS.forEach((v) => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.classList.toggle('active', v === viewName);
+  });
+  document.querySelectorAll('.tab-link').forEach((a) => {
+    a.classList.toggle('active', a.getAttribute('data-view') === viewName);
+  });
+  if (pushHash) location.hash = viewName === 'dashboard' ? '' : viewName;
+  window.scrollTo(0, 0);
+  if (viewName === 'crypto' && !cryptoLoaded) {
+    cryptoLoaded = true;
+    loadCryptoPrices();
+  }
+}
+
+document.querySelectorAll('.tab-link').forEach((a) => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchView(a.getAttribute('data-view'), true);
+  });
+});
+
+window.addEventListener('hashchange', () => {
+  switchView((location.hash || '').replace('#', '') || 'dashboard', false);
+});
+
+// Land on whichever tab the URL points to on first load (e.g. a bookmark
+// or shared link to #crypto), defaulting to the dashboard.
+switchView((location.hash || '').replace('#', '') || 'dashboard', false);
+
+// Live BTC/ETH prices via CoinGecko's free, keyless, CORS-friendly public
+// endpoint. Deliberately the only client-side external fetch on this page:
+// this project's real Alpaca/Finnhub/Anthropic keys are never exposed to
+// the browser, so any live data shown here has to come from a source that
+// doesn't need a secret at all.
+async function loadCryptoPrices() {
+  const el = document.getElementById('crypto-stats');
+  try {
+    const res = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true',
+      { cache: 'no-store' }
+    );
+    if (!res.ok) throw new Error('CoinGecko request failed (' + res.status + ')');
+    const data = await res.json();
+
+    const coins = [
+      { key: 'bitcoin', label: 'Bitcoin (BTC)', icon: 'layers', color: '#f2b544' },
+      { key: 'ethereum', label: 'Ethereum (ETH)', icon: 'layers', color: '#8b7cf6' },
+    ];
+    const fmtPct = (n) => n === null || n === undefined ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+    const tintBg = (hex) => hex + '26';
+
+    const html = coins.map((c) => {
+      const price = data[c.key] && data[c.key].usd;
+      const chg = data[c.key] && data[c.key].usd_24h_change;
+      const cls = chg === null || chg === undefined ? '' : (chg >= 0 ? 'pos' : 'neg');
+      const priceStr = price === undefined ? 'n/a' : '$' + price.toLocaleString(undefined, { maximumFractionDigits: price < 10 ? 4 : 2 });
+      return '<div class="stat-card">' +
+        '<div class="icon-badge" style="background:' + tintBg(c.color) + '; color:' + c.color + '">' + iconSvg(c.icon) + '</div>' +
+        '<div><div class="value ' + cls + '">' + priceStr + '</div>' +
+        '<div class="label">' + c.label + ' · 24h ' + fmtPct(chg) + '</div></div></div>';
+    }).join('');
+    el.innerHTML = html;
+  } catch (err) {
+    el.innerHTML = '<div class="loading">Live prices unavailable right now (' + err.message + '). Try reloading.</div>';
+  }
+}
 </script>
 
 </body>
