@@ -6,6 +6,18 @@ An autonomous research pipeline that generates a nightly market brief from live 
 **Status memo (honest, current-state writeup):** [status-memo.md](./status-memo.md)
 **Long-term roadmap (future phases — personal live trading, multi-user accounts, crypto, and the legal/licensing reality of each):** [roadmap.md](./roadmap.md)
 
+## At a glance
+
+Numbers as reported by the system's own checkpoint process, not cherry-picked — including the ones that aren't flattering:
+
+- 93 closed simulated trades, 66.7% directional accuracy (does the call's thesis play out), but still net-negative blended P&L (-0.41%) — a real, stated gap, not glossed over.
+- One sizing hypothesis has cleared this project's own n≥20 statistical bar and is documented as fact, not guess: shorts underperform longs even after an existing 0.5x size cut.
+- Every sizing rule requires 20+ closed trades on both sides of a comparison before it's treated as real instead of noise — enforced in code (`src/checkpoint.js`), not just policy.
+- A self-reflection loop periodically reviews its own losing trades and is explicitly allowed to conclude "no clear pattern" rather than force one.
+- Zero real capital, zero real users, by construction — `ALPACA_TRADING_BASE` is hardcoded to Alpaca's paper endpoint, and the API key in use is itself a paper-only key.
+
+Full numbers, including what hasn't worked: [status-memo.md](./status-memo.md).
+
 ## What it actually does, end to end
 
 1. **Nightly (weekdays, 4:30pm ET, via GitHub Actions):** pulls end-of-day price/volume data for a fixed 32-ticker watchlist from Alpaca and same-day news from Finnhub, sends it to Claude for analysis.
