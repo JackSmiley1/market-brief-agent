@@ -233,6 +233,18 @@
   .methodology p { color: hsl(220, 15%, 78%); font-size: 14.5px; margin: 0 0 var(--space-3); }
   .methodology p:last-child { margin-bottom: 0; }
 
+  .lesson-list { display: flex; flex-direction: column; gap: 10px; }
+  .lesson-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 14px 18px;
+  }
+  .lesson-card .lesson-meta {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+    color: var(--muted-dim); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em;
+    font-weight: 600; margin-bottom: 8px; flex-wrap: wrap;
+  }
+  .lesson-card p { margin: 0; color: hsl(220, 15%, 78%); font-size: 14px; line-height: 1.55; }
+
   .brief-list { display: flex; flex-direction: column; gap: 8px; }
   .brief-row {
     display: flex; justify-content: space-between; align-items: center;
@@ -269,6 +281,7 @@
       <a href="https://github.com/JackSmiley1/market-brief-agent" target="_blank">GitHub</a>
       <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/status-memo.md" target="_blank">Status Memo</a>
       <a href="#invest">Try It</a>
+      <a href="#lessons-section">Lessons</a>
     </nav>
   </div>
 </div>
@@ -346,6 +359,12 @@
         <p id="methodology-detail" class="loading">Loading…</p>
         <p>Before any comparison above is treated as a reason to change those sizing rules, it has to clear a minimum sample size (<span id="min-n-inline">20</span> closed trades on both sides of the comparison). Buckets below that line are labeled <span class="flag">small sample</span> and are directional only — this is a deliberate guardrail against tuning the strategy on noise.</p>
       </div>
+    </section>
+
+    <section id="lessons-section" style="display:none;">
+      <div class="section-head"><h2>Lessons Learned</h2></div>
+      <p class="section-sub">A separate, qualitative process (distinct from the sizing rules above) that periodically reviews batches of the system's own losing trades and writes down honest, falsifiable patterns — fed into future briefs as advisory context, not a hard rule. Only runs on a large-enough new batch of losses, and is explicitly allowed to conclude "no clear pattern."</p>
+      <div class="lesson-list" id="lesson-list"></div>
     </section>
 
     <section>
@@ -668,6 +687,17 @@ async function main() {
   document.getElementById('methodology-detail').textContent =
     'Current cuts: low confidence ×' + sa.lowConfidence + ', event risk ×' + sa.eventRisk + ', short direction ×' + sa.shortDirection +
     ' — applied on top of a $' + data.methodology.baseNotionalUsd + ' base position, stacking when more than one applies.';
+
+  if (data.lessons && data.lessons.length > 0) {
+    document.getElementById('lessons-section').style.display = '';
+    const lessonHtml = data.lessons.map(l => {
+      const dateStr = new Date(l.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      return '<div class="lesson-card"><div class="lesson-meta"><span>' + dateStr + '</span>' +
+        '<span>Based on ' + l.basedOnTradeCount + ' losing trade' + (l.basedOnTradeCount === 1 ? '' : 's') + '</span></div>' +
+        '<p>' + l.lessonText.replace(/</g, '&lt;') + '</p></div>';
+    }).join('');
+    document.getElementById('lesson-list').innerHTML = lessonHtml;
+  }
 
   const briefHtml = data.recentBriefs.map(b => {
     const url = 'https://github.com/JackSmiley1/market-brief-agent/blob/main/logs/briefs/' + b.date + '.md';

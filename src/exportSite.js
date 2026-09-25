@@ -54,6 +54,25 @@ const currentExposure = db
   )
   .get();
 
+// Reflexion-style lessons (see reflect.js / the `lessons` table) — a
+// natural-language complement to the numeric sizing rules above, synthesized
+// periodically from batches of the system's own losing trades. Surfaced
+// publicly (not just fed into the prompt) because it's genuinely evidence of
+// the system reviewing and learning from its own mistakes, which is exactly
+// the kind of thing a portfolio dashboard should show rather than hide.
+const lessons = db
+  .prepare(
+    `SELECT id, created_at, based_on_trade_count, lesson_text
+     FROM lessons ORDER BY id DESC LIMIT 10`
+  )
+  .all()
+  .map((l) => ({
+    id: l.id,
+    createdAt: l.created_at,
+    basedOnTradeCount: l.based_on_trade_count,
+    lessonText: l.lesson_text,
+  }));
+
 const onDemandClosed = db
   .prepare(
     `SELECT date, ticker, direction, realized_pnl, realized_pnl_pct, exit_filled_at
@@ -209,6 +228,7 @@ const output = {
     maxTotalNotionalUsd: PORTFOLIO_LIMITS.maxTotalNotionalUsd,
   },
   recentBriefs,
+  lessons,
   onDemand: onDemandClosed.map((r) => ({
     date: r.date,
     ticker: r.ticker,
