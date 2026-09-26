@@ -11,6 +11,7 @@ import {
   saveGrading,
   getMostRecentBriefDate,
   saveFundSnapshots,
+  saveFundHoldingValueSnapshots,
 } from "./saveBrief.js";
 import { runPaperTradingCycle } from "./paperTrade.js";
 import { db } from "./db.js";
@@ -114,6 +115,33 @@ async function run() {
     console.log(`Fund snapshots saved: ${fundData.length}/${FUND_WATCHLIST.length} tracked fund(s).`);
   } catch (err) {
     console.error("Fund snapshot fetch failed (brief was still saved normally):", err.message);
+  }
+
+  // Mark-to-market snapshot of what's actually been bought via fund_hold
+  // (the fixed 5-fund allocation + any custom-ticker buys) — distinct from
+  // the fund_snapshots block above, which just records FUND_WATCHLIST's raw
+  // display prices regardless of whether anyone ever invested. Powers the
+  // Mutual Funds tab's "Fund Holdings Value Over Time" chart. Wrapped the
+  // same way as the two blocks above: display data, never allowed to block
+  // a brief that already saved successfully.
+  try {
+    const openFundHoldings = db
+      .prepare(`SELECT ticker, qty, notional FROM paper_trades WHERE source = 'fund_hold' AND status = 'open'`)
+      .all();
+    if (openFundHoldings.length > 0) {
+      const tickers = [...new Set(openFundHoldings.map((r) => r.ticker))];
+      const priceData = await fetchMarketData(tickers);
+      const priceByTicker = Object.fromEntries(priceData.map((d) => [d.symbol, d.close]));
+      const rows = openFundHoldings
+        .filter((r) => priceByTicker[r.ticker] != null && r.qty != null)
+        .map((r) => ({ ticker: r.ticker, price: priceByTicker[r.ticker], qty: r.qty, costBasis: r.notional }));
+      saveFundHoldingValueSnapshots(date, rows);
+      console.log(`Fund holding value snapshots saved: ${rows.length}/${openFundHoldings.length} open fund_hold position(s).`);
+    } else {
+      console.log("No open fund_hold positions yet — skipping fund holding value snapshot.");
+    }
+  } catch (err) {
+    console.error("Fund holding value snapshot failed (brief was still saved normally):", err.message);
   }
 
   if (previousDate && gradingItems.length > 0) {

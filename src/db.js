@@ -174,3 +174,27 @@ db.exec(`
     PRIMARY KEY (date, ticker)
   );
 `);
+
+// Nightly mark-to-market snapshot of actual held fund_hold positions (added
+// 2026-09-26) — a different thing from fund_snapshots above, which just
+// records FUND_WATCHLIST's raw index/ETF prices for display and never
+// reflects what's actually been bought. This table answers "what is what
+// I've actually invested currently worth," for both the fixed 5-fund
+// allocation and any custom-ticker buys (same 'fund_hold' source, see
+// investFundCustom.js) — cost_basis is the position's own notional (what
+// was paid), market_value is qty * that night's close, so unrealized_pnl is
+// real, not derived from anything Claude reports. Powers the Mutual Funds
+// tab's "Fund Holdings Value Over Time" chart.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS fund_holding_value_snapshots (
+    date TEXT NOT NULL,
+    ticker TEXT NOT NULL,
+    price REAL,
+    qty REAL,
+    market_value REAL,
+    cost_basis REAL,
+    unrealized_pnl REAL,
+    unrealized_pnl_pct REAL,
+    PRIMARY KEY (date, ticker)
+  );
+`);

@@ -70,6 +70,21 @@ One schema note worth being explicit about: this reuses the same `watchlist_foll
 
 The dashboard's Crypto tab now shows this track record directly (closed trades, avg return, win rate, total P&L — same honest "not enough data yet" framing below n=20 that the stock Overview uses) plus a combined "Recent Crypto Trades" list covering both the automated nightly picks and anything triggered from the Invest form, each row tagged so it's clear which is which.
 
+## New: crypto equity curve + fund holdings value-over-time charts (September 26)
+
+Fixed a real gap: after the crypto and fund invest buttons went live, the dashboard had no chart for either — the Crypto tab's stat cards and the Mutual Funds tab's holdings list existed, but nothing visualized performance over time the way the stock Dashboard tab's equity curve already did.
+
+Crypto got the easier version, since crypto trades close after one session just like stock on-demand trades: `exportSite.js` now builds `cryptoEquityCurve` from every closed trade across both crypto sources (`crypto_ondemand` button trades and `nightly_crypto` automated picks) combined into one cumulative-P&L series, tagged per-point so the chart's tooltip can flag which points were automated. Rendered on the Crypto tab as "Simulated Equity Curve," same interaction pattern as the stock chart.
+
+Funds needed new infrastructure, since `fund_hold` positions are buy-and-hold and never close — there's no per-trade P&L to chart the way stocks/crypto have. A new table, `fund_holding_value_snapshots`, is now written nightly (in `index.js`, same resilience pattern as the fund-price-snapshot block next to it: wrapped so a hiccup here can never block a brief that already saved) by querying every open `fund_hold` position, fetching that night's close, and computing real `market_value`/`unrealized_pnl` in code — not anything Claude reports. `exportSite.js` aggregates this across every held ticker into one per-date series (`fundValueHistory`), and the Mutual Funds tab now shows "Fund Holdings Value Over Time": total market value vs. cost basis, two lines, so the gap between them visually is the unrealized P&L.
+
+Both charts will read empty ("no data yet") until at least one more nightly run has happened since a real invest went through — this only backfills going forward, it doesn't retroactively reconstruct history for positions that were already open before tonight.
+
+
+**Invest-button findings (September 26, verified against the repo and GitHub's public Actions pages):**
+- The one crypto invest that ran (SOL, $25, run #36268745267) completed cleanly but changed nothing in the database: `onDemandCrypto.js` took its "no position opened" branch. That branch only prints Claude's reasoning to the Actions log and persists nothing, so a pass looks identical to "nothing happened" from the dashboard. This is a real UX gap, not a trading bug. The Saturday nightly crypto run also passed honestly (XRP down on thin volume, bearish news, long-only → sit out).
+- Fund invest ("Invest in Top 5 Funds" and "Invest in Another Fund") has still never produced a single workflow run. The dashboard payloads, the Worker's routing, and both workflows' `inputs:` blocks all match, and the same Worker/token successfully dispatches crypto, so a code mismatch is ruled out. Still unconfirmed: what the dashboard shows after Confirm on a fund invest.
+
 ## Bottom line
 
 This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Directional analysis continues to show real skill (67% hit rate), and for the first time one of the project's own risk-management hypotheses — that shorts underperform — has cleared the statistical bar it set for itself rather than remaining a hunch. It is not yet net profitable, is on an 8-trade losing streak as of this writing, has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.

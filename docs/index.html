@@ -583,6 +583,12 @@
     </section>
 
     <section>
+      <div class="section-head"><h2>Fund Holdings Value Over Time</h2></div>
+      <p class="section-sub">Total market value vs. cost basis across every held fund position (fixed 5-fund allocation + any custom-ticker buys), snapshotted nightly. Buy-and-hold positions are never closed, so this tracks value over time rather than a per-trade P&amp;L curve.</p>
+      <div class="chart-wrap"><canvas id="fundValueChart" height="90"></canvas></div>
+    </section>
+
+    <section>
       <div class="section-head">
         <h2>Live Index &amp; Fund Performance</h2>
       </div>
@@ -641,6 +647,12 @@
       <div class="section-head"><h2>Nightly Automated Track Record</h2></div>
       <p class="section-sub" id="crypto-nightly-asof">Runs automatically every night against a fixed watchlist (BTC, ETH, SOL, XRP, ADA, DOGE, AVAX, LINK, LTC, DOT) — same cadence as the stock pipeline, long-only, flat $500 per pick (not sized by the stock evidence-based formula, which doesn't transfer to a different asset class). Its own separate evidence pool, not blended with stock stats.</p>
       <div class="stat-grid" id="crypto-nightly-stats"><div class="loading">Loading…</div></div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Simulated Crypto Equity Curve</h2></div>
+      <p class="section-sub">Cumulative P&amp;L across every closed crypto trade — both automated nightly picks and anything invested from the form above.</p>
+      <div class="chart-wrap"><canvas id="cryptoEquityChart" height="90"></canvas></div>
     </section>
 
     <section id="crypto-ondemand-section">
@@ -1235,6 +1247,164 @@ async function main() {
   renderStockMovers(data.dailyMovers);
   renderHoldings('fund-holdings-list', data.fundHoldings);
   renderCryptoNightlyStats(data.cryptoNightlyOverview, data.minSampleSize);
+  renderCryptoEquityChart(data.cryptoEquityCurve);
+  renderFundValueChart(data.fundValueHistory);
+}
+
+// Crypto tab's equity curve — same cumulative-P&L line-chart pattern as the
+// stock Dashboard tab's equityChart, combining both crypto sources
+// ('crypto_ondemand' button trades and 'nightly_crypto' automated picks)
+// into one series (see exportSite.js's cryptoEquityCurve), with an "Auto"
+// tag in the tooltip so it's clear which points are automated.
+let cryptoEquityChart = null;
+function renderCryptoEquityChart(curve) {
+  const canvas = document.getElementById('cryptoEquityChart');
+  if (!canvas) return;
+  const points = curve || [];
+  if (points.length === 0) {
+    canvas.parentElement.innerHTML = '<div class="loading">No closed crypto trades yet.</div>';
+    return;
+  }
+  const ctx = canvas.getContext('2d');
+  const chartData = {
+    labels: points.map((p, i) => i + 1),
+    datasets: [{
+      label: 'Cumulative crypto P&L ($)',
+      data: points.map(p => p.cumulativePnl),
+      borderColor: '#8b7cf6',
+      backgroundColor: 'rgba(139,124,246,0.12)',
+      fill: true,
+      tension: 0.2,
+      pointRadius: 0,
+      pointHoverRadius: 5,
+      pointHoverBackgroundColor: '#8b7cf6',
+      borderWidth: 2.5,
+    }]
+  };
+  if (cryptoEquityChart) {
+    cryptoEquityChart.data = chartData;
+    cryptoEquityChart.update();
+    return;
+  }
+  cryptoEquityChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#a6a29a', font: { family: 'Inter' } } },
+        tooltip: {
+          backgroundColor: '#131315',
+          borderColor: '#2b2a26',
+          borderWidth: 1,
+          padding: 10,
+          titleFont: { family: 'Inter', weight: '600' },
+          bodyFont: { family: 'Inter' },
+          callbacks: {
+            title: (items) => {
+              const p = points[items[0].dataIndex];
+              if (!p) return '';
+              const tag = p.source === 'nightly_crypto' ? ' · Auto' : '';
+              return p.ticker + ' (' + p.direction + ')' + tag + ' · ' + p.date;
+            },
+            label: (item) => {
+              const p = points[item.dataIndex];
+              const tradeStr = p.tradePnl >= 0 ? '+$' + p.tradePnl.toFixed(2) : '-$' + Math.abs(p.tradePnl).toFixed(2);
+              return ['This trade: ' + tradeStr + ' (' + (p.tradePnlPct >= 0 ? '+' : '') + p.tradePnlPct.toFixed(2) + '%)', 'Cumulative: $' + p.cumulativePnl.toFixed(2)];
+            },
+          },
+        },
+      },
+      scales: {
+        x: { title: { display: true, text: 'Closed trade #', color: '#a6a29a', font: { family: 'Inter' } }, ticks: { color: '#a6a29a' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#a6a29a' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      }
+    }
+  });
+}
+
+// Mutual Funds tab's "Fund Holdings Value Over Time" — unlike the equity
+// curves above, fund_hold positions never close, so there's no per-trade
+// P&L to plot; this instead tracks two lines (market value, cost basis)
+// per nightly snapshot date across every held ticker combined (see
+// exportSite.js's fundValueHistory / db.js's fund_holding_value_snapshots).
+let fundValueChart = null;
+function renderFundValueChart(history) {
+  const canvas = document.getElementById('fundValueChart');
+  if (!canvas) return;
+  const points = history || [];
+  if (points.length === 0) {
+    canvas.parentElement.innerHTML = '<div class="loading">No fund holding snapshots yet — check back after investing and the next nightly run.</div>';
+    return;
+  }
+  const ctx = canvas.getContext('2d');
+  const chartData = {
+    labels: points.map(p => p.date),
+    datasets: [
+      {
+        label: 'Market value ($)',
+        data: points.map(p => p.totalMarketValue),
+        borderColor: '#35c98d',
+        backgroundColor: 'rgba(53,201,141,0.12)',
+        fill: true,
+        tension: 0.2,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#35c98d',
+        borderWidth: 2.5,
+      },
+      {
+        label: 'Cost basis ($)',
+        data: points.map(p => p.totalCostBasis),
+        borderColor: '#a6a29a',
+        backgroundColor: 'transparent',
+        fill: false,
+        tension: 0.2,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#a6a29a',
+        borderWidth: 2,
+        borderDash: [5, 4],
+      },
+    ]
+  };
+  if (fundValueChart) {
+    fundValueChart.data = chartData;
+    fundValueChart.update();
+    return;
+  }
+  fundValueChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#a6a29a', font: { family: 'Inter' } } },
+        tooltip: {
+          backgroundColor: '#131315',
+          borderColor: '#2b2a26',
+          borderWidth: 1,
+          padding: 10,
+          titleFont: { family: 'Inter', weight: '600' },
+          bodyFont: { family: 'Inter' },
+          callbacks: {
+            footer: (items) => {
+              const p = points[items[0].dataIndex];
+              if (!p) return '';
+              const pnl = p.unrealizedPnl;
+              return 'Unrealized P&L: ' + (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
+            },
+          },
+        },
+      },
+      scales: {
+        x: { ticks: { color: '#a6a29a' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { ticks: { color: '#a6a29a' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+      }
+    }
+  });
 }
 
 // Shared row renderer for on-demand trades (stock or crypto — see the

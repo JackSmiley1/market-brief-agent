@@ -115,6 +115,34 @@ const cryptoNightlyClosed = db
   .all();
 const cryptoNightlySummary = summarize(cryptoNightlyClosed);
 
+// Crypto equity curve — same cumulative-P&L-over-closed-trades shape as the
+// stock equityCurve below, but combining BOTH crypto sources ('crypto_ondemand'
+// button-triggered and 'nightly_crypto' automated) into one chronological
+// line, since the user wants to see "the agent's investments and any
+// miscellaneous investments" together on one graph. `source` is carried per
+// point so the dashboard can badge which kind each point is, same as the
+// "Recent Crypto Trades" list already does.
+const cryptoClosedForCurve = db
+  .prepare(
+    `SELECT date, ticker, direction, realized_pnl, realized_pnl_pct, exit_filled_at, source
+     FROM paper_trades WHERE status = 'closed' AND source IN ('crypto_ondemand', 'nightly_crypto')
+     ORDER BY COALESCE(exit_filled_at, date)`
+  )
+  .all();
+let cryptoCumulative = 0;
+const cryptoEquityCurve = cryptoClosedForCurve.map((r) => {
+  cryptoCumulative += r.realized_pnl;
+  return {
+    date: r.exit_filled_at ? r.exit_filled_at.slice(0, 10) : r.date,
+    ticker: r.ticker,
+    direction: r.direction,
+    source: r.source,
+    tradePnl: Number(r.realized_pnl.toFixed(2)),
+    tradePnlPct: r.realized_pnl_pct,
+    cumulativePnl: Number(cryptoCumulative.toFixed(2)),
+  };
+});
+
 const overallSummary = summarize(closed);
 
 // Directional accuracy is a separate metric from P&L — whether the flagged
@@ -288,6 +316,28 @@ const dailyMovers = {
   losers: safeParseMovers(latestBriefRow?.losers_json),
 };
 
+// Fund holdings value-over-time (see db.js's fund_holding_value_snapshots
+// table + index.js's nightly snapshot step) — aggregates across every
+// currently/previously-held fund_hold ticker (both the fixed 5-fund
+// allocation and any custom-ticker buys, same source) into one
+// per-date {marketValue, costBasis, unrealizedPnl} series for the Mutual
+// Funds tab's "Fund Holdings Value Over Time" chart. Summed per date, not
+// per-ticker, since the chart shows the whole fund portfolio's value, not
+// any single holding's. Empty until at least one nightly run has occurred
+// since a fund_hold position existed.
+const fundValueHistoryRows = db
+  .prepare(
+    `SELECT date, SUM(market_value) AS total_market_value, SUM(cost_basis) AS total_cost_basis, SUM(unrealized_pnl) AS total_unrealized_pnl
+     FROM fund_holding_value_snapshots GROUP BY date ORDER BY date`
+  )
+  .all();
+const fundValueHistory = fundValueHistoryRows.map((r) => ({
+  date: r.date,
+  totalMarketValue: Number(r.total_market_value.toFixed(2)),
+  totalCostBasis: Number(r.total_cost_basis.toFixed(2)),
+  unrealizedPnl: Number(r.total_unrealized_pnl.toFixed(2)),
+}));
+
 const output = {
   generatedAt: new Date().toISOString(),
   minSampleSize: MIN_N,
@@ -320,7 +370,9 @@ const output = {
   recentBriefs,
   dailyMovers,
   fundHoldings,
+  fundValueHistory,
   cryptoHoldings,
+  cryptoEquityCurve,
   cryptoNightlyOverview: {
     closedTrades: cryptoNightlySummary?.n ?? 0,
     avgReturnPct: cryptoNightlySummary?.avgReturnPct ?? null,

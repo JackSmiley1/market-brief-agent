@@ -198,3 +198,36 @@ export function saveFundSnapshots(date, fundData, labelByTicker) {
     throw err;
   }
 }
+
+const upsertFundHoldingValueStmt = db.prepare(`
+  INSERT INTO fund_holding_value_snapshots (date, ticker, price, qty, market_value, cost_basis, unrealized_pnl, unrealized_pnl_pct)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(date, ticker) DO UPDATE SET
+    price = excluded.price, qty = excluded.qty, market_value = excluded.market_value,
+    cost_basis = excluded.cost_basis, unrealized_pnl = excluded.unrealized_pnl, unrealized_pnl_pct = excluded.unrealized_pnl_pct
+`);
+
+// Mark-to-market snapshot of actual held fund_hold positions (see db.js's
+// fund_holding_value_snapshots comment) — `rows` is
+// [{ticker, price, qty, costBasis}, ...] for every currently-open fund_hold
+// position; market_value/unrealized_pnl are computed here (not trusted from
+// the caller) so the math lives in exactly one place.
+export function saveFundHoldingValueSnapshots(date, rows) {
+  db.exec("BEGIN");
+  try {
+    for (const r of rows) {
+      const marketValue = r.qty * r.price;
+      const unrealizedPnl = marketValue - r.costBasis;
+      const unrealizedPnlPct = r.costBasis > 0 ? (unrealizedPnl / r.costBasis) * 100 : null;
+      upsertFundHoldingValueStmt.run(
+        date, r.ticker, r.price, r.qty,
+        Number(marketValue.toFixed(2)), r.costBasis,
+        Number(unrealizedPnl.toFixed(2)), unrealizedPnlPct !== null ? Number(unrealizedPnlPct.toFixed(3)) : null
+      );
+    }
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+}
