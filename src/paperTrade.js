@@ -239,6 +239,10 @@ export async function openNewPositions(date, items, priceMap = {}, source = "nig
   // started (otherwise a single oversized batch could blow past the cap
   // in one pass since every item would see the same "before" snapshot).
   let { n: openCount, notional: openNotional } = currentExposureStmt.get();
+  // Per-item outcome, returned to the caller (added 2026-09-26) so the
+  // on-demand scripts can log exactly what happened to a request (see
+  // saveBrief.js's logInvestRequest). The nightly caller ignores it.
+  const results = [];
 
   for (const item of items) {
     const ticker = item.ticker;
@@ -253,6 +257,7 @@ export async function openNewPositions(date, items, priceMap = {}, source = "nig
     const notional = item.notionalOverride ?? computeNotional({ confidence: item.confidence, eventRisk: item.eventRisk, direction });
     if (unresolvedPositionStmt.get(ticker)) {
       console.log(`paperTrade: skipping re-entry — ${ticker} (${date}) already has an unresolved position from an earlier cycle.`);
+      results.push({ ticker, status: "skipped_duplicate", notional });
       continue;
     }
     if (openCount + 1 > PORTFOLIO_LIMITS.maxConcurrentPositions || openNotional + notional > PORTFOLIO_LIMITS.maxTotalNotionalUsd) {
@@ -261,6 +266,7 @@ export async function openNewPositions(date, items, priceMap = {}, source = "nig
         `(currently ${openCount} position(s), $${openNotional} deployed; limits: ${PORTFOLIO_LIMITS.maxConcurrentPositions} positions / $${PORTFOLIO_LIMITS.maxTotalNotionalUsd}). ` +
         `Not treated as a failure — no row written, this pick is simply not taken this cycle.`
       );
+      results.push({ ticker, status: "skipped_cap", notional });
       continue;
     }
     try {
@@ -270,6 +276,7 @@ export async function openNewPositions(date, items, priceMap = {}, source = "nig
         if (!estimatedPrice) {
           console.warn(`paperTrade: no price estimate available for ${ticker} (${date}), skipping short entry — can't size a whole-share qty without one.`);
           markEntryFailedStmt.run(date, ticker, notional, direction, source);
+          results.push({ ticker, status: "failed", notional, error: "no price estimate for short sizing" });
           continue;
         }
         order = await submitShortOrder(ticker, estimatedPrice, notional);
@@ -279,12 +286,15 @@ export async function openNewPositions(date, items, priceMap = {}, source = "nig
       insertEntryStmt.run(date, ticker, order.id, notional, direction, source);
       openCount += 1;
       openNotional += notional;
+      results.push({ ticker, status: "submitted", notional, orderId: order.id });
       console.log(`paperTrade: ${direction} order submitted — ${ticker} (${date}), order ${order.id}, $${notional} notional (confidence=${item.confidence ?? "?"}, eventRisk=${item.eventRisk ?? "?"}, source=${source})`);
     } catch (err) {
       console.error(`paperTrade: failed to submit ${direction} order for ${ticker} (${date}):`, describeError(err));
       markEntryFailedStmt.run(date, ticker, notional, direction, source);
+      results.push({ ticker, status: "failed", notional, error: describeError(err) });
     }
   }
+  return results;
 }
 
 // Fixed sentinel "date" value used only for buy-and-hold allocation rows

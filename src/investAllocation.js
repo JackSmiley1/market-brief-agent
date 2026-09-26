@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { openAllocationPositions, reconcileEntries, reconcileExits } from "./paperTrade.js";
+import { logInvestRequest } from "./saveBrief.js";
 import { FUND_ALLOCATION } from "./config.js";
 
 // One-time (idempotent) buy-and-hold allocation trigger — the counterpart to
@@ -41,6 +42,9 @@ async function run() {
 
   const symbols = allocation.tickers ?? allocation.symbols;
   const results = await openAllocationPositions(symbols, allocation.notionalPerPosition, allocation.source);
+  for (const r of results) {
+    logInvestRequest({ kind: "fund", ticker: r.ticker, amount: allocation.notionalPerPosition, outcome: r.status, detail: r.error ?? "Top 5 Funds allocation" });
+  }
 
   const submitted = results.filter((r) => r.status === "submitted").length;
   const already = results.filter((r) => r.status === "already_invested").length;

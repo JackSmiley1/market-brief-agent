@@ -231,3 +231,23 @@ export function saveFundHoldingValueSnapshots(date, rows) {
     throw err;
   }
 }
+
+const insertInvestRequestStmt = db.prepare(`
+  INSERT INTO invest_requests (created_at, kind, ticker, amount, outcome, detail, analysis)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+`);
+
+// Records one invest request's outcome (see db.js's invest_requests
+// comment). Never throws: a logging hiccup must not fail a run whose trade
+// already went through.
+export function logInvestRequest({ kind, ticker, amount = null, outcome, detail = null, analysis = null }) {
+  try {
+    insertInvestRequestStmt.run(
+      new Date().toISOString(), kind, ticker,
+      amount === null || amount === undefined ? null : Number(amount),
+      outcome, detail, analysis
+    );
+  } catch (err) {
+    console.error("logInvestRequest failed (non-fatal):", err.message);
+  }
+}

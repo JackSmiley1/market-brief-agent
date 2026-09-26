@@ -4,6 +4,7 @@ import { fetchCryptoNews } from "./fetchNews.js";
 import { generateCryptoOnDemandCall } from "./generateBrief.js";
 import { openNewPositions, reconcileEntries, reconcileExits } from "./paperTrade.js";
 import { CRYPTO_ONDEMAND_LIMITS } from "./config.js";
+import { logInvestRequest } from "./saveBrief.js";
 
 // On-demand crypto analysis — the Crypto tab's counterpart to
 // onDemandTrade.js, added 2026-09-26 to replace the old fixed BTC/ETH-only
@@ -101,6 +102,7 @@ async function run() {
     console.error(
       `No market data returned for ${symbol} — check the symbol/name and try again. Alpaca supports 20+ coins across 56 pairs; not every name resolves automatically, but any real pair (e.g. "SOL/USD") can be typed directly.`
     );
+    logInvestRequest({ kind: "crypto", ticker: symbol, amount, outcome: "no_data", detail: "No market data returned for this symbol" });
     process.exit(1);
   }
 
@@ -111,13 +113,20 @@ async function run() {
 
   if (!decision || decision.invest !== true) {
     console.log("No simulated position opened — nothing here cleared the bar for a real entry right now.");
+    logInvestRequest({
+      kind: "crypto", ticker: symbol, amount,
+      // Distinguish an explicit "invest: false" from a reply with no
+      // parseable decision block, so a parse bug can't hide as a pass.
+      outcome: decision ? "passed" : "no_decision",
+      analysis: analysisText,
+    });
     return;
   }
 
   console.log(
     `Investing $${amount} in ${symbol} (confidence=${decision.confidence ?? "?"}, eventRisk=${decision.eventRisk ?? "?"}).`
   );
-  await openNewPositions(
+  const [result] = await openNewPositions(
     date,
     [
       {
@@ -131,6 +140,12 @@ async function run() {
     {},
     "crypto_ondemand"
   );
+  logInvestRequest({
+    kind: "crypto", ticker: symbol, amount,
+    outcome: result?.status ?? "failed",
+    detail: result?.error ?? `confidence=${decision.confidence ?? "?"}, eventRisk=${decision.eventRisk ?? "?"}`,
+    analysis: analysisText,
+  });
   console.log("\nSimulated (paper) crypto position submitted — zero real capital, source tagged 'crypto_ondemand'.");
 }
 

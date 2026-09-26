@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { openAllocationPositions, reconcileEntries, reconcileExits } from "./paperTrade.js";
 import { FUND_CUSTOM_LIMITS } from "./config.js";
+import { logInvestRequest } from "./saveBrief.js";
 
 // Mutual Funds tab's "invest in another fund" flow (added 2026-09-26) — same
 // static, Claude-free, buy-and-hold logic as the fixed 5-fund
@@ -36,6 +37,7 @@ async function run() {
 
   const results = await openAllocationPositions([ticker], amount, "fund_hold");
   const [result] = results;
+  logInvestRequest({ kind: "fund", ticker, amount, outcome: result.status, detail: result.error ?? null });
   console.log(`Done: ${ticker} — ${result.status}${result.error ? ` (${result.error})` : ""}`);
 }
 

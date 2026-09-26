@@ -3,6 +3,7 @@ import { fetchMarketData } from "./fetchMarketData.js";
 import { fetchCompanyNews } from "./fetchNews.js";
 import { generateOnDemandCall } from "./generateBrief.js";
 import { openNewPositions, reconcileEntries, reconcileExits } from "./paperTrade.js";
+import { logInvestRequest } from "./saveBrief.js";
 import { STOCK_ONDEMAND_LIMITS } from "./config.js";
 
 // On-demand / prompted analysis — the counterpart to the nightly fixed-
@@ -117,6 +118,7 @@ async function run() {
   const marketData = await fetchMarketData(symbols);
   if (marketData.length === 0) {
     console.error("No market data returned for the requested ticker(s) — check the symbol(s) and try again.");
+    for (const s of symbols) logInvestRequest({ kind: "stock", ticker: s, amount: notionalOverride ?? null, outcome: "no_data", detail: "No market data returned" });
     process.exit(1);
   }
   const found = new Set(marketData.map((d) => d.symbol));
@@ -137,7 +139,14 @@ async function run() {
 
   if (picks.length === 0) {
     console.log("No simulated position opened — nothing here cleared the bar for a real setup.");
+    for (const s of found) logInvestRequest({ kind: "stock", ticker: s, amount: notionalOverride ?? null, outcome: "passed", analysis: analysisText });
     return;
+  }
+  // Tickers analyzed but not flagged in a multi-ticker request still get a
+  // 'passed' row, so every ticker the user asked about is accounted for.
+  const pickedSet = new Set(picks.map((p) => p.ticker));
+  for (const s of found) {
+    if (!pickedSet.has(s)) logInvestRequest({ kind: "stock", ticker: s, amount: notionalOverride ?? null, outcome: "passed", analysis: analysisText });
   }
 
   console.log(`Flagged: ${picks.map((p) => `${p.ticker} (${p.direction}, confidence=${p.confidence}, eventRisk=${p.eventRisk})`).join("; ")}`);
@@ -147,12 +156,21 @@ async function run() {
 
   if (analyzeOnly) {
     console.log("--analyze-only set — skipping simulated trade execution.");
+    for (const p of picks) logInvestRequest({ kind: "stock", ticker: p.ticker, amount: notionalOverride ?? null, outcome: "analyze_only", detail: `flagged ${p.direction}`, analysis: analysisText });
     return;
   }
 
   const priceMap = Object.fromEntries(marketData.map((d) => [d.symbol, d.close]));
   const items = notionalOverride !== undefined ? picks.map((p) => ({ ...p, notionalOverride })) : picks;
-  await openNewPositions(date, items, priceMap, "on_demand");
+  const results = await openNewPositions(date, items, priceMap, "on_demand");
+  for (const r of results) {
+    const pick = picks.find((p) => p.ticker === r.ticker);
+    logInvestRequest({
+      kind: "stock", ticker: r.ticker, amount: r.notional, outcome: r.status,
+      detail: r.error ?? (pick ? `${pick.direction}, confidence=${pick.confidence ?? "?"}, eventRisk=${pick.eventRisk ?? "?"}` : null),
+      analysis: analysisText,
+    });
+  }
   console.log("\nSimulated (paper) position(s) submitted — zero real capital, source tagged 'on_demand'.");
 }
 

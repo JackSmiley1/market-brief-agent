@@ -342,6 +342,17 @@
     border-radius: 4px; padding: 1px 6px; margin-left: 6px; letter-spacing: 0.02em;
   }
 
+  .req-row { display: block; }
+  .req-row .req-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+  .req-outcome { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 4px; padding: 1px 7px; border: 1px solid var(--border); color: var(--muted); }
+  .req-outcome.ok { color: var(--green); border-color: hsla(155, 58%, 50%, 0.35); background: hsla(155, 58%, 50%, 0.08); }
+  .req-outcome.pass { color: var(--muted); }
+  .req-outcome.bad { color: var(--red); border-color: hsla(357, 82%, 65%, 0.35); background: hsla(357, 82%, 65%, 0.08); }
+  .req-outcome.warn { color: var(--amber); border-color: hsla(42, 80%, 58%, 0.3); background: hsla(42, 80%, 58%, 0.08); }
+  .req-row details { margin-top: 6px; }
+  .req-row summary { cursor: pointer; color: var(--muted); font-size: 12.5px; }
+  .req-row .req-why { white-space: pre-wrap; color: hsl(42, 8%, 78%); font-size: 13px; line-height: 1.5; margin-top: 6px; }
+
   .methodology { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-5); }
   .methodology p { color: hsl(42, 8%, 78%); font-size: 14.5px; margin: 0 0 var(--space-3); }
   .methodology p:last-child { margin-bottom: 0; }
@@ -464,6 +475,12 @@
       </div>
     </section>
 
+    <section id="requests-stock-section">
+      <div class="section-head"><h2>Your Stock Invest Requests</h2></div>
+      <p class="section-sub">Every request from the form above and what came of it, including the ones Claude passed on. A pass is a real outcome, not a failure: it means nothing cleared the bar for an entry.</p>
+      <div class="brief-list" id="requests-stock-list"><div class="loading">No requests yet.</div></div>
+    </section>
+
     <section id="overview-section">
       <div class="section-head"><h2>Overview</h2></div>
       <div class="stat-grid" id="overview-stats"><div class="loading">Loading…</div></div>
@@ -577,6 +594,12 @@
       </div>
     </section>
 
+    <section id="requests-fund-section">
+      <div class="section-head"><h2>Your Fund Invest Requests</h2></div>
+      <p class="section-sub">Every request from the form above and what came of it, including the ones Claude passed on. A pass is a real outcome, not a failure: it means nothing cleared the bar for an entry.</p>
+      <div class="brief-list" id="requests-fund-list"><div class="loading">No requests yet.</div></div>
+    </section>
+
     <section>
       <div class="section-head"><h2>Current Fund Holdings</h2></div>
       <div class="brief-list" id="fund-holdings-list"><div class="loading">Not invested yet.</div></div>
@@ -641,6 +664,12 @@
         <div class="invest-hint">Runs a real Claude-generated analysis (long-only) and, if a setup clears the bar, opens a <strong>simulated</strong> paper position at your chosen amount — same one-session hold as the stock on-demand bar, not a permanent allocation. Never real capital. Confirmation required.</div>
         <div id="crypto-invest-status" class="status-msg"></div>
       </div>
+    </section>
+
+    <section id="requests-crypto-section">
+      <div class="section-head"><h2>Your Crypto Invest Requests</h2></div>
+      <p class="section-sub">Every request from the form above and what came of it, including the ones Claude passed on. A pass is a real outcome, not a failure: it means nothing cleared the bar for an entry.</p>
+      <div class="brief-list" id="requests-crypto-list"><div class="loading">No requests yet.</div></div>
     </section>
 
     <section id="crypto-nightly-section">
@@ -1249,6 +1278,48 @@ async function main() {
   renderCryptoNightlyStats(data.cryptoNightlyOverview, data.minSampleSize);
   renderCryptoEquityChart(data.cryptoEquityCurve);
   renderFundValueChart(data.fundValueHistory);
+  renderRequests('stock', data.recentRequests);
+  renderRequests('fund', data.recentRequests);
+  renderRequests('crypto', data.recentRequests);
+}
+
+// "Your Invest Requests" lists (see exportSite.js's recentRequests /
+// db.js's invest_requests) — one per tab, filtered by kind. Every request
+// shows up here, including Claude passes, so a pass never looks like a
+// broken button. Claude's reasoning sits behind a "Why" toggle.
+const REQUEST_OUTCOMES = {
+  submitted: ['Order placed', 'ok'],
+  passed: ['Claude passed', 'pass'],
+  no_decision: ['No clear decision', 'warn'],
+  analyze_only: ['Analyzed only', 'pass'],
+  skipped_cap: ['Skipped: portfolio cap', 'warn'],
+  skipped_duplicate: ['Skipped: already open', 'warn'],
+  already_invested: ['Already held', 'pass'],
+  failed: ['Order failed', 'bad'],
+  no_data: ['Symbol not found', 'bad'],
+};
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function renderRequests(kind, requests) {
+  const el = document.getElementById('requests-' + kind + '-list');
+  if (!el) return;
+  const items = (requests || []).filter((r) => r.kind === kind);
+  if (items.length === 0) {
+    el.innerHTML = '<div class="loading">No requests yet.</div>';
+    return;
+  }
+  el.innerHTML = items.map((r) => {
+    const [label, cls] = REQUEST_OUTCOMES[r.outcome] || [r.outcome, 'pass'];
+    const when = new Date(r.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    const amt = r.amount != null ? ' · $' + Number(r.amount).toLocaleString() : '';
+    const detail = r.detail ? '<div class="movers" style="margin-top:4px;">' + escapeHtml(r.detail) + '</div>' : '';
+    const why = r.analysis
+      ? '<details><summary>Why</summary><div class="req-why">' + escapeHtml(r.analysis) + '</div></details>'
+      : '';
+    return '<div class="brief-row req-row"><div class="req-head"><span>' + tickerBadge(r.ticker) + escapeHtml(r.ticker) + amt + '</span>' +
+      '<span class="movers"><span class="req-outcome ' + cls + '">' + label + '</span> ' + when + '</span></div>' + detail + why + '</div>';
+  }).join('');
 }
 
 // Crypto tab's equity curve — same cumulative-P&L line-chart pattern as the
@@ -1262,7 +1333,7 @@ function renderCryptoEquityChart(curve) {
   if (!canvas) return;
   const points = curve || [];
   if (points.length === 0) {
-    canvas.parentElement.innerHTML = '<div class="loading">No closed crypto trades yet.</div>';
+    canvas.parentElement.innerHTML = '<div class="loading">No closed crypto trades yet. A position appears here after it opens and closes (one session). Claude passes, listed above, don\'t add points.</div>';
     return;
   }
   const ctx = canvas.getContext('2d');
@@ -1335,7 +1406,7 @@ function renderFundValueChart(history) {
   if (!canvas) return;
   const points = history || [];
   if (points.length === 0) {
-    canvas.parentElement.innerHTML = '<div class="loading">No fund holding snapshots yet — check back after investing and the next nightly run.</div>';
+    canvas.parentElement.innerHTML = '<div class="loading">No value snapshots yet. The first point is recorded by the nightly run after an order fills. Orders placed on weekends or after hours fill at the next market open.</div>';
     return;
   }
   const ctx = canvas.getContext('2d');
@@ -1481,7 +1552,7 @@ function renderHoldings(containerId, holdings) {
     el.innerHTML = '<div class="loading">Not invested yet.</div>';
     return;
   }
-  const statusLabel = { entry_pending: 'Order queued', open: 'Held', entry_failed: 'Order failed' };
+  const statusLabel = { entry_pending: 'Order queued (fills at next market open)', open: 'Held', entry_failed: 'Order failed' };
   el.innerHTML = items.map((h) => {
     const label = statusLabel[h.status] || h.status;
     const priceStr = h.entryPrice ? ' @ $' + h.entryPrice.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '';

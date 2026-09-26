@@ -338,6 +338,23 @@ const fundValueHistory = fundValueHistoryRows.map((r) => ({
   unrealizedPnl: Number(r.total_unrealized_pnl.toFixed(2)),
 }));
 
+// Every dashboard invest request and its outcome (see db.js's
+// invest_requests) — most recent 30, newest first. Claude's reasoning is
+// trimmed for payload size; the dashboard shows it behind a "Why" toggle.
+const ANALYSIS_MAX_CHARS = 1500;
+const recentRequests = db
+  .prepare(`SELECT created_at, kind, ticker, amount, outcome, detail, analysis FROM invest_requests ORDER BY id DESC LIMIT 30`)
+  .all()
+  .map((r) => ({
+    createdAt: r.created_at,
+    kind: r.kind,
+    ticker: r.ticker,
+    amount: r.amount,
+    outcome: r.outcome,
+    detail: r.detail,
+    analysis: r.analysis && r.analysis.length > ANALYSIS_MAX_CHARS ? r.analysis.slice(0, ANALYSIS_MAX_CHARS) + "…" : r.analysis,
+  }));
+
 const output = {
   generatedAt: new Date().toISOString(),
   minSampleSize: MIN_N,
@@ -373,6 +390,7 @@ const output = {
   fundValueHistory,
   cryptoHoldings,
   cryptoEquityCurve,
+  recentRequests,
   cryptoNightlyOverview: {
     closedTrades: cryptoNightlySummary?.n ?? 0,
     avgReturnPct: cryptoNightlySummary?.avgReturnPct ?? null,

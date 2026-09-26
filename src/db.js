@@ -198,3 +198,26 @@ db.exec(`
     PRIMARY KEY (date, ticker)
   );
 `);
+
+// Log of every dashboard/CLI invest request and what came of it (added
+// 2026-09-26). Before this, a request Claude passed on (or one skipped by
+// the portfolio cap) left no trace anywhere but the Actions log, so from the
+// dashboard an honest "no trade" looked identical to a broken button. One
+// row per request per ticker. kind: 'stock' | 'crypto' | 'fund'. outcome:
+// 'submitted' | 'passed' | 'no_decision' (Claude's reply had no parseable
+// decision block — distinct from an explicit pass) | 'analyze_only' |
+// 'skipped_cap' | 'skipped_duplicate' | 'already_invested' | 'failed' |
+// 'no_data'. analysis is Claude's reasoning (null for Claude-free fund buys).
+// Display/audit only — never read by sizing, checkpoint, or grading logic.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS invest_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    ticker TEXT NOT NULL,
+    amount REAL,
+    outcome TEXT NOT NULL,
+    detail TEXT,
+    analysis TEXT
+  );
+`);
