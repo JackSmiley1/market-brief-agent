@@ -9,14 +9,15 @@ Since the last version of this memo (September 13), the project gained a public-
 
 This is Phase 1 of a longer-term plan. There is no live trading, no investor capital, and no product built for other people to use. That is a deliberate boundary, not a temporary limitation — moving past it requires a legal/registration step that has not been started.
 
-## Current results (as of today)
+## Current results (as of the September 25 nightly run, matching the live dashboard)
 
-- 93 closed simulated trades
-- Average return per trade: **-0.48%**
-- Total realized P&L: **-$337.13** on $82,250 notional deployed (-0.41% blended)
-- Win/loss split: 45 wins / 48 losses (48.4% win rate)
-- Directional accuracy (does the call's thesis play out, independent of position sizing/P&L): **66.7%** across 129 graded calls
-- Current streak: **8 losses in a row** — stated plainly rather than smoothed over. At a 48.4% overall win rate, a streak this long isn't statistically shocking, but it's real, it's recent, and it's the immediate backdrop the new reflection-loop lesson (below) was generated against.
+- 97 closed simulated trades
+- Average return per trade: **-0.49%**
+- Total realized P&L: **-$344.87** on $84,250 notional deployed (-0.41% blended)
+- Win/loss split: 46 wins / 51 losses (47.4% win rate)
+- Directional accuracy (does the call's thesis play out, independent of position sizing/P&L): **66.9%** across 133 graded calls
+- Max drawdown: **-$348.63**
+- Current streak: **1 loss**. The 8-loss streak reported at the previous checkpoint (93 trades) has since been broken; it's kept in this memo's history because the reflection-loop lesson below was generated against it.
 - Best single trade: ORCL, +6.02% (Sept 2). Worst: CRM, -15.59% (Aug 25, a short into earnings — the trade that originally motivated the event-risk sizing cut).
 
 The same gap flagged last time is still there: directional accuracy (67%) is meaningfully better than a coin flip, but blended P&L is still negative. That combination — often right about direction, still losing money — continues to point at sizing/risk-management as the live problem, not obviously signal quality.
@@ -114,4 +115,4 @@ Verified with a stubbed-Alpaca dry run on a throwaway copy of the db: sell → e
 
 ## Bottom line
 
-This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Directional analysis continues to show real skill (67% hit rate), and for the first time one of the project's own risk-management hypotheses — that shorts underperform — has cleared the statistical bar it set for itself rather than remaining a hunch. It is not yet net profitable, is on an 8-trade losing streak as of this writing, has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.
+This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Directional analysis continues to show real skill (67% hit rate), and for the first time one of the project's own risk-management hypotheses — that shorts underperform — has cleared the statistical bar it set for itself rather than remaining a hunch. It is not yet net profitable (-0.41% blended across 97 trades), has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.
