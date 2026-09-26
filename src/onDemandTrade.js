@@ -3,6 +3,7 @@ import { fetchMarketData } from "./fetchMarketData.js";
 import { fetchCompanyNews } from "./fetchNews.js";
 import { generateOnDemandCall } from "./generateBrief.js";
 import { openNewPositions, reconcileEntries, reconcileExits } from "./paperTrade.js";
+import { STOCK_ONDEMAND_LIMITS } from "./config.js";
 
 // On-demand / prompted analysis — the counterpart to the nightly fixed-
 // watchlist pipeline (index.js). Lets you ask about a specific ticker or
@@ -16,10 +17,17 @@ import { openNewPositions, reconcileEntries, reconcileExits } from "./paperTrade
 // Usage:
 //   node src/onDemandTrade.js AAPL,MSFT "thinking about AI capex names"
 //   node src/onDemandTrade.js NVDA --analyze-only
+//   node src/onDemandTrade.js NVDA "thinking about earnings" --amount=2500
 //
 // Without --analyze-only, any tickers Claude actually flags (it's allowed
 // to flag none) get a simulated paper position opened immediately, same
-// sizing rules (SIZING_ADJUSTMENTS in config.js) as the nightly system.
+// sizing rules (SIZING_ADJUSTMENTS in config.js) as the nightly system —
+// UNLESS --amount=N is passed (added 2026-09-26, see config.js's
+// STOCK_ONDEMAND_LIMITS), in which case that exact dollar amount is used
+// for every flagged pick instead, same override mechanism (notionalOverride)
+// crypto/fund-custom already use. Deliberately scoped to this on-demand
+// path only — the nightly pipeline (index.js) never passes an amount and
+// always sizes from real evidence, no exceptions.
 //
 // Accepts either a real ticker (AAPL) or a common single-word company/index
 // name (Apple, Tesla, S&P) — resolved via NAME_TO_TICKER below. Anything not
@@ -63,14 +71,27 @@ function daysAgoISO(n) {
 async function run() {
   const args = process.argv.slice(2);
   const analyzeOnly = args.includes("--analyze-only");
-  const positional = args.filter((a) => a !== "--analyze-only");
+  const amountArg = args.find((a) => a.startsWith("--amount="));
+  const positional = args.filter((a) => a !== "--analyze-only" && !a.startsWith("--amount="));
 
   const tickerArg = positional[0];
   const query = positional.slice(1).join(" ") || "General analysis requested — is there a real setup here right now?";
 
   if (!tickerArg) {
-    console.error('Usage: node src/onDemandTrade.js TICKER[,TICKER2,...] ["optional context"] [--analyze-only]');
+    console.error('Usage: node src/onDemandTrade.js TICKER[,TICKER2,...] ["optional context"] [--analyze-only] [--amount=N]');
     process.exit(1);
+  }
+
+  let notionalOverride;
+  if (amountArg) {
+    const amount = Number(amountArg.slice("--amount=".length));
+    if (!Number.isFinite(amount) || amount < STOCK_ONDEMAND_LIMITS.minUsd || amount > STOCK_ONDEMAND_LIMITS.maxUsd) {
+      console.error(
+        `--amount must be between $${STOCK_ONDEMAND_LIMITS.minUsd} and $${STOCK_ONDEMAND_LIMITS.maxUsd} (got "${amountArg.slice("--amount=".length)}").`
+      );
+      process.exit(1);
+    }
+    notionalOverride = amount;
   }
 
   const rawInputs = tickerArg.split(",").map((s) => s.trim()).filter(Boolean);
@@ -120,6 +141,9 @@ async function run() {
   }
 
   console.log(`Flagged: ${picks.map((p) => `${p.ticker} (${p.direction}, confidence=${p.confidence}, eventRisk=${p.eventRisk})`).join("; ")}`);
+  if (notionalOverride !== undefined) {
+    console.log(`--amount=${notionalOverride} set — every flagged pick will use this exact size instead of evidence-based sizing.`);
+  }
 
   if (analyzeOnly) {
     console.log("--analyze-only set — skipping simulated trade execution.");
@@ -127,7 +151,8 @@ async function run() {
   }
 
   const priceMap = Object.fromEntries(marketData.map((d) => [d.symbol, d.close]));
-  await openNewPositions(date, picks, priceMap, "on_demand");
+  const items = notionalOverride !== undefined ? picks.map((p) => ({ ...p, notionalOverride })) : picks;
+  await openNewPositions(date, items, priceMap, "on_demand");
   console.log("\nSimulated (paper) position(s) submitted — zero real capital, source tagged 'on_demand'.");
 }
 

@@ -87,6 +87,19 @@ export const CRYPTO_ONDEMAND_LIMITS = { minUsd: 25, maxUsd: 10000 };
 // Fund Holdings" list and existing exclusion rules with zero extra plumbing.
 export const FUND_CUSTOM_LIMITS = { minUsd: 5, maxUsd: 10000 };
 
+// Optional user-chosen dollar range for the stock on-demand invest bar
+// (src/onDemandTrade.js's --amount flag), added 2026-09-26. A real, explicit
+// departure from this project's own headline pitch — position size derived
+// from real evidence, not fixed or guessed — but scoped ONLY to on-demand
+// trades a person deliberately triggers by hand, never the nightly
+// automated pipeline (index.js never passes an amount; nightly picks are
+// always sized by computeNotional, no exceptions). Optional, not required:
+// omit it and an on-demand trade still sizes exactly as before. Documented
+// plainly in status-memo.md rather than left implicit, since this is exactly
+// the kind of tradeoff this project has otherwise been careful to call out
+// rather than quietly ship.
+export const STOCK_ONDEMAND_LIMITS = { minUsd: 25, maxUsd: 10000 };
+
 export const ALPACA_DATA_BASE = "https://data.alpaca.markets/v2";
 export const FINNHUB_BASE = "https://finnhub.io/api/v1";
 

@@ -147,9 +147,21 @@ export default {
       if (!TICKER_RE.test(cleanTicker)) {
         return json({ error: "Invalid ticker format — use 1-6 letter symbols, comma-separated, max 5" }, 400);
       }
+      // amount is OPTIONAL here (unlike crypto_ondemand/fund_custom above) —
+      // omitting it keeps the original evidence-based sizing behavior;
+      // providing it overrides sizing for this request only (see
+      // config.js's STOCK_ONDEMAND_LIMITS and onDemandTrade.js's --amount
+      // flag). Keep the range in sync with STOCK_ONDEMAND_LIMITS.
+      let amountInput = "";
+      if (amount !== undefined && amount !== null && amount !== "") {
+        if (!isValidAmount(amount, 25, 10000)) {
+          return json({ error: "Invalid amount — must be between $25 and $10,000" }, 400);
+        }
+        amountInput = String(amount);
+      }
       workflowFile = "on-demand-trade.yml";
-      dispatchInputs = { ticker: cleanTicker, context: "Submitted via dashboard Invest bar" };
-      successBody = { ok: true, ticker: cleanTicker };
+      dispatchInputs = { ticker: cleanTicker, context: "Submitted via dashboard Invest bar", amount: amountInput };
+      successBody = { ok: true, ticker: cleanTicker, amount: amountInput || undefined };
     }
 
     const dispatchRes = await fetch(

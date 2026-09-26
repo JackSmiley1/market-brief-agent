@@ -456,9 +456,10 @@
             <span class="prefix">Invest in:</span>
             <input id="invest-input" type="text" placeholder="a company or index, e.g. Apple, NVDA, or QQQ" maxlength="40" />
           </div>
+          <input class="invest-input" id="invest-amount" type="number" placeholder="Amount (optional, $25-$10,000)" min="25" max="10000" step="1" style="max-width:220px;" />
           <button class="btn btn-primary" id="invest-btn">Simulate Investment</button>
         </div>
-        <div class="invest-hint">Runs a real Claude-generated analysis and, if a setup clears the bar, opens a <strong>simulated</strong> paper position: same pipeline as the nightly system. Never real capital. Confirmation required.</div>
+        <div class="invest-hint">Runs a real Claude-generated analysis and, if a setup clears the bar, opens a <strong>simulated</strong> paper position. Leave the amount blank to use the same evidence-based sizing as the nightly system, or set one ($25-$10,000) to use that exact amount instead for this trade only. Never real capital. Confirmation required.</div>
         <div id="invest-status" class="status-msg"></div>
       </div>
     </section>
@@ -758,8 +759,10 @@ pinConfirmBtn.addEventListener('click', async () => {
   }
 });
 
+const STOCK_AMOUNT_MIN = 25, STOCK_AMOUNT_MAX = 10000;
 function setupInvestBar() {
   const input = document.getElementById('invest-input');
+  const amountEl = document.getElementById('invest-amount');
   const btn = document.getElementById('invest-btn');
   const status = document.getElementById('invest-status');
 
@@ -771,17 +774,33 @@ function setupInvestBar() {
   function openModal() {
     const ticker = input.value.trim();
     if (!ticker) { showStatus('Enter a ticker or index first.', false); return; }
-    openPinModal('Enter your PIN to run a simulated analysis + trade on "' + ticker + '".', {
-      payload: { ticker },
+
+    // Amount is optional — leaving it blank keeps the original
+    // evidence-based sizing behavior. If set, it must be in range.
+    const rawAmount = amountEl.value.trim();
+    let amount;
+    if (rawAmount) {
+      amount = Number(rawAmount);
+      if (!Number.isFinite(amount) || amount < STOCK_AMOUNT_MIN || amount > STOCK_AMOUNT_MAX) {
+        showStatus('Amount must be between $' + STOCK_AMOUNT_MIN + ' and $' + STOCK_AMOUNT_MAX.toLocaleString() + ' (or leave it blank).', false);
+        return;
+      }
+    }
+
+    const desc = amount
+      ? 'Enter your PIN to run a simulated analysis + trade on "' + ticker + '" for $' + amount + '.'
+      : 'Enter your PIN to run a simulated analysis + trade on "' + ticker + '".';
+    openPinModal(desc, {
+      payload: amount ? { ticker, amount } : { ticker },
       btn, showStatus,
       submittingMsg: 'Submitting. This runs a real analysis and can take up to a minute…',
       successMsg: 'Submitted. Results (analysis + any simulated trade) will appear in "On-Demand Trades" below after the next dashboard refresh (~1 min).',
-      onSuccess: () => { input.value = ''; },
+      onSuccess: () => { input.value = ''; amountEl.value = ''; },
     });
   }
 
   btn.addEventListener('click', openModal);
-  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(); });
+  [input, amountEl].forEach((el) => el.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(); }));
 }
 
 // Shared setup for the two allocation Invest buttons (fund/crypto) — both
