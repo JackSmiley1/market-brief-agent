@@ -31,6 +31,30 @@ export async function fetchMarketNews(limit = 15) {
   }
 }
 
+// General crypto market news (top headlines, not symbol-specific) — used by
+// onDemandCrypto.js. Finnhub's company-news endpoint is stock-oriented and
+// doesn't reliably cover arbitrary crypto symbols on the free tier, so
+// on-demand crypto analysis gets general crypto-category context instead of
+// per-coin news the way stock picks get per-ticker news. Same fail-open
+// pattern as fetchMarketNews above — a Finnhub hiccup here shouldn't block
+// the analysis, just make it a little less informed.
+export async function fetchCryptoNews(limit = 15) {
+  const url = `${FINNHUB_BASE}/news`;
+  const params = { category: "crypto", token: process.env.FINNHUB_KEY };
+  try {
+    const res = await axios.get(url, { params });
+    return (res.data ?? []).slice(0, limit).map((item) => ({
+      headline: item.headline,
+      summary: item.summary,
+      source: item.source,
+      datetime: item.datetime,
+    }));
+  } catch (err) {
+    console.error("fetchCryptoNews: failed to fetch crypto market news, proceeding without it:", err.message);
+    return [];
+  }
+}
+
 // Company-specific news, used for the day's biggest movers only
 // (don't call this for all 30+ tickers every run — target the movers).
 // Same fail-open reasoning as fetchMarketNews above — called in a loop over

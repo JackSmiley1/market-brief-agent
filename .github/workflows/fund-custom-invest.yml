@@ -1,0 +1,56 @@
+name: Fund Custom Invest
+
+# Triggered by the Mutual Funds tab's "invest in another fund" button (via
+# the same Cloudflare Worker that gates every other Invest control — see
+# /worker/README.md) or manually from the Actions tab. Runs
+# src/investFundCustom.js — same static, Claude-free, buy-and-hold logic as
+# the fixed 5-fund allocation (invest-allocation.yml), just for one
+# user-supplied ticker/amount instead of the fixed five. Added 2026-09-26.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: 'Ticker to buy and hold (e.g. VXUS)'
+        required: true
+        type: string
+      amount:
+        description: 'Dollar amount to invest ($5-$10,000)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+# Same group as the other trading workflows — see nightly-brief.yml's
+# comment. Queues instead of racing since all of them read/write the same
+# committed db file.
+concurrency:
+  group: market-brief-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-fund-custom-invest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with: { node-version: '22' }
+      - run: npm install
+      - name: Run tests (sizing/order logic must be correct before it touches real orders)
+        run: npm test
+      - name: Run custom fund allocation buy (idempotent per ticker)
+        run: node src/investFundCustom.js "${{ inputs.ticker }}" "${{ inputs.amount }}"
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      - name: Export public dashboard data
+        run: npm run export-site
+      - name: Commit result back to repo
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/ docs/data.json
+          git commit -m "Fund custom invest: ${{ inputs.ticker }} \$${{ inputs.amount }} ($(date +'%Y-%m-%d %H:%M'))" || echo "No changes"
+          git pull --rebase || true
+          git push

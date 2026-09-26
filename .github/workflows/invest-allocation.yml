@@ -1,13 +1,17 @@
 name: Invest Allocation
 
-# Triggered by the dashboard's "Invest in Top 5 Funds" / "Invest in BTC & ETH"
-# buttons (via the same Cloudflare Worker that gates the on-demand invest
-# bar — see /worker/README.md) or manually from the Actions tab. Runs
-# src/investAllocation.js, a static, Claude-free, long-only buy-and-hold
-# allocation (config.js's FUND_ALLOCATION/CRYPTO_ALLOCATION) — this workflow
-# is just how it gets triggered remotely and publishes its result, not a
-# different code path. Idempotent: re-running this (e.g. a second button
-# click) never buys the same position twice, see investAllocation.js.
+# Triggered by the dashboard's "Invest in Top 5 Funds" button (via the same
+# Cloudflare Worker that gates every Invest control — see /worker/README.md)
+# or manually from the Actions tab. Runs src/investAllocation.js, a static,
+# Claude-free, long-only buy-and-hold allocation (config.js's
+# FUND_ALLOCATION) — this workflow is just how it gets triggered remotely
+# and publishes its result, not a different code path. Idempotent:
+# re-running this (e.g. a second button click) never buys the same position
+# twice, see investAllocation.js.
+#
+# 'crypto' was removed from the choices below 2026-09-26 — see
+# crypto-invest.yml, which replaced the old fixed BTC/ETH allocation with a
+# flexible, Claude-analyzed, any-coin flow.
 
 on:
   workflow_dispatch:
@@ -18,7 +22,6 @@ on:
         type: choice
         options:
           - fund
-          - crypto
 
 permissions:
   contents: write

@@ -207,6 +207,21 @@
     padding: 13px 10px;
   }
   .invest-input-wrap input::placeholder { color: var(--muted-dim); }
+  /* Standalone inputs (no prefix label) used by the crypto/custom-fund
+     entry forms — same visual treatment as invest-input-wrap above, just
+     without the wrapping div since there's no prefix span to lay out. */
+  .invest-input {
+    flex: 1 1 200px;
+    background: #0b0b0d;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text); font-size: 15px; font-family: inherit;
+    padding: 13px 16px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .invest-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .invest-input::placeholder { color: var(--muted-dim); }
   .btn {
     appearance: none; border: none; cursor: pointer;
     font-family: inherit; font-weight: 600; font-size: 14px;
@@ -220,10 +235,14 @@
   .btn-ghost { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
   .btn-ghost:hover { background: var(--panel-hover); }
   .invest-hint { color: var(--muted-dim); font-size: 12.5px; margin-top: 10px; }
-  #invest-status { font-size: 13.5px; margin-top: 12px; padding: 10px 14px; border-radius: 8px; display: none; }
-  #invest-status.show { display: block; }
-  #invest-status.ok { background: hsla(142, 70%, 50%, 0.08); border: 1px solid hsla(142, 70%, 50%, 0.25); color: hsl(142, 55%, 70%); }
-  #invest-status.err { background: hsla(0, 80%, 60%, 0.08); border: 1px solid hsla(0, 80%, 60%, 0.25); color: hsl(0, 70%, 78%); }
+  /* Shared by every Invest button's status message (the original ticker bar,
+     the two allocation buttons, and the newer crypto/custom-fund forms) —
+     broadened from an #invest-status-only selector so every one of them
+     actually gets styled rather than just the first. */
+  .status-msg { font-size: 13.5px; margin-top: 12px; padding: 10px 14px; border-radius: 8px; display: none; }
+  .status-msg.show { display: block; }
+  .status-msg.ok { background: hsla(142, 70%, 50%, 0.08); border: 1px solid hsla(142, 70%, 50%, 0.25); color: hsl(142, 55%, 70%); }
+  .status-msg.err { background: hsla(0, 80%, 60%, 0.08); border: 1px solid hsla(0, 80%, 60%, 0.25); color: hsl(0, 70%, 78%); }
 
   /* ---- PIN modal ---- */
   .modal-backdrop {
@@ -440,7 +459,7 @@
           <button class="btn btn-primary" id="invest-btn">Simulate Investment</button>
         </div>
         <div class="invest-hint">Runs a real Claude-generated analysis and, if a setup clears the bar, opens a <strong>simulated</strong> paper position: same pipeline as the nightly system. Never real capital. Confirmation required.</div>
-        <div id="invest-status"></div>
+        <div id="invest-status" class="status-msg"></div>
       </div>
     </section>
 
@@ -529,7 +548,7 @@
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>The "Invest" button below opens real simulated (paper account) long positions in five ETF proxies — a static, equal-weight, buy-and-hold allocation, not analyzed or sized by Claude. Not literal mutual fund share classes, and never real capital. Broader access (actual fund share classes, other brokers' funds) still requires becoming, or partnering with, a licensed broker-dealer — see the full <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for what that involves.</span>
+    <span>Both "Invest" controls below open real simulated (paper account) long positions — a static, buy-and-hold allocation, not analyzed or sized by Claude, at either the fixed $300-each basket or whatever ticker/amount you enter ($5-$10,000). Not literal mutual fund share classes, and never real capital. Broader access (actual fund share classes, other brokers' funds) still requires becoming, or partnering with, a licensed broker-dealer — see the full <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for what that involves.</span>
   </div>
   <main>
     <section id="fund-invest">
@@ -540,7 +559,20 @@
           <button class="btn btn-primary" id="fund-invest-btn">Invest in Top 5 Funds</button>
         </div>
         <div class="invest-hint">One-time buy-and-hold allocation — not sized or picked by Claude, just a static basket. Safe to click more than once: anything already invested is skipped, never bought twice. Confirmation required.</div>
-        <div id="fund-invest-status"></div>
+        <div id="fund-invest-status" class="status-msg"></div>
+      </div>
+    </section>
+
+    <section id="fund-custom-invest">
+      <div class="section-head"><h2>Invest in Another Fund</h2></div>
+      <div class="invest-card">
+        <div class="invest-row">
+          <input class="invest-input" id="fund-custom-ticker" type="text" placeholder="Ticker (e.g. VXUS)" maxlength="10" autocomplete="off" />
+          <input class="invest-input" id="fund-custom-amount" type="number" placeholder="Amount ($5-$10,000)" min="5" max="10000" step="1" style="max-width:180px;" />
+          <button class="btn btn-primary" id="fund-custom-btn">Invest</button>
+        </div>
+        <div class="invest-hint">Buy-and-hold, long only — same static, Claude-free logic as the fixed five above, just for any ticker and amount you choose ($5-$10,000). Shows up in "Current Fund Holdings" below once filled. Confirmation required.</div>
+        <div id="fund-custom-status" class="status-msg"></div>
       </div>
     </section>
 
@@ -584,28 +616,29 @@
 <div id="view-crypto" class="view">
   <div class="hero">
     <h1>Crypto</h1>
-    <p class="tag">Live market data for context, plus a real (simulated, paper-account) buy-and-hold position in BTC and ETH. Full Claude-driven crypto analysis is a planned future phase, not yet built.</p>
+    <p class="tag">Live market data for context, plus a real (simulated, paper-account) Claude-analyzed entry in any Alpaca-supported crypto pair you choose.</p>
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>Prices below are real, live market data (via CoinGecko). The "Invest" button opens a real simulated (paper account) long position in BTC and ETH — a static buy-and-hold allocation, not Claude-analyzed. Never real capital. See the <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for what full crypto analysis/trading would require.</span>
+    <span>Prices below are real, live market data (via CoinGecko). The form below runs a real Claude analysis and, if it clears the bar, opens a real simulated (paper account) <strong>long-only</strong> position at the amount you choose — Alpaca's crypto product doesn't support margin or short selling, so a short call is never possible here. Never real capital. See the <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for what full crypto analysis/trading would require.</span>
   </div>
   <main>
     <section id="crypto-invest">
-      <div class="section-head"><h2>Invest in BTC &amp; ETH</h2></div>
+      <div class="section-head"><h2>Invest in a Coin</h2></div>
       <div class="invest-card">
         <div class="invest-row">
-          <span class="prefix" style="padding:12px 0;">BTC/USD, ETH/USD — $300 each, equal-weight, long only</span>
-          <button class="btn btn-primary" id="crypto-invest-btn">Invest in BTC &amp; ETH</button>
+          <input class="invest-input" id="crypto-invest-symbol" type="text" placeholder="Coin or symbol (e.g. bitcoin, SOL, DOGE/USD)" maxlength="40" autocomplete="off" />
+          <input class="invest-input" id="crypto-invest-amount" type="number" placeholder="Amount ($25-$10,000)" min="25" max="10000" step="1" style="max-width:180px;" />
+          <button class="btn btn-primary" id="crypto-invest-btn">Invest</button>
         </div>
-        <div class="invest-hint">One-time buy-and-hold allocation on Alpaca's paper crypto trading, held 24/7. Safe to click more than once: anything already invested is skipped, never bought twice. Confirmation required.</div>
-        <div id="crypto-invest-status"></div>
+        <div class="invest-hint">Runs a real Claude-generated analysis (long-only) and, if a setup clears the bar, opens a <strong>simulated</strong> paper position at your chosen amount — same one-session hold as the stock on-demand bar, not a permanent allocation. Never real capital. Confirmation required.</div>
+        <div id="crypto-invest-status" class="status-msg"></div>
       </div>
     </section>
 
-    <section>
-      <div class="section-head"><h2>Current Crypto Holdings</h2></div>
-      <div class="brief-list" id="crypto-holdings-list"><div class="loading">Not invested yet.</div></div>
+    <section id="crypto-ondemand-section">
+      <div class="section-head"><h2>Recent Crypto Trades</h2></div>
+      <div class="brief-list" id="crypto-ondemand-list"><div class="loading">No crypto trades yet.</div></div>
     </section>
 
     <section>
@@ -623,19 +656,6 @@
         <div>
           <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Losers</h3>
           <div id="crypto-losers"><div class="loading">Loading…</div></div>
-        </div>
-      </div>
-    </section>
-    <section>
-      <div class="section-head"><h2>What This Would Add</h2></div>
-      <div class="bucket-grid">
-        <div class="preview-card">
-          <div class="icon-badge">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6"/><path d="M6 6.5c0-1 .9-1.5 2-1.5s2 .5 2 1.5-1 1.3-2 1.5c-1.1.2-2 .7-2 1.7s.9 1.5 2 1.5 2-.5 2-1.5"/><path d="M8 3.5v1M8 11.5v1"/></svg>
-          </div>
-          <span class="preview-pill">Preview</span>
-          <h3 style="margin-top:12px;">Simulated Crypto Trading</h3>
-          <p>The same evidence-based paper-trading pipeline used for stocks, extended to crypto, on a licensed crypto-as-a-service partner rather than a self-built money-transmitter license.</p>
         </div>
       </div>
     </section>
@@ -745,7 +765,7 @@ function setupInvestBar() {
 
   function showStatus(msg, ok) {
     status.textContent = msg;
-    status.className = 'show ' + (ok ? 'ok' : 'err');
+    status.className = 'status-msg show ' + (ok ? 'ok' : 'err');
   }
 
   function openModal() {
@@ -774,7 +794,7 @@ function setupAllocationInvestButton(btnId, statusId, allocationType, label) {
 
   function showStatus(msg, ok) {
     status.textContent = msg;
-    status.className = 'show ' + (ok ? 'ok' : 'err');
+    status.className = 'status-msg show ' + (ok ? 'ok' : 'err');
   }
 
   btn.addEventListener('click', () => {
@@ -785,6 +805,87 @@ function setupAllocationInvestButton(btnId, statusId, allocationType, label) {
       successMsg: 'Submitted. Holdings below will update after the next dashboard refresh (~1 min).',
     });
   });
+}
+
+// Crypto tab's flexible "Invest in a Coin" form — any Alpaca-supported
+// symbol/name, a user-chosen amount ($25-$10,000, client-side check here is
+// a UX nicety; the real enforcement is server-side in the Worker and again
+// in onDemandCrypto.js, see config.js's CRYPTO_ONDEMAND_LIMITS). Unlike the
+// allocation buttons above, this runs a real Claude analysis and can decide
+// not to invest at all — same spirit as the main ticker invest bar, just
+// for crypto and with the amount fixed by the user instead of sized by
+// config.js's evidence-based adjustments.
+const CRYPTO_MIN = 25, CRYPTO_MAX = 10000;
+function setupCryptoInvest() {
+  const symbolEl = document.getElementById('crypto-invest-symbol');
+  const amountEl = document.getElementById('crypto-invest-amount');
+  const btn = document.getElementById('crypto-invest-btn');
+  const status = document.getElementById('crypto-invest-status');
+  if (!symbolEl || !amountEl || !btn || !status) return;
+
+  function showStatus(msg, ok) {
+    status.textContent = msg;
+    status.className = 'status-msg show ' + (ok ? 'ok' : 'err');
+  }
+
+  function openModal() {
+    const symbol = symbolEl.value.trim();
+    const amount = Number(amountEl.value);
+    if (!symbol) { showStatus('Enter a coin name or symbol first.', false); return; }
+    if (!Number.isFinite(amount) || amount < CRYPTO_MIN || amount > CRYPTO_MAX) {
+      showStatus('Amount must be between $' + CRYPTO_MIN + ' and $' + CRYPTO_MAX.toLocaleString() + '.', false);
+      return;
+    }
+    openPinModal('Enter your PIN to run a simulated long-only analysis on "' + symbol + '" for $' + amount + '.', {
+      payload: { action: 'crypto_ondemand', symbol, amount },
+      btn, showStatus,
+      submittingMsg: 'Submitting. This runs a real analysis and can take up to a minute…',
+      successMsg: 'Submitted. Results will appear in "Recent Crypto Trades" below after the next dashboard refresh (~1 min).',
+      onSuccess: () => { symbolEl.value = ''; amountEl.value = ''; },
+    });
+  }
+
+  btn.addEventListener('click', openModal);
+  [symbolEl, amountEl].forEach((el) => el.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(); }));
+}
+
+// Mutual Funds tab's "Invest in Another Fund" form — same buy-and-hold,
+// no-Claude-analysis logic as the fixed 5-fund button, just for a
+// user-supplied ticker/amount ($5-$10,000). Reuses the same 'fund_hold'
+// source server-side, so a successful buy shows up in "Current Fund
+// Holdings" alongside the fixed five with no separate list needed here.
+const FUND_CUSTOM_MIN = 5, FUND_CUSTOM_MAX = 10000;
+function setupFundCustomInvest() {
+  const tickerEl = document.getElementById('fund-custom-ticker');
+  const amountEl = document.getElementById('fund-custom-amount');
+  const btn = document.getElementById('fund-custom-btn');
+  const status = document.getElementById('fund-custom-status');
+  if (!tickerEl || !amountEl || !btn || !status) return;
+
+  function showStatus(msg, ok) {
+    status.textContent = msg;
+    status.className = 'status-msg show ' + (ok ? 'ok' : 'err');
+  }
+
+  function openModal() {
+    const ticker = tickerEl.value.trim();
+    const amount = Number(amountEl.value);
+    if (!ticker) { showStatus('Enter a ticker first.', false); return; }
+    if (!Number.isFinite(amount) || amount < FUND_CUSTOM_MIN || amount > FUND_CUSTOM_MAX) {
+      showStatus('Amount must be between $' + FUND_CUSTOM_MIN + ' and $' + FUND_CUSTOM_MAX.toLocaleString() + '.', false);
+      return;
+    }
+    openPinModal('Enter your PIN to buy and hold "' + ticker.toUpperCase() + '" for $' + amount + '. This is a one-time allocation — running it again on the same ticker will skip it.', {
+      payload: { action: 'fund_custom', ticker, amount },
+      btn, showStatus,
+      submittingMsg: 'Submitting…',
+      successMsg: 'Submitted. Holdings above will update after the next dashboard refresh (~1 min).',
+      onSuccess: () => { tickerEl.value = ''; amountEl.value = ''; },
+    });
+  }
+
+  btn.addEventListener('click', openModal);
+  [tickerEl, amountEl].forEach((el) => el.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(); }));
 }
 
 // Thin-line icon set (16x16, stroke-based, no fills) shared by stat cards
@@ -820,7 +921,8 @@ function tickerBadge(ticker) {
 async function main() {
   setupInvestBar();
   setupAllocationInvestButton('fund-invest-btn', 'fund-invest-status', 'fund', 'the top 5 funds');
-  setupAllocationInvestButton('crypto-invest-btn', 'crypto-invest-status', 'crypto', 'BTC & ETH');
+  setupFundCustomInvest();
+  setupCryptoInvest();
 
   const res = await fetch('./data.json', { cache: 'no-store' });
   const data = await res.json();
@@ -1075,34 +1177,59 @@ async function main() {
   }).join('');
   document.getElementById('brief-list').innerHTML = briefHtml || '<div class="loading">No briefs yet.</div>';
 
-  const hasClosed = data.onDemand && data.onDemand.length > 0;
-  const hasPending = data.onDemandPending && data.onDemandPending.length > 0;
+  const allOnDemandPending = data.onDemandPending || [];
+  const allOnDemandClosed = data.onDemand || [];
+  const hasClosed = allOnDemandClosed.length > 0;
+  const hasPending = allOnDemandPending.length > 0;
   if (hasClosed || hasPending) {
     document.getElementById('on-demand-section').style.display = '';
-    const pendingHtml = hasPending ? data.onDemandPending.map(t => {
-      const statusLabel = { entry_pending: 'Order queued', open: 'Open (holding)', exit_pending: 'Closing' }[t.status] || t.status;
-      return '<div class="brief-row"><span>' + tickerBadge(t.ticker) + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
-        '<span class="movers"><span class="flag" style="color:var(--accent); border-color:var(--accent); background:var(--accent-dim);">' + statusLabel + '</span> $' + t.notional + ' notional</span></div>';
-    }).join('') : '';
-    const closedHtml = hasClosed ? data.onDemand.map(t => {
-      const pnlCls = cls(t.pnlPct);
-      return '<div class="brief-row"><span>' + tickerBadge(t.ticker) + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
-        '<span class="movers ' + pnlCls + '">' + fmtPct(t.pnlPct) + ' ($' + t.pnl.toFixed(2) + ')</span></div>';
-    }).join('') : '';
-    document.getElementById('on-demand-list').innerHTML = pendingHtml + closedHtml || '<div class="loading">No on-demand trades yet.</div>';
+    document.getElementById('on-demand-list').innerHTML =
+      onDemandRowsHtml(allOnDemandPending, allOnDemandClosed) || '<div class="loading">No on-demand trades yet.</div>';
+  }
+
+  // Crypto tab's own "Recent Crypto Trades" list — same data, filtered to
+  // source='crypto_ondemand' only, so a stock on-demand trade never shows
+  // up in the crypto-specific view.
+  const cryptoListEl = document.getElementById('crypto-ondemand-list');
+  if (cryptoListEl) {
+    const cryptoPending = allOnDemandPending.filter((t) => t.source === 'crypto_ondemand');
+    const cryptoClosed = allOnDemandClosed.filter((t) => t.source === 'crypto_ondemand');
+    cryptoListEl.innerHTML =
+      onDemandRowsHtml(cryptoPending, cryptoClosed) || '<div class="loading">No crypto trades yet.</div>';
   }
 
   renderFundStats(data.fundSnapshots);
   renderStockMovers(data.dailyMovers);
   renderHoldings('fund-holdings-list', data.fundHoldings);
-  renderHoldings('crypto-holdings-list', data.cryptoHoldings);
 }
 
-// Current buy-and-hold allocation holdings (fund or crypto) — comes
-// straight from data.json (see exportSite.js's loadHoldings), reported
-// regardless of status so "order submitted, not filled yet" reads
-// differently from "held." These positions are never closed, so unlike
-// on-demand trades there's no separate closed/pending split needed.
+// Shared row renderer for on-demand trades (stock or crypto — see the
+// source-based split above) — pending orders first (queued/holding/closing),
+// then closed trades with realized P&L.
+function onDemandRowsHtml(pending, closed) {
+  const fmtPct = (n) => n === null || n === undefined ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  const cls = (n) => n === null || n === undefined ? '' : (n >= 0 ? 'pos' : 'neg');
+  const pendingHtml = pending.map((t) => {
+    const statusLabel = { entry_pending: 'Order queued', open: 'Open (holding)', exit_pending: 'Closing' }[t.status] || t.status;
+    return '<div class="brief-row"><span>' + tickerBadge(t.ticker) + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
+      '<span class="movers"><span class="flag" style="color:var(--accent); border-color:var(--accent); background:var(--accent-dim);">' + statusLabel + '</span> $' + t.notional + ' notional</span></div>';
+  }).join('');
+  const closedHtml = closed.map((t) => {
+    const pnlCls = cls(t.pnlPct);
+    return '<div class="brief-row"><span>' + tickerBadge(t.ticker) + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
+      '<span class="movers ' + pnlCls + '">' + fmtPct(t.pnlPct) + ' ($' + t.pnl.toFixed(2) + ')</span></div>';
+  }).join('');
+  return pendingHtml + closedHtml;
+}
+
+// Current buy-and-hold fund allocation holdings — comes straight from
+// data.json (see exportSite.js's loadHoldings), reported regardless of
+// status so "order submitted, not filled yet" reads differently from
+// "held." These positions are never closed, so unlike on-demand trades
+// there's no separate closed/pending split needed. Covers both the fixed
+// 5-fund button and any custom-ticker buys (same 'fund_hold' source) — see
+// investFundCustom.js. Crypto no longer uses this pattern as of 2026-09-26
+// (see onDemandCrypto.js — crypto trades are one-session, not held).
 function renderHoldings(containerId, holdings) {
   const el = document.getElementById(containerId);
   if (!el) return;

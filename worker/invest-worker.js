@@ -7,12 +7,15 @@
 //      knows (never the browser, never the repo).
 //   2. If it matches, calls GitHub's workflow_dispatch API — using a
 //      GitHub token that ALSO only lives here — to kick off one of exactly
-//      two pre-approved workflow files, based on which action the request
+//      four pre-approved workflow files, based on which action the request
 //      names (never an arbitrary workflow or ticker the caller supplies):
-//      on-demand-trade.yml (ticker analysis, the original "Invest in:" bar)
-//      or invest-allocation.yml (the static fund/crypto buy-and-hold
-//      allocations, added 2026-09-25 for the Mutual Funds/Crypto tabs'
-//      Invest buttons).
+//      on-demand-trade.yml (stock ticker analysis, the original
+//      "Invest in:" bar), invest-allocation.yml (the fixed 5-fund $300
+//      buy-and-hold allocation, added 2026-09-25), crypto-invest.yml (any
+//      Alpaca-supported crypto pair, Claude-analyzed, user-chosen amount —
+//      added 2026-09-26, replacing the old fixed BTC/ETH allocation), or
+//      fund-custom-invest.yml (any ticker, buy-and-hold, user-chosen
+//      amount — added 2026-09-26 alongside crypto-invest.yml).
 //
 // It never touches the database, never calls Alpaca/Anthropic/Finnhub
 // directly, and never executes anything itself. All of that still happens
@@ -40,10 +43,25 @@ const REPO = "JackSmiley1/market-brief-agent";
 // the request ever reaches GitHub, not the real validation (that happens
 // against actual market data in the job itself).
 const TICKER_RE = /^[A-Za-z]{1,20}(,[A-Za-z]{1,20}){0,4}$/;
-// Only these two values are ever accepted for an allocation request — never
+// Only this value is ever accepted for an allocation request — never
 // derived from free-form caller input, so there's no way to smuggle a
-// different workflow input through this field.
-const ALLOCATION_TYPES = new Set(["fund", "crypto"]);
+// different workflow input through this field. 'crypto' was removed
+// 2026-09-26 (see crypto-invest.yml/'crypto_ondemand' below, which replaced
+// the old fixed BTC/ETH allocation).
+const ALLOCATION_TYPES = new Set(["fund"]);
+
+// Single bare symbol/ticker (letters+digits only, no comma list, no slash —
+// the "/USD" pairing happens server-side in the GitHub Actions job, same
+// name-resolution pattern as the stock ticker path below) for the crypto
+// on-demand and custom-fund flows. A garbage filter before the request ever
+// reaches GitHub, not the real validation (that happens against actual
+// market data in the job itself).
+const SYMBOL_RE = /^[A-Za-z0-9]{1,20}$/;
+
+function isValidAmount(amount, min, max) {
+  const n = Number(amount);
+  return Number.isFinite(n) && n >= min && n <= max;
+}
 
 function withCors(resp) {
   resp.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
@@ -75,7 +93,7 @@ export default {
       return json({ error: "Invalid JSON body" }, 400);
     }
 
-    const { ticker, pin, action, allocationType } = payload || {};
+    const { ticker, pin, action, allocationType, symbol, amount, context } = payload || {};
 
     if (!pin || pin !== env.PIN) {
       // Deliberately vague — don't confirm/deny which part was wrong.
@@ -86,11 +104,43 @@ export default {
 
     if (action === "invest_allocation") {
       if (!ALLOCATION_TYPES.has(allocationType)) {
-        return json({ error: "Invalid allocationType — must be 'fund' or 'crypto'" }, 400);
+        return json({ error: "Invalid allocationType — must be 'fund'" }, 400);
       }
       workflowFile = "invest-allocation.yml";
       dispatchInputs = { allocationType };
       successBody = { ok: true, allocationType };
+    } else if (action === "crypto_ondemand") {
+      // Keep these in sync with config.js's CRYPTO_ONDEMAND_LIMITS — this
+      // Worker is a separate deploy unit and can't import that file
+      // directly, so the range is duplicated here on purpose rather than
+      // left unenforced server-side.
+      const cleanSymbol = String(symbol || "").trim().toUpperCase();
+      if (!SYMBOL_RE.test(cleanSymbol)) {
+        return json({ error: "Invalid crypto symbol format — letters/digits only, e.g. BTC or SOL" }, 400);
+      }
+      if (!isValidAmount(amount, 25, 10000)) {
+        return json({ error: "Invalid amount — must be between $25 and $10,000" }, 400);
+      }
+      workflowFile = "crypto-invest.yml";
+      dispatchInputs = {
+        symbol: cleanSymbol,
+        amount: String(amount),
+        context: String(context || "Submitted via dashboard Crypto Invest button").slice(0, 300),
+      };
+      successBody = { ok: true, symbol: cleanSymbol, amount };
+    } else if (action === "fund_custom") {
+      // Keep in sync with config.js's FUND_CUSTOM_LIMITS — same reasoning
+      // as crypto_ondemand above.
+      const cleanTicker = String(ticker || "").trim().toUpperCase();
+      if (!/^[A-Za-z]{1,10}$/.test(cleanTicker)) {
+        return json({ error: "Invalid ticker format — letters only, e.g. VXUS" }, 400);
+      }
+      if (!isValidAmount(amount, 5, 10000)) {
+        return json({ error: "Invalid amount — must be between $5 and $10,000" }, 400);
+      }
+      workflowFile = "fund-custom-invest.yml";
+      dispatchInputs = { ticker: cleanTicker, amount: String(amount) };
+      successBody = { ok: true, ticker: cleanTicker, amount };
     } else {
       // Default/original path — ticker analysis via the on-demand invest bar.
       const cleanTicker = String(ticker || "").trim().toUpperCase();

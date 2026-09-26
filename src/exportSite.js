@@ -74,10 +74,16 @@ const lessons = db
     lessonText: l.lesson_text,
   }));
 
+// Includes 'crypto_ondemand' (added 2026-09-26 — see onDemandCrypto.js)
+// alongside the original stock 'on_demand' source: both are one-session,
+// Claude-analyzed, dashboard-triggered trades, just for different asset
+// classes, so they share this same "On-Demand Trades" list rather than
+// needing a separate crypto-specific section. `source` is exposed per row
+// so the dashboard can badge crypto trades distinctly if it wants to.
 const onDemandClosed = db
   .prepare(
-    `SELECT date, ticker, direction, realized_pnl, realized_pnl_pct, exit_filled_at
-     FROM paper_trades WHERE status = 'closed' AND source = 'on_demand'
+    `SELECT date, ticker, direction, realized_pnl, realized_pnl_pct, exit_filled_at, source
+     FROM paper_trades WHERE status = 'closed' AND source IN ('on_demand', 'crypto_ondemand')
      ORDER BY COALESCE(exit_filled_at, date) DESC LIMIT 20`
   )
   .all();
@@ -89,8 +95,8 @@ const onDemandClosed = db
 // visible feedback instead of apparent silence.
 const onDemandPending = db
   .prepare(
-    `SELECT date, ticker, direction, status, notional
-     FROM paper_trades WHERE source = 'on_demand' AND status != 'closed'
+    `SELECT date, ticker, direction, status, notional, source
+     FROM paper_trades WHERE source IN ('on_demand', 'crypto_ondemand') AND status != 'closed'
      ORDER BY date DESC LIMIT 20`
   )
   .all();
@@ -312,6 +318,7 @@ const output = {
     direction: r.direction,
     pnl: r.realized_pnl,
     pnlPct: r.realized_pnl_pct,
+    source: r.source,
   })),
   onDemandPending: onDemandPending.map((r) => ({
     date: r.date,
@@ -319,6 +326,7 @@ const output = {
     direction: r.direction,
     status: r.status,
     notional: r.notional,
+    source: r.source,
   })),
 };
 

@@ -1,0 +1,65 @@
+name: Crypto Invest (On-Demand)
+
+# Triggered by the Crypto tab's flexible "Invest" button (via the same
+# Cloudflare Worker that gates every other Invest control — see
+# /worker/README.md) or manually from the Actions tab. Runs
+# src/onDemandCrypto.js — a Claude-analyzed, long-only, user-chosen-amount
+# entry for any Alpaca-supported crypto pair. Added 2026-09-26, replacing the
+# old fixed "Invest in BTC & ETH" allocation (invest-allocation.yml's
+# 'crypto' option) with a flexible one — this workflow is just how it gets
+# triggered remotely and publishes its result, not a different code path.
+
+on:
+  workflow_dispatch:
+    inputs:
+      symbol:
+        description: 'Crypto symbol or common name (e.g. BTC, bitcoin, SOL/USD)'
+        required: true
+        type: string
+      amount:
+        description: 'Dollar amount to invest if Claude flags a real entry ($25-$10,000)'
+        required: true
+        type: string
+      context:
+        description: 'Optional context for the analysis'
+        required: false
+        type: string
+        default: 'On-demand crypto request via dashboard'
+
+permissions:
+  contents: write
+
+# Same group as the other trading workflows — see nightly-brief.yml's
+# comment. Queues instead of racing since all of them read/write the same
+# committed db file.
+concurrency:
+  group: market-brief-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-crypto-invest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with: { node-version: '22' }
+      - run: npm install
+      - name: Run tests (sizing/order logic must be correct before it touches real orders)
+        run: npm test
+      - name: Run on-demand crypto analysis (+ simulated trade if Claude flags a real entry)
+        run: node src/onDemandCrypto.js "${{ inputs.symbol }}" "${{ inputs.amount }}" "${{ inputs.context }}"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+      - name: Export public dashboard data
+        run: npm run export-site
+      - name: Commit result back to repo
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/ docs/data.json
+          git commit -m "Crypto invest: ${{ inputs.symbol }} \$${{ inputs.amount }} ($(date +'%Y-%m-%d %H:%M'))" || echo "No changes"
+          git pull --rebase || true
+          git push

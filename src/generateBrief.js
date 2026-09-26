@@ -1,5 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { SYSTEM_PROMPT, buildUserMessage, ON_DEMAND_SYSTEM_PROMPT, buildOnDemandUserMessage } from "./buildPrompt.js";
+import {
+  SYSTEM_PROMPT,
+  buildUserMessage,
+  ON_DEMAND_SYSTEM_PROMPT,
+  buildOnDemandUserMessage,
+  CRYPTO_ON_DEMAND_SYSTEM_PROMPT,
+  buildCryptoOnDemandUserMessage,
+} from "./buildPrompt.js";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -95,4 +102,40 @@ export async function generateOnDemandCall({ marketData, news, date, query }) {
   }
 
   return { analysisText, picks };
+}
+
+// Same client, same "structured block first" pattern again, but for
+// onDemandCrypto.js's simpler one-symbol invest/pass decision (see
+// buildCryptoOnDemandUserMessage) rather than a list of ticker picks.
+export async function generateCryptoOnDemandCall({ marketData, news, date, query, amount }) {
+  const userMessage = buildCryptoOnDemandUserMessage({ marketData, news, date, query, amount });
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-5",
+    max_tokens: 2048,
+    system: CRYPTO_ON_DEMAND_SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userMessage }],
+  });
+
+  const rawText = response.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
+
+  const match = rawText.match(/```crypto-call\s*([\s\S]*?)```/);
+  let decision = null;
+  let analysisText = rawText;
+
+  if (match) {
+    analysisText = (rawText.slice(0, match.index) + rawText.slice(match.index + match[0].length)).trim();
+    try {
+      decision = JSON.parse(match[1].trim());
+    } catch (err) {
+      console.warn("generateCryptoOnDemandCall: failed to parse crypto-call block, skipping:", err.message);
+    }
+  } else {
+    console.warn("generateCryptoOnDemandCall: no crypto-call block found in response.");
+  }
+
+  return { analysisText, decision };
 }

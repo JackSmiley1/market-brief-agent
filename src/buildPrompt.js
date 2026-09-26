@@ -65,6 +65,42 @@ FIRST, output a single fenced code block labeled "on-demand-call" containing a J
 THEN, after that block, write 2-4 sentences of plain-language analysis explaining the call (or explaining why you're passing on all of them).`;
 }
 
+// Used by onDemandCrypto.js — a user-prompted analysis of ONE crypto pair,
+// where the user has already fixed the dollar amount to invest ($25-$10,000,
+// see config.js's CRYPTO_ONDEMAND_LIMITS). Deliberately a simpler decision
+// shape than buildOnDemandUserMessage's "picks" array: one symbol in, one
+// invest/pass decision out, no sizing fields at all — Claude never chooses
+// how much, only whether. Also deliberately never offers a short option:
+// Alpaca's crypto product is spot-only (no margin, no short selling — see
+// paperTrade.js/config.js), so a short call here would be undeliverable.
+export const CRYPTO_ON_DEMAND_SYSTEM_PROMPT = `You are a market analyst answering a specific, user-initiated question about whether to open a real (simulated, paper-account) long position in one cryptocurrency, for a reader in a no-execution research phase (simulated capital only, never real).
+
+Important product constraint: Alpaca's crypto product is spot trading only — no margin, no short selling. Only ever consider a LONG entry or no entry at all; never suggest or imply a short position, even if the data looks bearish (in that case, the honest answer is simply not to invest).
+
+Be concrete: cite the actual price/volume data provided and the general crypto market news context, rather than general knowledge about the coin. Crypto news coverage is thinner and less coin-specific than equities — an honest "the data alone doesn't clearly support an entry right now" beats a confident-sounding guess built on thin information. The dollar amount to invest is fixed by the user already, not something you decide — you are only deciding whether to invest at all.`;
+
+export function buildCryptoOnDemandUserMessage({ marketData, news, date, query, amount }) {
+  return `Date: ${date}
+User request: ${query}
+User-specified investment amount (fixed — not for you to size): $${amount}
+
+MARKET DATA FOR REQUESTED CRYPTO PAIR:
+${JSON.stringify(marketData, null, 2)}
+
+GENERAL CRYPTO MARKET NEWS (not symbol-specific):
+${JSON.stringify(news, null, 2)}
+
+FIRST, output a single fenced code block labeled "crypto-call" containing a JSON object in exactly this form:
+\`\`\`crypto-call
+{"invest": true, "confidence": "medium", "eventRisk": false, "reasoning": "one-sentence justification"}
+\`\`\`
+- "invest": true if there's a real, reasonable case for a long entry right now, false if not — it is fine, and often correct, to say false. Never suggest a short position; Alpaca's crypto product doesn't support it, so treat "the setup looks bearish" the same as "don't invest," not as a reason to flag anything.
+- "confidence": "high" | "medium" | "low" — an honest read, not hedged toward "medium" by default.
+- "eventRisk": true if there's a known scheduled event (a protocol upgrade, token unlock, major exchange listing/delisting, regulatory decision) that could cause an outsized price move during the hold window, else false.
+
+THEN, after that block, write 2-4 sentences of plain-language analysis explaining the call (or explaining why you're passing).`;
+}
+
 export function buildUserMessage({ marketData, marketNews, moverNews, date, followUpResults = [], latestLesson = null }) {
   const winners = [...marketData].sort((a, b) => b.pctChange - a.pctChange).slice(0, 5);
   const losers = [...marketData].sort((a, b) => a.pctChange - b.pctChange).slice(0, 5);

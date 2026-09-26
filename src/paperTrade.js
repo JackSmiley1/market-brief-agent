@@ -86,11 +86,15 @@ const pendingEntriesStmt = db.prepare(
   `SELECT date, ticker, entry_order_id, notional, direction FROM paper_trades WHERE status = 'entry_pending' AND entry_order_id IS NOT NULL`
 );
 
-// Excludes 'fund_hold'/'crypto_hold' (see config.js's FUND_ALLOCATION/
-// CRYPTO_ALLOCATION) — those are buy-and-hold-indefinitely positions, never
-// meant to be force-closed after one session the way nightly/on_demand
-// picks are. Added 2026-09-25 alongside those allocations; without this
-// exclusion, closeMaturePositions below would sell them the very next run.
+// Excludes 'fund_hold'/'crypto_hold' (see config.js's FUND_ALLOCATION and
+// the now-superseded CRYPTO_ALLOCATION comment) — those are buy-and-hold-
+// indefinitely positions, never meant to be force-closed after one session
+// the way nightly/on_demand/crypto_ondemand picks are. Added 2026-09-25
+// alongside those allocations; without this exclusion, closeMaturePositions
+// below would sell them the very next run. 'crypto_hold' is legacy-only as
+// of 2026-09-26 (no new rows written with that source — see config.js) but
+// stays in this exclusion list so any position already opened under it
+// keeps being held rather than getting force-closed by this later change.
 const openPositionsStmt = db.prepare(
   `SELECT date, ticker, entry_price, notional, direction, qty FROM paper_trades WHERE status = 'open' AND source NOT IN ('fund_hold', 'crypto_hold')`
 );
@@ -239,7 +243,14 @@ export async function openNewPositions(date, items, priceMap = {}, source = "nig
   for (const item of items) {
     const ticker = item.ticker;
     const direction = item.direction === "short" ? "short" : "long"; // default long on any malformed/missing value
-    const notional = computeNotional({ confidence: item.confidence, eventRisk: item.eventRisk, direction });
+    // notionalOverride lets a caller specify the exact dollar amount instead
+    // of deriving it from the evidence-based SIZING_ADJUSTMENTS — used by
+    // onDemandCrypto.js, where the USER picks the investment amount
+    // ($25-$10,000, see CRYPTO_ONDEMAND_LIMITS) and Claude only decides
+    // whether to invest at all, not how much. Everything else about this
+    // function (wash-trade guard, portfolio caps, reconciliation) still
+    // applies identically regardless of source.
+    const notional = item.notionalOverride ?? computeNotional({ confidence: item.confidence, eventRisk: item.eventRisk, direction });
     if (unresolvedPositionStmt.get(ticker)) {
       console.log(`paperTrade: skipping re-entry — ${ticker} (${date}) already has an unresolved position from an earlier cycle.`);
       continue;

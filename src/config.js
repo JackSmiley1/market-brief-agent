@@ -55,16 +55,37 @@ export const FUND_ALLOCATION = {
   source: "fund_hold",
 };
 
-// Crypto pick: BTC and ETH only — the two largest, most established coins by
-// market cap, long-only, no attempt at picking altcoins without any Claude
-// analysis backing the choice. Alpaca's paper account supports crypto
-// directly (same keys, same paper-api.alpaca.markets base, symbol format
-// "BTC/USD") — no new account, key, or service needed.
-export const CRYPTO_ALLOCATION = {
-  symbols: ["BTC/USD", "ETH/USD"],
-  notionalPerPosition: 300,
-  source: "crypto_hold",
-};
+// Superseded 2026-09-26 by src/onDemandCrypto.js — a Claude-analyzed,
+// user-chosen-symbol, user-chosen-amount flow (see CRYPTO_ONDEMAND_LIMITS
+// below), replacing this fixed BTC/ETH-only static allocation per an
+// explicit product decision to support any Alpaca-supported crypto pair
+// instead of just two hardcoded coins. Left here, commented, only as a
+// record of what the dashboard's old "Invest in BTC & ETH" button did — not
+// imported anywhere anymore. Any rows already written with source=
+// 'crypto_hold' from before this change are still real (simulated) positions
+// and are intentionally left alone (still excluded from close/wash-trade
+// checks in paperTrade.js) rather than force-closed by this refactor.
+// export const CRYPTO_ALLOCATION = {
+//   symbols: ["BTC/USD", "ETH/USD"],
+//   notionalPerPosition: 300,
+//   source: "crypto_hold",
+// };
+
+// User-chosen dollar range for the Crypto tab's flexible "Invest" flow
+// (src/onDemandCrypto.js) — the user types any Alpaca-supported crypto
+// symbol/name and an amount in this range; Claude only decides whether to
+// open a long position at all (Alpaca's crypto product is spot-only, no
+// margin, no shorting — see the "Margin and Short Selling" note in Alpaca's
+// docs), never how much to size it.
+export const CRYPTO_ONDEMAND_LIMITS = { minUsd: 25, maxUsd: 10000 };
+
+// User-chosen dollar range for the Mutual Funds tab's "invest in another
+// fund" custom-ticker flow (src/investFundCustom.js) — same buy-and-hold,
+// no-Claude-analysis logic as FUND_ALLOCATION above, just with a
+// user-supplied ticker and amount instead of the fixed five. Reuses the same
+// 'fund_hold' source (not a new one) so it shows up in the existing "Current
+// Fund Holdings" list and existing exclusion rules with zero extra plumbing.
+export const FUND_CUSTOM_LIMITS = { minUsd: 5, maxUsd: 10000 };
 
 export const ALPACA_DATA_BASE = "https://data.alpaca.markets/v2";
 export const FINNHUB_BASE = "https://finnhub.io/api/v1";
@@ -126,13 +147,20 @@ export function computeNotional({ confidence, eventRisk, direction }) {
 // Alpaca paper account, not about keeping the sizing-evidence analysis
 // clean (that's what the source column is for, see db.js).
 //
-// Raised 2026-09-25 (from 15 / $6,000) to make permanent room for the
-// buy-and-hold allocations above: 5 fund positions + 2 crypto positions at
-// $300 each is $2,100 held indefinitely, on top of the existing ~$2,000-
-// 4,000 typical nightly range — without raising the cap, those permanent
-// positions would have crowded out normal nightly stock trading capacity
-// for as long as they're held (which, by design, is indefinitely).
+// Raised again 2026-09-26 (from 22 / $8,500) for the new user-amount flows
+// above: CRYPTO_ONDEMAND_LIMITS and FUND_CUSTOM_LIMITS both allow a single
+// trade up to $10,000, which alone would have exceeded the old $8,500 total
+// cap and silently blocked every legitimate max-size request (this check
+// fails open/quiet by design elsewhere — see openNewPositions' cap-skip
+// log — so a request that never even reaches Alpaca would have looked like
+// nothing happened, not a clear error). $20,000 leaves room for one such
+// trade plus the existing ~$2,000-4,000 typical nightly range and the
+// permanent fund_hold allocation, without raising maxConcurrentPositions
+// further (position *count* wasn't the constraint here, size was).
+//
+// Prior history: raised 2026-09-25 from 15 / $6,000 to make room for the
+// original fixed buy-and-hold allocations (5 fund + 2 crypto @ $300 each).
 export const PORTFOLIO_LIMITS = {
   maxConcurrentPositions: 22,
-  maxTotalNotionalUsd: 8500,
+  maxTotalNotionalUsd: 20000,
 };
