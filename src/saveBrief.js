@@ -51,34 +51,67 @@ export function appendBriefLog(date, row) {
   });
 }
 
-const deleteFollowUpsForDateStmt = db.prepare(`DELETE FROM watchlist_followups WHERE date = ?`);
+// Stock vs. crypto rows share this ONE table (no schema migration) — kept
+// apart using the same trick as paperTrade.js's ALLOCATION_DATE sentinel:
+// crypto symbols always contain "/" (Alpaca's "BASE/QUOTE" format, e.g.
+// "BTC/USD"), real stock tickers never do. Added 2026-09-26 when
+// cryptoNightly.js started writing to this same table on the same calendar
+// dates as the stock nightly pipeline (index.js) — without scoping every
+// delete/read below by ticker shape, a nightly crypto run and a nightly
+// stock run landing on the same date would each blow away the other's rows
+// (the original DELETE FROM ... WHERE date = ? had no ticker filter at all).
+const deleteFollowUpsForDateStmt = db.prepare(`DELETE FROM watchlist_followups WHERE date = ? AND ticker NOT LIKE '%/%'`);
+const deleteCryptoFollowUpsForDateStmt = db.prepare(`DELETE FROM watchlist_followups WHERE date = ? AND ticker LIKE '%/%'`);
 const insertFollowUpStmt = db.prepare(
   `INSERT INTO watchlist_followups (date, ticker, setup, confidence, event_risk, peer_catalyst) VALUES (?, ?, ?, ?, ?, ?)`
 );
 
 const validConfidence = new Set(["high", "medium", "low"]);
 
+function insertFollowUpItems(date, items) {
+  for (const item of items) {
+    // Store null rather than silently coercing a malformed/missing
+    // confidence to some default — a bad value should read as "not
+    // rated" in the data, not masquerade as a real "medium" rating.
+    const confidence = validConfidence.has(item.confidence) ? item.confidence : null;
+    // SQLite has no native boolean; store 1/0/null explicitly rather
+    // than relying on JS truthiness coercion for a missing field.
+    const eventRisk = typeof item.eventRisk === "boolean" ? (item.eventRisk ? 1 : 0) : null;
+    // See db.js comment on peer_catalyst — tracked, not yet used for sizing.
+    // Never set for crypto items (no peer-catalyst research exists for
+    // crypto), stays null there — see saveCryptoWatchlistFollowUp below.
+    const peerCatalyst = typeof item.peerCatalyst === "boolean" ? (item.peerCatalyst ? 1 : 0) : null;
+    insertFollowUpStmt.run(date, item.ticker, item.setup, confidence, eventRisk, peerCatalyst);
+  }
+}
+
 // Persists the tickers/setups Claude flagged in today's "Watchlist for
 // Tomorrow" section, keyed by date, so tomorrow's run can check whether they
-// played out. Replaces (not appends to) any existing rows for this date.
-// node:sqlite's DatabaseSync has no .transaction() helper (unlike
-// better-sqlite3), so this wraps manually with BEGIN/COMMIT/ROLLBACK.
+// played out. Replaces (not appends to) any existing STOCK rows for this
+// date (see the ticker-shape comment above — never touches crypto rows on
+// the same date). node:sqlite's DatabaseSync has no .transaction() helper
+// (unlike better-sqlite3), so this wraps manually with BEGIN/COMMIT/ROLLBACK.
 export function saveWatchlistFollowUp(date, items) {
   db.exec("BEGIN");
   try {
     deleteFollowUpsForDateStmt.run(date);
-    for (const item of items) {
-      // Store null rather than silently coercing a malformed/missing
-      // confidence to some default — a bad value should read as "not
-      // rated" in the data, not masquerade as a real "medium" rating.
-      const confidence = validConfidence.has(item.confidence) ? item.confidence : null;
-      // SQLite has no native boolean; store 1/0/null explicitly rather
-      // than relying on JS truthiness coercion for a missing field.
-      const eventRisk = typeof item.eventRisk === "boolean" ? (item.eventRisk ? 1 : 0) : null;
-      // See db.js comment on peer_catalyst — tracked, not yet used for sizing.
-      const peerCatalyst = typeof item.peerCatalyst === "boolean" ? (item.peerCatalyst ? 1 : 0) : null;
-      insertFollowUpStmt.run(date, item.ticker, item.setup, confidence, eventRisk, peerCatalyst);
-    }
+    insertFollowUpItems(date, items);
+    db.exec("COMMIT");
+  } catch (err) {
+    db.exec("ROLLBACK");
+    throw err;
+  }
+}
+
+// Crypto counterpart to saveWatchlistFollowUp — same shape, scoped to
+// crypto-only rows (ticker LIKE '%/%') so it can never delete the stock
+// nightly pipeline's rows for the same date. Used by cryptoNightly.js.
+// peerCatalyst is never set here (see insertFollowUpItems above).
+export function saveCryptoWatchlistFollowUp(date, items) {
+  db.exec("BEGIN");
+  try {
+    deleteCryptoFollowUpsForDateStmt.run(date);
+    insertFollowUpItems(date, items);
     db.exec("COMMIT");
   } catch (err) {
     db.exec("ROLLBACK");
@@ -87,21 +120,37 @@ export function saveWatchlistFollowUp(date, items) {
 }
 
 const mostRecentPriorDateStmt = db.prepare(
-  `SELECT MAX(date) AS d FROM watchlist_followups WHERE date < ?`
+  `SELECT MAX(date) AS d FROM watchlist_followups WHERE date < ? AND ticker NOT LIKE '%/%'`
+);
+const mostRecentPriorCryptoDateStmt = db.prepare(
+  `SELECT MAX(date) AS d FROM watchlist_followups WHERE date < ? AND ticker LIKE '%/%'`
 );
 const followUpsForDateStmt = db.prepare(
-  `SELECT ticker, setup FROM watchlist_followups WHERE date = ?`
+  `SELECT ticker, setup FROM watchlist_followups WHERE date = ? AND ticker NOT LIKE '%/%'`
+);
+const cryptoFollowUpsForDateStmt = db.prepare(
+  `SELECT ticker, setup FROM watchlist_followups WHERE date = ? AND ticker LIKE '%/%'`
 );
 
-// Returns the most recent stored entries strictly before `date`, skipping
-// weekends/holidays automatically since this queries whatever dates actually
-// have rows rather than assuming yesterday = the last trading day. Returns
-// the source date too, since the grading write-back needs to know which
-// date's rows to update.
+// Returns the most recent stored STOCK entries strictly before `date`,
+// skipping weekends/holidays automatically since this queries whatever
+// dates actually have rows rather than assuming yesterday = the last
+// trading day. Returns the source date too, since the grading write-back
+// needs to know which date's rows to update. Ticker-shape filtered (see
+// comment above the delete statements) so a same-date crypto nightly run
+// never leaks into the stock grading loop.
 export function loadMostRecentWatchlist(beforeDate) {
   const row = mostRecentPriorDateStmt.get(beforeDate);
   if (!row?.d) return { date: null, items: [] };
   return { date: row.d, items: followUpsForDateStmt.all(row.d) };
+}
+
+// Crypto counterpart — identical logic, filtered to crypto-shaped tickers
+// only. Used by cryptoNightly.js.
+export function loadMostRecentCryptoWatchlist(beforeDate) {
+  const row = mostRecentPriorCryptoDateStmt.get(beforeDate);
+  if (!row?.d) return { date: null, items: [] };
+  return { date: row.d, items: cryptoFollowUpsForDateStmt.all(row.d) };
 }
 
 const updateGradingStmt = db.prepare(`

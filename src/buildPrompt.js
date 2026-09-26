@@ -101,6 +101,51 @@ FIRST, output a single fenced code block labeled "crypto-call" containing a JSON
 THEN, after that block, write 2-4 sentences of plain-language analysis explaining the call (or explaining why you're passing).`;
 }
 
+// Used by cryptoNightly.js — the automated, no-button-click counterpart to
+// onDemandCrypto.js, running on the same nightly cadence as the stock
+// pipeline (buildUserMessage below) against config.js's CRYPTO_WATCHLIST.
+// Deliberately simpler than buildUserMessage: no winners/losers ranking
+// across 30+ tickers (the crypto watchlist is small and fixed), no
+// peer-catalyst field (that research was stock-shorts-specific), and never
+// asks for "short" as a direction — Alpaca's crypto product is spot-only,
+// so every pick here is implicitly long or not taken at all.
+export const NIGHTLY_CRYPTO_SYSTEM_PROMPT = `You are a market analyst producing a nightly crypto watchlist update for a reader in a no-execution research phase (simulated capital only, never real).
+
+Important product constraint: Alpaca's crypto product is spot trading only — no margin, no short selling. Every pick you flag is implicitly a LONG entry; never suggest or imply a short position, even if the data looks bearish (in that case, the honest answer is simply not to flag that coin).
+
+Be concrete and specific: cite the actual price/volume numbers and general crypto news context provided. Crypto news coverage is thinner and less coin-specific than equities — an honest "no clear catalyst" beats a confident-sounding guess built on thin information. Position sizing here is flat and fixed by the system, not something you decide — you are only deciding which coins (if any) are worth flagging as a long setup to watch.`;
+
+export function buildCryptoNightlyUserMessage({ marketData, news, date, followUpResults = [] }) {
+  const followUpBlock = followUpResults.length > 0
+    ? `\nYESTERDAY'S FLAGGED CRYPTO WATCHLIST (with today's actual results):\n${JSON.stringify(followUpResults, null, 2)}\n`
+    : "";
+
+  const followUpSectionInstruction = followUpResults.length > 0
+    ? `For each ticker listed in "YESTERDAY'S FLAGGED CRYPTO WATCHLIST" above, state plainly whether the flagged setup played out, partially played out, or didn't — cite the actual number provided. Do not retroactively rationalize a miss as a win.\n\n`
+    : "";
+
+  return `Date: ${date}
+
+CRYPTO MARKET DATA (full watchlist):
+${JSON.stringify(marketData, null, 2)}
+
+GENERAL CRYPTO MARKET NEWS (not coin-specific):
+${JSON.stringify(news, null, 2)}
+${followUpBlock}
+FIRST, before writing anything else, output a single fenced code block labeled "crypto-nightly-followup" containing a JSON object with two keys, in exactly this form:
+\`\`\`crypto-nightly-followup
+{
+  "grading": [{"ticker": "BTC/USD", "outcome": "played_out"}],
+  "newWatchlist": [{"ticker": "SOL/USD", "setup": "one-sentence restatement of the condition to watch for", "confidence": "medium", "eventRisk": false}]
+}
+\`\`\`
+- "grading": one entry per ticker in YESTERDAY'S FLAGGED CRYPTO WATCHLIST above (omit this key's array entries, i.e. use an empty array, if that section wasn't provided). "outcome" must be exactly one of: "played_out", "partial", "missed", "unclear" — use "unclear" honestly when the data doesn't clearly support a verdict either way. Base this strictly on the numeric result already provided for that ticker.
+- "newWatchlist": 0-4 coins (only from CRYPTO MARKET DATA above) worth flagging as a long setup tonight — it is fine, and often correct, to flag none if nothing here clears the bar. Each item must include "confidence": "high" | "medium" | "low" (an honest read, not hedged toward "medium" by default) and "eventRisk": true if there's a known scheduled event (a protocol upgrade, token unlock, major exchange listing/delisting, regulatory decision) that could cause an outsized price move during the hold window, else false.
+This block must come first, before any other text, because it's for internal tracking and needs to survive even if the rest of the response gets cut short.
+
+THEN, after that block, write a short plain-language summary: ${followUpSectionInstruction}what moved and why (or "unclear" honestly where the news doesn't explain it), and what you're watching in the new watchlist and why.`;
+}
+
 export function buildUserMessage({ marketData, marketNews, moverNews, date, followUpResults = [], latestLesson = null }) {
   const winners = [...marketData].sort((a, b) => b.pctChange - a.pctChange).slice(0, 5);
   const losers = [...marketData].sort((a, b) => a.pctChange - b.pctChange).slice(0, 5);

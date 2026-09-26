@@ -30,6 +30,19 @@ jobs:
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+      - name: Run nightly crypto watchlist (separate source tag, long-only, flat sizing)
+        # Same job/commit as the stock brief above, not a separate cron —
+        # avoids any risk of the two racing on the same committed db file.
+        # Failure here is non-fatal to the rest of the workflow (own
+        # try/catch inside cryptoNightly.js isn't needed at this level since
+        # this step runs independently of reflect/export-site below it).
+        run: npm run crypto-brief
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+        continue-on-error: true
       - name: Reflect on recent losing trades (Reflexion-style lesson synthesis)
         # Runs AFTER the brief, not before: it needs tonight's paper-trading
         # cycle (just reconciled above) to see the fullest, freshest set of

@@ -83,7 +83,7 @@ const lessons = db
 const onDemandClosed = db
   .prepare(
     `SELECT date, ticker, direction, realized_pnl, realized_pnl_pct, exit_filled_at, source
-     FROM paper_trades WHERE status = 'closed' AND source IN ('on_demand', 'crypto_ondemand')
+     FROM paper_trades WHERE status = 'closed' AND source IN ('on_demand', 'crypto_ondemand', 'nightly_crypto')
      ORDER BY COALESCE(exit_filled_at, date) DESC LIMIT 20`
   )
   .all();
@@ -96,10 +96,24 @@ const onDemandClosed = db
 const onDemandPending = db
   .prepare(
     `SELECT date, ticker, direction, status, notional, source
-     FROM paper_trades WHERE source IN ('on_demand', 'crypto_ondemand') AND status != 'closed'
+     FROM paper_trades WHERE source IN ('on_demand', 'crypto_ondemand', 'nightly_crypto') AND status != 'closed'
      ORDER BY date DESC LIMIT 20`
   )
   .all();
+
+// Nightly automated crypto track record (added 2026-09-26 — see
+// cryptoNightly.js) — its own evidence pool, completely separate from the
+// stock 'nightly' summary above and never blended with it. Reuses the same
+// summarize()/aggregateTrades helper so the numbers are computed identically
+// (rounding, win-rate math) to every other bucket on this dashboard.
+const cryptoNightlyClosed = db
+  .prepare(
+    `SELECT date, ticker, direction, notional, realized_pnl, realized_pnl_pct, exit_filled_at
+     FROM paper_trades WHERE status = 'closed' AND source = 'nightly_crypto'
+     ORDER BY COALESCE(exit_filled_at, date)`
+  )
+  .all();
+const cryptoNightlySummary = summarize(cryptoNightlyClosed);
 
 const overallSummary = summarize(closed);
 
@@ -307,6 +321,13 @@ const output = {
   dailyMovers,
   fundHoldings,
   cryptoHoldings,
+  cryptoNightlyOverview: {
+    closedTrades: cryptoNightlySummary?.n ?? 0,
+    avgReturnPct: cryptoNightlySummary?.avgReturnPct ?? null,
+    totalPnl: cryptoNightlySummary?.totalPnl ?? null,
+    winRatePct: cryptoNightlySummary?.winRatePct ?? null,
+    meetsMinN: cryptoNightlySummary?.meetsMinN ?? false,
+  },
   fundSnapshots: {
     asOfDate: latestFundDateRow?.d ?? null,
     items: fundSnapshots,

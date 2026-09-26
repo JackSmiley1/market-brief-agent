@@ -7,6 +7,7 @@
   },
   "scripts": {
     "brief": "node src/index.js",
+    "crypto-brief": "node src/cryptoNightly.js",
     "accuracy": "node src/computeAccuracy.js",
     "pnl": "node src/computePnL.js",
     "confidence": "node src/computeConfidence.js",

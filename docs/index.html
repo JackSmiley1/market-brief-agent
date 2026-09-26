@@ -637,8 +637,15 @@
       </div>
     </section>
 
+    <section id="crypto-nightly-section">
+      <div class="section-head"><h2>Nightly Automated Track Record</h2></div>
+      <p class="section-sub" id="crypto-nightly-asof">Runs automatically every night against a fixed watchlist (BTC, ETH, SOL, XRP, ADA, DOGE, AVAX, LINK, LTC, DOT) — same cadence as the stock pipeline, long-only, flat $500 per pick (not sized by the stock evidence-based formula, which doesn't transfer to a different asset class). Its own separate evidence pool, not blended with stock stats.</p>
+      <div class="stat-grid" id="crypto-nightly-stats"><div class="loading">Loading…</div></div>
+    </section>
+
     <section id="crypto-ondemand-section">
       <div class="section-head"><h2>Recent Crypto Trades</h2></div>
+      <p class="section-sub">Both automated nightly picks and anything triggered from the "Invest in a Coin" form above, together.</p>
       <div class="brief-list" id="crypto-ondemand-list"><div class="loading">No crypto trades yet.</div></div>
     </section>
 
@@ -1198,21 +1205,28 @@ async function main() {
 
   const allOnDemandPending = data.onDemandPending || [];
   const allOnDemandClosed = data.onDemand || [];
-  const hasClosed = allOnDemandClosed.length > 0;
-  const hasPending = allOnDemandPending.length > 0;
-  if (hasClosed || hasPending) {
+
+  // Dashboard's "On-Demand Trades" section is specifically things a person
+  // deliberately triggered by hand (the stock ticker bar, the crypto invest
+  // form) — excludes 'nightly_crypto' explicitly so an automated pick never
+  // gets mislabeled as something you clicked a button for.
+  const manualPending = allOnDemandPending.filter((t) => t.source !== 'nightly_crypto');
+  const manualClosed = allOnDemandClosed.filter((t) => t.source !== 'nightly_crypto');
+  if (manualClosed.length > 0 || manualPending.length > 0) {
     document.getElementById('on-demand-section').style.display = '';
     document.getElementById('on-demand-list').innerHTML =
-      onDemandRowsHtml(allOnDemandPending, allOnDemandClosed) || '<div class="loading">No on-demand trades yet.</div>';
+      onDemandRowsHtml(manualPending, manualClosed) || '<div class="loading">No on-demand trades yet.</div>';
   }
 
-  // Crypto tab's own "Recent Crypto Trades" list — same data, filtered to
-  // source='crypto_ondemand' only, so a stock on-demand trade never shows
-  // up in the crypto-specific view.
+  // Crypto tab's own "Recent Crypto Trades" list — both crypto sources
+  // together (button-triggered 'crypto_ondemand' AND automated
+  // 'nightly_crypto'), badged so it's clear which is which, filtered away
+  // from any stock on_demand trade.
   const cryptoListEl = document.getElementById('crypto-ondemand-list');
   if (cryptoListEl) {
-    const cryptoPending = allOnDemandPending.filter((t) => t.source === 'crypto_ondemand');
-    const cryptoClosed = allOnDemandClosed.filter((t) => t.source === 'crypto_ondemand');
+    const isCrypto = (t) => t.source === 'crypto_ondemand' || t.source === 'nightly_crypto';
+    const cryptoPending = allOnDemandPending.filter(isCrypto);
+    const cryptoClosed = allOnDemandClosed.filter(isCrypto);
     cryptoListEl.innerHTML =
       onDemandRowsHtml(cryptoPending, cryptoClosed) || '<div class="loading">No crypto trades yet.</div>';
   }
@@ -1220,6 +1234,7 @@ async function main() {
   renderFundStats(data.fundSnapshots);
   renderStockMovers(data.dailyMovers);
   renderHoldings('fund-holdings-list', data.fundHoldings);
+  renderCryptoNightlyStats(data.cryptoNightlyOverview, data.minSampleSize);
 }
 
 // Shared row renderer for on-demand trades (stock or crypto — see the
@@ -1228,17 +1243,56 @@ async function main() {
 function onDemandRowsHtml(pending, closed) {
   const fmtPct = (n) => n === null || n === undefined ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
   const cls = (n) => n === null || n === undefined ? '' : (n >= 0 ? 'pos' : 'neg');
+  // 'nightly_crypto' rows get a small "Auto" tag so they read as automated
+  // picks, not something a person clicked a button for — everything else
+  // (on_demand, crypto_ondemand) is manually triggered and gets no tag.
+  const autoTag = (t) => t.source === 'nightly_crypto'
+    ? '<span class="flag" style="color:var(--muted); border-color:var(--border); background:var(--panel); margin-right:6px;">Auto</span>'
+    : '';
   const pendingHtml = pending.map((t) => {
     const statusLabel = { entry_pending: 'Order queued', open: 'Open (holding)', exit_pending: 'Closing' }[t.status] || t.status;
-    return '<div class="brief-row"><span>' + tickerBadge(t.ticker) + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
+    return '<div class="brief-row"><span>' + autoTag(t) + tickerBadge(t.ticker) + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
       '<span class="movers"><span class="flag" style="color:var(--accent); border-color:var(--accent); background:var(--accent-dim);">' + statusLabel + '</span> $' + t.notional + ' notional</span></div>';
   }).join('');
   const closedHtml = closed.map((t) => {
     const pnlCls = cls(t.pnlPct);
-    return '<div class="brief-row"><span>' + tickerBadge(t.ticker) + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
+    return '<div class="brief-row"><span>' + autoTag(t) + tickerBadge(t.ticker) + t.date + ' · ' + t.ticker + ' (' + t.direction + ')</span>' +
       '<span class="movers ' + pnlCls + '">' + fmtPct(t.pnlPct) + ' ($' + t.pnl.toFixed(2) + ')</span></div>';
   }).join('');
   return pendingHtml + closedHtml;
+}
+
+// Nightly automated crypto track record (see exportSite.js's
+// cryptoNightlyOverview) — same compact stat-card pattern as the main
+// Overview section, just fewer cards and no hero card (this is a smaller,
+// newer, separate evidence pool, not the headline number). Honest about
+// small samples: shows "not enough data yet" below minSampleSize rather
+// than presenting an early win/loss rate as if it means something yet.
+function renderCryptoNightlyStats(overview, minSampleSize) {
+  const el = document.getElementById('crypto-nightly-stats');
+  if (!el || !overview) return;
+  const fmtPct = (n) => n === null || n === undefined ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  const cls = (n) => n === null || n === undefined ? '' : (n >= 0 ? 'pos' : 'neg');
+  if (!overview.closedTrades) {
+    el.innerHTML = '<div class="loading">No closed nightly crypto trades yet — check back after a few trading nights.</div>';
+    return;
+  }
+  const stats = [
+    { label: 'Closed trades', value: String(overview.closedTrades), icon: 'layers', color: '#4f8ef7' },
+    { label: 'Avg return', value: fmtPct(overview.avgReturnPct), cls: cls(overview.avgReturnPct), icon: overview.avgReturnPct >= 0 ? 'trendUp' : 'trendDown', color: overview.avgReturnPct >= 0 ? '#35c98d' : '#ef5b63' },
+    { label: 'Win rate', value: (overview.winRatePct ?? 0) + '%', icon: 'target', color: '#8b7cf6' },
+    { label: 'Total P&L', value: (overview.totalPnl >= 0 ? '+' : '') + '$' + (overview.totalPnl ?? 0).toFixed(2), cls: cls(overview.totalPnl), icon: 'percent', color: '#f2b544' },
+  ];
+  const gridHtml = stats.map(s =>
+    '<div class="stat-card">' +
+      '<div class="icon-badge" style="background:' + s.color + '26; color:' + s.color + '">' + iconSvg(s.icon) + '</div>' +
+      '<div><div class="value ' + (s.cls||'') + '">' + s.value + '</div><div class="label">' + s.label + '</div></div>' +
+    '</div>'
+  ).join('');
+  const note = !overview.meetsMinN
+    ? '<div class="loading" style="margin-top:10px;">Below n=' + minSampleSize + ' — too early to draw conclusions, shown as-is anyway.</div>'
+    : '';
+  el.innerHTML = gridHtml + note;
 }
 
 // Current buy-and-hold fund allocation holdings — comes straight from

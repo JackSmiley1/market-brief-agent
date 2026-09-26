@@ -6,6 +6,8 @@ import {
   buildOnDemandUserMessage,
   CRYPTO_ON_DEMAND_SYSTEM_PROMPT,
   buildCryptoOnDemandUserMessage,
+  NIGHTLY_CRYPTO_SYSTEM_PROMPT,
+  buildCryptoNightlyUserMessage,
 } from "./buildPrompt.js";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -138,4 +140,55 @@ export async function generateCryptoOnDemandCall({ marketData, news, date, query
   }
 
   return { analysisText, decision };
+}
+
+// Nightly automated crypto call (cryptoNightly.js) — same "structured block
+// first" pattern as generateBrief above, adapted for a small fixed
+// watchlist with a grading+newWatchlist shape instead of a single
+// invest/pass decision (see buildCryptoNightlyUserMessage). "direction" is
+// deliberately absent from the returned items — every crypto pick is long
+// by construction (see the prompt's constraint), so cryptoNightly.js never
+// needs to read one back out.
+export async function generateCryptoNightlyCall({ marketData, news, date, followUpResults }) {
+  const userMessage = buildCryptoNightlyUserMessage({ marketData, news, date, followUpResults });
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-5",
+    max_tokens: 4096,
+    system: NIGHTLY_CRYPTO_SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userMessage }],
+  });
+
+  const rawText = response.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
+
+  const match = rawText.match(/```crypto-nightly-followup\s*([\s\S]*?)```/);
+  let followUpItems = [];
+  let gradingItems = [];
+  let analysisText = rawText;
+
+  const validOutcomes = new Set(["played_out", "partial", "missed", "unclear"]);
+
+  if (match) {
+    analysisText = (rawText.slice(0, match.index) + rawText.slice(match.index + match[0].length)).trim();
+    try {
+      const parsed = JSON.parse(match[1].trim());
+      if (Array.isArray(parsed.newWatchlist)) followUpItems = parsed.newWatchlist;
+      if (Array.isArray(parsed.grading)) {
+        gradingItems = parsed.grading.filter((g) => {
+          const ok = validOutcomes.has(g.outcome);
+          if (!ok) console.warn(`generateCryptoNightlyCall: dropping grading entry with invalid outcome "${g.outcome}" for ${g.ticker}`);
+          return ok;
+        });
+      }
+    } catch (err) {
+      console.warn("generateCryptoNightlyCall: failed to parse crypto-nightly-followup block, skipping:", err.message);
+    }
+  } else {
+    console.warn("generateCryptoNightlyCall: no crypto-nightly-followup block found in response.");
+  }
+
+  return { analysisText, followUpItems, gradingItems };
 }

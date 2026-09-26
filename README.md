@@ -50,28 +50,32 @@ Node.js (`node:sqlite`, no native binary dependency — chosen after `better-sql
 
 ```
 src/
-  index.js            nightly pipeline entry point
-  onDemandTrade.js     on-demand (dashboard-triggered or CLI) analysis + trade
-  investAllocation.js  buy-and-hold fund/crypto allocation trigger (idempotent, no Claude call)
+  index.js            nightly pipeline entry point (stocks)
+  cryptoNightly.js     nightly automated crypto watchlist + trades (own evidence pool, long-only, flat sizing)
+  onDemandTrade.js     on-demand stock analysis + trade (dashboard-triggered or CLI), optional --amount override
+  onDemandCrypto.js    on-demand crypto analysis + trade, any Alpaca-supported coin, user-chosen amount
+  investAllocation.js  fixed 5-fund buy-and-hold allocation trigger (idempotent, no Claude call)
+  investFundCustom.js  custom-ticker buy-and-hold allocation trigger (same logic, user ticker/amount)
+  fetchCryptoMarketData.js  Alpaca crypto price/volume data (v1beta3)
   stats.js               shared trade-aggregation math (used by checkpoint.js + exportSite.js)
   fetchMarketData.js   Alpaca price/volume data
-  fetchNews.js         Finnhub news
-  buildPrompt.js        prompt construction (nightly + on-demand)
+  fetchNews.js         Finnhub news (stock + general crypto category)
+  buildPrompt.js        prompt construction (nightly + on-demand, stock + crypto)
   generateBrief.js      Claude API calls, structured-block parsing
   paperTrade.js         simulated order submission, reconciliation, portfolio risk caps
   reflect.js            reflection loop (loss review -> lesson synthesis)
   lessons.js             lesson management CLI (list/delete)
-  checkpoint.js          sizing-lever evidence review (n>=20 gate)
+  checkpoint.js          sizing-lever evidence review (n>=20 gate, stocks only)
   exportSite.js          generates docs/data.json for the public dashboard
-  config.js              watchlist, sizing rules, portfolio risk caps
+  config.js              watchlists, sizing rules, portfolio risk caps (stock + crypto + fund)
   db.js                  SQLite schema + migrations
-  saveBrief.js           writes brief markdown + logs, reads back most recent watchlist/brief date
+  saveBrief.js           writes brief markdown + logs, reads back most recent watchlist/brief date (stock + crypto variants)
   computeAccuracy.js     standalone directional-accuracy report (superseded day-to-day by checkpoint.js)
   computePnL.js          standalone P&L report (superseded day-to-day by checkpoint.js)
   computeConfidence.js   standalone confidence-bucket report (superseded day-to-day by checkpoint.js)
-worker/                 Cloudflare Worker for the dashboard's Invest buttons (on-demand + allocations)
+worker/                 Cloudflare Worker for the dashboard's Invest buttons (on-demand + allocations + crypto)
 docs/                   the public dashboard (index.html) + generated data.json
-.github/workflows/      nightly-brief.yml, on-demand-trade.yml, invest-allocation.yml
+.github/workflows/      nightly-brief.yml (stocks + crypto), on-demand-trade.yml, invest-allocation.yml, crypto-invest.yml, fund-custom-invest.yml
 status-memo.md          current, honest state of the project — read this for real numbers
 roadmap.md              long-term vision + what it actually takes to get there
 tests/                  npm test (Node's built-in test runner) — see Tests below
@@ -87,14 +91,17 @@ Requires Node 22.5+ (for `node:sqlite`). Copy `.env.example` to `.env` and fill 
 
 ```
 npm install
-npm run brief          # run tonight's pipeline once, locally
-npm run invest -- NVDA "context"   # on-demand analysis/trade for one ticker
-npm run invest-allocation -- fund    # buy-and-hold fund allocation (idempotent, one-time)
-npm run invest-allocation -- crypto  # buy-and-hold crypto allocation (idempotent, one-time)
-npm run checkpoint     # review sizing-lever evidence (n>=20 gate)
+npm run brief          # run tonight's stock pipeline once, locally
+npm run crypto-brief   # run tonight's automated crypto watchlist once, locally (own evidence pool)
+npm run invest -- NVDA "context"   # on-demand stock analysis/trade for one ticker
+npm run invest -- NVDA "context" --amount=2500   # same, but override evidence-based sizing for this trade only
+npm run invest-crypto -- bitcoin 250   # on-demand crypto analysis/trade, any Alpaca-supported coin
+npm run invest-allocation -- fund    # fixed 5-fund buy-and-hold allocation (idempotent, one-time)
+npm run invest-fund-custom -- VXUS 500   # custom-ticker buy-and-hold allocation
+npm run checkpoint     # review sizing-lever evidence (n>=20 gate, stocks only)
 npm run reflect        # run the reflection loop against current losses
 npm run lessons -- list
 npm run export-site    # regenerate docs/data.json from the local db
 ```
 
-In production, `npm run brief`, `npm run reflect`, and `npm run export-site` run automatically every weekday evening via `.github/workflows/nightly-brief.yml`.
+In production, `npm run brief`, `npm run crypto-brief`, `npm run reflect`, and `npm run export-site` all run automatically every weekday evening via `.github/workflows/nightly-brief.yml` (crypto in its own step, same commit, never a separate cron).

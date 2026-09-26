@@ -100,6 +100,34 @@ export const FUND_CUSTOM_LIMITS = { minUsd: 5, maxUsd: 10000 };
 // rather than quietly ship.
 export const STOCK_ONDEMAND_LIMITS = { minUsd: 25, maxUsd: 10000 };
 
+// Nightly automated crypto watchlist (added 2026-09-26) — src/cryptoNightly.js
+// runs a Claude analysis against these every night, same cadence as the
+// stock WATCHLIST above, opening/closing simulated long positions on its
+// own (no button click needed). A deliberately small, liquid, major-coin
+// list to start — same reasoning as WATCHLIST's own comment ("adjust
+// freely, not a permanent list"). Long-only throughout this system's crypto
+// code (Alpaca's crypto product doesn't support shorting — confirmed
+// against Alpaca's own docs).
+export const CRYPTO_WATCHLIST = [
+  "BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "ADA/USD",
+  "DOGE/USD", "AVAX/USD", "LINK/USD", "LTC/USD", "DOT/USD",
+];
+
+// Flat notional per nightly crypto pick — deliberately NOT run through
+// SIZING_ADJUSTMENTS (that gate was derived from real STOCK trade history;
+// applying it to a different asset class with a completely different
+// volatility profile and zero track record of its own would be a guess
+// dressed up as evidence, exactly what this project has been careful not
+// to do elsewhere). This mirrors exactly how stock sizing itself started —
+// see PAPER_TRADE_BASE_NOTIONAL's own comment ("started flat on purpose...
+// before there was any evidence either mattered"). Smaller than stocks'
+// $1,000 base since crypto here has no track record at all yet. Once
+// nightly_crypto trades accumulate enough closed history of their own
+// (n>=20 per comparison, same bar as everything else), a future checkpoint
+// pass can decide honestly whether crypto-specific sizing cuts are
+// justified — nothing here pre-judges that.
+export const CRYPTO_PAPER_TRADE_BASE_NOTIONAL = 500;
+
 export const ALPACA_DATA_BASE = "https://data.alpaca.markets/v2";
 export const FINNHUB_BASE = "https://finnhub.io/api/v1";
 
