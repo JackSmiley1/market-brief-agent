@@ -3,22 +3,24 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Market Brief Agent | Live Dashboard</title>
+<title>Great Lakes Investments | Live Dashboard</title>
 <meta name="description" content="An autonomous research pipeline: nightly Claude-driven market analysis, evidence-based simulated position sizing, and statistical guardrails against tuning on noise. Graded against reality every night. All trades simulated, zero real capital." />
 
-<!-- Inline SVG favicon (no separate asset file to host/track): black square,
-     orange-to-red gradient mark, echoing the dashboard's own brand mark
-     (.brand .mark in the nav) rather than a generic default icon. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff8a4c'/%3E%3Cstop offset='1' stop-color='%23e8483f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%230a0b0d'/%3E%3Crect x='8' y='8' width='16' height='16' rx='5' fill='url(%23g)'/%3E%3C/svg%3E" />
+<!-- Inline SVG favicon (no separate asset file to host/track): white
+     rounded-square card, three ascending diagonal bars (growth-chart /
+     horizon-line motif) in a light-blue-to-light-green gradient, echoing
+     the dashboard's own brand mark (.brand .mark in the nav). Original
+     geometric design, not modeled on any existing company's logo. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%2338bdf8'/%3E%3Cstop offset='1' stop-color='%2334d399'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='7' fill='%23ffffff'/%3E%3Cpolygon points='8,22 12,22 12,15 8,15' fill='url(%23g)'/%3E%3Cpolygon points='14,22 18,22 18,10 14,10' fill='url(%23g)'/%3E%3Cpolygon points='20,22 24,22 24,6 20,6' fill='url(%23g)'/%3E%3C/svg%3E" />
 
 <!-- Open Graph / Twitter card, so sharing this URL (e.g. in an application
      or a message) shows a real title/description instead of a bare link. -->
-<meta property="og:title" content="Market Brief Agent | Live Dashboard" />
+<meta property="og:title" content="Great Lakes Investments | Live Dashboard" />
 <meta property="og:description" content="Autonomous nightly market analysis, evidence-based simulated trading, and a self-reflection loop. Graded against reality every night. Paper trading only, zero real capital." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://jacksmiley1.github.io/market-brief-agent/" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Market Brief Agent | Live Dashboard" />
+<meta name="twitter:title" content="Great Lakes Investments | Live Dashboard" />
 <meta name="twitter:description" content="Autonomous nightly market analysis, evidence-based simulated trading, and a self-reflection loop. Graded against reality every night. Paper trading only, zero real capital." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,9 +89,18 @@
   .topbar .shell { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: 0.01em; font-family: 'Cormorant Garamond', Georgia, serif; }
   .brand .mark {
-    width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+    background: #ffffff;
+    display: flex; align-items: flex-end; justify-content: center; gap: 2px;
+    padding: 5px 5px 4px;
   }
+  .brand .mark span {
+    display: block; width: 4px; border-radius: 0;
+    background: linear-gradient(0deg, #38bdf8, #34d399);
+  }
+  .brand .mark span:nth-child(1) { height: 7px; }
+  .brand .mark span:nth-child(2) { height: 11px; }
+  .brand .mark span:nth-child(3) { height: 15px; }
   .topbar nav { display: flex; gap: 4px; }
   .topbar nav a {
     color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 500;
@@ -386,7 +397,7 @@
 <div class="topbar">
   <div class="shell" style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
     <div style="display:flex; align-items:center; gap:26px; flex-wrap:wrap;">
-      <div class="brand"><span class="mark"></span> Market Brief Agent</div>
+      <div class="brand"><span class="mark"><span></span><span></span><span></span></span> Great Lakes Investments</div>
       <nav class="tab-nav">
         <a href="#" class="tab-link active" data-view="dashboard">Dashboard</a>
         <a href="#mutual-funds" class="tab-link" data-view="mutual-funds">Mutual Funds</a>
@@ -403,7 +414,7 @@
 <div class="shell">
 <div id="view-dashboard" class="view active">
   <div class="hero">
-    <h1>Market Brief Agent</h1>
+    <h1>Great Lakes Investments</h1>
     <p class="tag">An autonomous research pipeline: nightly Claude-driven market analysis, evidence-based simulated position sizing, and statistical guardrails against tuning on noise. Graded against reality every night.</p>
     <div class="badge-row">
       <span class="badge">Runs <b>nightly</b>, autonomously</span>
@@ -518,9 +529,26 @@
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>Preview only, not functional today. This requires becoming, or partnering with, a licensed broker-dealer before it could launch for real. See the full <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for exactly what that involves.</span>
+    <span>The "Invest" button below opens real simulated (paper account) long positions in five ETF proxies — a static, equal-weight, buy-and-hold allocation, not analyzed or sized by Claude. Not literal mutual fund share classes, and never real capital. Broader access (actual fund share classes, other brokers' funds) still requires becoming, or partnering with, a licensed broker-dealer — see the full <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for what that involves.</span>
   </div>
   <main>
+    <section id="fund-invest">
+      <div class="section-head"><h2>Invest in Top 5 Funds</h2></div>
+      <div class="invest-card">
+        <div class="invest-row">
+          <span class="prefix" style="padding:12px 0;">SPY, VOO, VTI, QQQ, DIA — $300 each, equal-weight, long only</span>
+          <button class="btn btn-primary" id="fund-invest-btn">Invest in Top 5 Funds</button>
+        </div>
+        <div class="invest-hint">One-time buy-and-hold allocation — not sized or picked by Claude, just a static basket. Safe to click more than once: anything already invested is skipped, never bought twice. Confirmation required.</div>
+        <div id="fund-invest-status"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Current Fund Holdings</h2></div>
+      <div class="brief-list" id="fund-holdings-list"><div class="loading">Not invested yet.</div></div>
+    </section>
+
     <section>
       <div class="section-head">
         <h2>Live Index &amp; Fund Performance</h2>
@@ -556,13 +584,30 @@
 <div id="view-crypto" class="view">
   <div class="hero">
     <h1>Crypto</h1>
-    <p class="tag">Live market data for context today; simulated crypto trading is a planned future phase, not yet built.</p>
+    <p class="tag">Live market data for context, plus a real (simulated, paper-account) buy-and-hold position in BTC and ETH. Full Claude-driven crypto analysis is a planned future phase, not yet built.</p>
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>The prices below are real, live market data (via CoinGecko), refreshed on load. They are informational only: nothing here is held, traded, or owned by this system in Phase 1. See the <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for what real crypto trading would require.</span>
+    <span>Prices below are real, live market data (via CoinGecko). The "Invest" button opens a real simulated (paper account) long position in BTC and ETH — a static buy-and-hold allocation, not Claude-analyzed. Never real capital. See the <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for what full crypto analysis/trading would require.</span>
   </div>
   <main>
+    <section id="crypto-invest">
+      <div class="section-head"><h2>Invest in BTC &amp; ETH</h2></div>
+      <div class="invest-card">
+        <div class="invest-row">
+          <span class="prefix" style="padding:12px 0;">BTC/USD, ETH/USD — $300 each, equal-weight, long only</span>
+          <button class="btn btn-primary" id="crypto-invest-btn">Invest in BTC &amp; ETH</button>
+        </div>
+        <div class="invest-hint">One-time buy-and-hold allocation on Alpaca's paper crypto trading, held 24/7. Safe to click more than once: anything already invested is skipped, never bought twice. Confirmation required.</div>
+        <div id="crypto-invest-status"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Current Crypto Holdings</h2></div>
+      <div class="brief-list" id="crypto-holdings-list"><div class="loading">Not invested yet.</div></div>
+    </section>
+
     <section>
       <div class="section-head"><h2>Live Market Data</h2></div>
       <div class="stat-grid" id="crypto-stats"><div class="loading">Loading live prices…</div></div>
@@ -631,15 +676,72 @@
 // ============================================================================
 const WORKER_URL = "https://market-brief-invest.market-brief-smiley-corp.workers.dev";
 
+// Generic PIN-modal submission — the ticker-analysis invest bar and the two
+// allocation Invest buttons (Mutual Funds / Crypto tabs) all share this one
+// modal rather than each having their own, since only one confirmation can
+// ever be in flight at a time. `pendingAction` holds whatever the currently-
+// open modal should do on confirm; set by whichever button opened it.
+let pendingAction = null;
+const pinBackdrop = document.getElementById('pin-backdrop');
+const pinInputEl = document.getElementById('pin-input');
+const pinDescEl = document.getElementById('pin-modal-desc');
+const pinConfirmBtn = document.getElementById('pin-confirm');
+const pinCancelBtn = document.getElementById('pin-cancel');
+
+function openPinModal(descText, action) {
+  pendingAction = action;
+  pinDescEl.textContent = descText;
+  pinInputEl.value = '';
+  pinBackdrop.classList.add('show');
+  setTimeout(() => pinInputEl.focus(), 50);
+}
+function closePinModal() { pinBackdrop.classList.remove('show'); }
+
+pinCancelBtn.addEventListener('click', closePinModal);
+pinBackdrop.addEventListener('click', (e) => { if (e.target === pinBackdrop) closePinModal(); });
+pinInputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') pinConfirmBtn.click(); });
+pinInputEl.addEventListener('input', () => {
+  pinInputEl.value = pinInputEl.value.replace(/\D/g, '').slice(0, 4);
+});
+
+pinConfirmBtn.addEventListener('click', async () => {
+  const pin = pinInputEl.value.trim();
+  if (!/^\d{4}$/.test(pin)) { pinInputEl.style.borderColor = 'var(--red)'; return; }
+  const action = pendingAction;
+  closePinModal();
+  if (!action) return;
+
+  if (!WORKER_URL) {
+    action.showStatus("Not connected yet. The backend trigger (Cloudflare Worker) hasn't been deployed. See /worker/README.md.", false);
+    return;
+  }
+
+  action.btn.disabled = true;
+  action.showStatus(action.submittingMsg, true);
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...action.payload, pin }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) {
+      action.showStatus(action.successMsg, true);
+      if (action.onSuccess) action.onSuccess();
+    } else {
+      action.showStatus('Request rejected: ' + (body.error || res.statusText) + (res.status === 401 ? ' (wrong PIN)' : ''), false);
+    }
+  } catch (err) {
+    action.showStatus('Could not reach the backend: ' + err.message, false);
+  } finally {
+    action.btn.disabled = false;
+  }
+});
+
 function setupInvestBar() {
   const input = document.getElementById('invest-input');
   const btn = document.getElementById('invest-btn');
   const status = document.getElementById('invest-status');
-  const backdrop = document.getElementById('pin-backdrop');
-  const pinInput = document.getElementById('pin-input');
-  const pinDesc = document.getElementById('pin-modal-desc');
-  const pinConfirm = document.getElementById('pin-confirm');
-  const pinCancel = document.getElementById('pin-cancel');
 
   function showStatus(msg, ok) {
     status.textContent = msg;
@@ -649,53 +751,39 @@ function setupInvestBar() {
   function openModal() {
     const ticker = input.value.trim();
     if (!ticker) { showStatus('Enter a ticker or index first.', false); return; }
-    pinDesc.textContent = 'Enter your PIN to run a simulated analysis + trade on "' + ticker + '".';
-    pinInput.value = '';
-    backdrop.classList.add('show');
-    setTimeout(() => pinInput.focus(), 50);
+    openPinModal('Enter your PIN to run a simulated analysis + trade on "' + ticker + '".', {
+      payload: { ticker },
+      btn, showStatus,
+      submittingMsg: 'Submitting. This runs a real analysis and can take up to a minute…',
+      successMsg: 'Submitted. Results (analysis + any simulated trade) will appear in "On-Demand Trades" below after the next dashboard refresh (~1 min).',
+      onSuccess: () => { input.value = ''; },
+    });
   }
-  function closeModal() { backdrop.classList.remove('show'); }
 
   btn.addEventListener('click', openModal);
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(); });
-  pinCancel.addEventListener('click', closeModal);
-  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
-  pinInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') pinConfirm.click(); });
-  pinInput.addEventListener('input', () => {
-    pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 4);
-  });
+}
 
-  pinConfirm.addEventListener('click', async () => {
-    const pin = pinInput.value.trim();
-    const ticker = input.value.trim();
-    if (!/^\d{4}$/.test(pin)) { pinInput.style.borderColor = 'var(--red)'; return; }
-    closeModal();
+// Shared setup for the two allocation Invest buttons (fund/crypto) — both
+// identical except for the allocationType and copy, so one function handles
+// both rather than duplicating the wiring.
+function setupAllocationInvestButton(btnId, statusId, allocationType, label) {
+  const btn = document.getElementById(btnId);
+  const status = document.getElementById(statusId);
+  if (!btn || !status) return;
 
-    if (!WORKER_URL) {
-      showStatus("Not connected yet. The backend trigger (Cloudflare Worker) hasn't been deployed. See /worker/README.md.", false);
-      return;
-    }
+  function showStatus(msg, ok) {
+    status.textContent = msg;
+    status.className = 'show ' + (ok ? 'ok' : 'err');
+  }
 
-    btn.disabled = true;
-    showStatus('Submitting. This runs a real analysis and can take up to a minute…', true);
-    try {
-      const res = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticker, pin }),
-      });
-      const body = await res.json().catch(() => ({}));
-      if (res.ok) {
-        showStatus('Submitted. Results (analysis + any simulated trade) will appear in "On-Demand Trades" below after the next dashboard refresh (~1 min).', true);
-        input.value = '';
-      } else {
-        showStatus('Request rejected: ' + (body.error || res.statusText) + (res.status === 401 ? ' (wrong PIN)' : ''), false);
-      }
-    } catch (err) {
-      showStatus('Could not reach the backend: ' + err.message, false);
-    } finally {
-      btn.disabled = false;
-    }
+  btn.addEventListener('click', () => {
+    openPinModal('Enter your PIN to invest in ' + label + '. This is a one-time, buy-and-hold allocation — running it again will skip anything already invested.', {
+      payload: { action: 'invest_allocation', allocationType },
+      btn, showStatus,
+      submittingMsg: 'Submitting…',
+      successMsg: 'Submitted. Holdings below will update after the next dashboard refresh (~1 min).',
+    });
   });
 }
 
@@ -731,6 +819,8 @@ function tickerBadge(ticker) {
 
 async function main() {
   setupInvestBar();
+  setupAllocationInvestButton('fund-invest-btn', 'fund-invest-status', 'fund', 'the top 5 funds');
+  setupAllocationInvestButton('crypto-invest-btn', 'crypto-invest-status', 'crypto', 'BTC & ETH');
 
   const res = await fetch('./data.json', { cache: 'no-store' });
   const data = await res.json();
@@ -1004,6 +1094,30 @@ async function main() {
 
   renderFundStats(data.fundSnapshots);
   renderStockMovers(data.dailyMovers);
+  renderHoldings('fund-holdings-list', data.fundHoldings);
+  renderHoldings('crypto-holdings-list', data.cryptoHoldings);
+}
+
+// Current buy-and-hold allocation holdings (fund or crypto) — comes
+// straight from data.json (see exportSite.js's loadHoldings), reported
+// regardless of status so "order submitted, not filled yet" reads
+// differently from "held." These positions are never closed, so unlike
+// on-demand trades there's no separate closed/pending split needed.
+function renderHoldings(containerId, holdings) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const items = holdings || [];
+  if (items.length === 0) {
+    el.innerHTML = '<div class="loading">Not invested yet.</div>';
+    return;
+  }
+  const statusLabel = { entry_pending: 'Order queued', open: 'Held', entry_failed: 'Order failed' };
+  el.innerHTML = items.map((h) => {
+    const label = statusLabel[h.status] || h.status;
+    const priceStr = h.entryPrice ? ' @ $' + h.entryPrice.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '';
+    return '<div class="brief-row"><span>' + tickerBadge(h.ticker) + h.ticker + '</span>' +
+      '<span class="movers">' + label + priceStr + ' · $' + h.notional + ' notional</span></div>';
+  }).join('');
 }
 
 // Top 5 gainers/losers from the most recent nightly WATCHLIST scan — same

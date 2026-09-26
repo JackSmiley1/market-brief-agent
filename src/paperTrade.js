@@ -9,10 +9,21 @@ const headers = {
 
 // ---- Alpaca paper trading API (zero real capital — paper-api.alpaca.markets only) ----
 
+// Crypto symbols use Alpaca's "BASE/QUOTE" format (e.g. "BTC/USD"), the same
+// /v2/orders endpoint as equities, but a DIFFERENT set of valid
+// time_in_force values — crypto only accepts "gtc" or "ioc", never "day"
+// (equities' day-order queue-until-market-close semantics don't apply to a
+// market that never closes). Submitting "day" for a crypto symbol would be
+// rejected outright, so this detects it via the presence of "/" rather than
+// requiring every call site to know the distinction itself.
+function isCrypto(symbol) {
+  return symbol.includes("/");
+}
+
 async function submitBuyOrder(symbol, notional) {
   const res = await axios.post(
     `${ALPACA_TRADING_BASE}/orders`,
-    { symbol, notional: String(notional), side: "buy", type: "market", time_in_force: "day" },
+    { symbol, notional: String(notional), side: "buy", type: "market", time_in_force: isCrypto(symbol) ? "gtc" : "day" },
     { headers }
   );
   return res.data;
@@ -75,7 +86,14 @@ const pendingEntriesStmt = db.prepare(
   `SELECT date, ticker, entry_order_id, notional, direction FROM paper_trades WHERE status = 'entry_pending' AND entry_order_id IS NOT NULL`
 );
 
-const openPositionsStmt = db.prepare(`SELECT date, ticker, entry_price, notional, direction, qty FROM paper_trades WHERE status = 'open'`);
+// Excludes 'fund_hold'/'crypto_hold' (see config.js's FUND_ALLOCATION/
+// CRYPTO_ALLOCATION) — those are buy-and-hold-indefinitely positions, never
+// meant to be force-closed after one session the way nightly/on_demand
+// picks are. Added 2026-09-25 alongside those allocations; without this
+// exclusion, closeMaturePositions below would sell them the very next run.
+const openPositionsStmt = db.prepare(
+  `SELECT date, ticker, entry_price, notional, direction, qty FROM paper_trades WHERE status = 'open' AND source NOT IN ('fund_hold', 'crypto_hold')`
+);
 const markExitPendingStmt = db.prepare(
   `UPDATE paper_trades SET exit_order_id = ?, status = 'exit_pending' WHERE date = ? AND ticker = ?`
 );
@@ -88,8 +106,19 @@ const markExitFailedStmt = db.prepare(`UPDATE paper_trades SET status = 'exit_fa
 // submitted. Since picks recur across consecutive days often, check for
 // any unresolved row on this ticker before attempting a new entry, instead
 // of hitting that rejection repeatedly.
+//
+// Excludes 'fund_hold'/'crypto_hold' (see config.js) — three of the five
+// fund allocation tickers (SPY, QQQ, DIA) already appear in the main
+// WATCHLIST, and once a fund_hold position opens it stays open indefinitely.
+// Without this exclusion, that permanent row would read as "an unresolved
+// position" here and silently block the nightly system from ever trading
+// SPY/QQQ/DIA again. This is safe to exclude: the wash-trade risk this guard
+// exists for is specifically about an OPPOSITE-direction order on a symbol
+// mid-close; fund_hold/crypto_hold positions are always long and never
+// closed, so they can coexist with a separate nightly long position on the
+// same symbol without ever triggering that Alpaca-side conflict.
 const unresolvedPositionStmt = db.prepare(
-  `SELECT 1 FROM paper_trades WHERE ticker = ? AND status NOT IN ('closed', 'entry_failed', 'exit_failed') LIMIT 1`
+  `SELECT 1 FROM paper_trades WHERE ticker = ? AND source NOT IN ('fund_hold', 'crypto_hold') AND status NOT IN ('closed', 'entry_failed', 'exit_failed') LIMIT 1`
 );
 
 // Portfolio-level exposure check (see PORTFOLIO_LIMITS in config.js).
@@ -245,6 +274,53 @@ export async function openNewPositions(date, items, priceMap = {}, source = "nig
       markEntryFailedStmt.run(date, ticker, notional, direction, source);
     }
   }
+}
+
+// Fixed sentinel "date" value used only for buy-and-hold allocation rows
+// (source='fund_hold'/'crypto_hold') instead of today's real calendar date.
+// paper_trades' primary key is (date, ticker) — three of the five fund
+// allocation tickers (SPY, QQQ, DIA) already appear in the nightly
+// WATCHLIST, so if an allocation buy and a nightly pick ever landed on the
+// same ticker on the same real date, they'd collide and one would silently
+// overwrite the other via the INSERT...ON CONFLICT(date, ticker) upserts
+// used throughout this file. Using a fixed, obviously-non-date string here
+// instead guarantees that can never happen, with no schema migration and no
+// changes needed to reconcileEntries/reconcileExits/closeMaturePositions —
+// they all operate generically on whatever's in the date column. The real
+// open timestamp is still captured normally, via entry_filled_at once the
+// order fills.
+const ALLOCATION_DATE = "allocation";
+
+// Opens (once) a buy-and-hold allocation — either config.js's
+// FUND_ALLOCATION or CRYPTO_ALLOCATION. Idempotent by design: checks for an
+// existing unresolved-or-open row per (ticker, source) first and skips it,
+// so re-running this (e.g. a second click of the dashboard's Invest button)
+// never buys twice. Always long, never sized by SIZING_ADJUSTMENTS (that
+// gate is stock-nightly-evidence-derived and doesn't apply here) — every
+// position in a given allocation uses the same flat notionalPerPosition.
+const allocationPositionStmt = db.prepare(
+  `SELECT 1 FROM paper_trades WHERE ticker = ? AND source = ? AND status NOT IN ('entry_failed') LIMIT 1`
+);
+export async function openAllocationPositions(symbols, notionalPerPosition, source) {
+  const results = [];
+  for (const ticker of symbols) {
+    if (allocationPositionStmt.get(ticker, source)) {
+      console.log(`paperTrade: ${ticker} (${source}) already invested — skipping (allocation is buy-once).`);
+      results.push({ ticker, status: "already_invested" });
+      continue;
+    }
+    try {
+      const order = await submitBuyOrder(ticker, notionalPerPosition);
+      insertEntryStmt.run(ALLOCATION_DATE, ticker, order.id, notionalPerPosition, "long", source);
+      console.log(`paperTrade: allocation buy submitted — ${ticker} (${source}), order ${order.id}, $${notionalPerPosition} notional`);
+      results.push({ ticker, status: "submitted", orderId: order.id });
+    } catch (err) {
+      console.error(`paperTrade: allocation buy failed for ${ticker} (${source}):`, describeError(err));
+      markEntryFailedStmt.run(ALLOCATION_DATE, ticker, notionalPerPosition, "long", source);
+      results.push({ ticker, status: "failed", error: describeError(err) });
+    }
+  }
+  return results;
 }
 
 // Runs the full nightly cycle in the correct order. Wrapped by the caller in

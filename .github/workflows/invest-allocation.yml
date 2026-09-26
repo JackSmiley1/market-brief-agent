@@ -1,0 +1,57 @@
+name: Invest Allocation
+
+# Triggered by the dashboard's "Invest in Top 5 Funds" / "Invest in BTC & ETH"
+# buttons (via the same Cloudflare Worker that gates the on-demand invest
+# bar — see /worker/README.md) or manually from the Actions tab. Runs
+# src/investAllocation.js, a static, Claude-free, long-only buy-and-hold
+# allocation (config.js's FUND_ALLOCATION/CRYPTO_ALLOCATION) — this workflow
+# is just how it gets triggered remotely and publishes its result, not a
+# different code path. Idempotent: re-running this (e.g. a second button
+# click) never buys the same position twice, see investAllocation.js.
+
+on:
+  workflow_dispatch:
+    inputs:
+      allocationType:
+        description: 'Which allocation to invest in'
+        required: true
+        type: choice
+        options:
+          - fund
+          - crypto
+
+permissions:
+  contents: write
+
+# Same group as nightly-brief.yml/on-demand-trade.yml — queues instead of
+# racing if this happens to land at the same moment as another workflow,
+# since all three read/write the same committed db file.
+concurrency:
+  group: market-brief-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-invest-allocation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with: { node-version: '22' }
+      - run: npm install
+      - name: Run tests (sizing/order logic must be correct before it touches real orders)
+        run: npm test
+      - name: Run allocation buy (idempotent — skips whatever's already invested)
+        run: node src/investAllocation.js "${{ inputs.allocationType }}"
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      - name: Export public dashboard data
+        run: npm run export-site
+      - name: Commit result back to repo
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/ docs/data.json
+          git commit -m "Invest allocation: ${{ inputs.allocationType }} ($(date +'%Y-%m-%d %H:%M'))" || echo "No changes"
+          git pull --rebase || true
+          git push

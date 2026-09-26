@@ -6,14 +6,19 @@
 //   1. Checks the PIN the dashboard sent against a secret only this Worker
 //      knows (never the browser, never the repo).
 //   2. If it matches, calls GitHub's workflow_dispatch API — using a
-//      GitHub token that ALSO only lives here — to kick off
-//      .github/workflows/on-demand-trade.yml with the requested ticker.
+//      GitHub token that ALSO only lives here — to kick off one of exactly
+//      two pre-approved workflow files, based on which action the request
+//      names (never an arbitrary workflow or ticker the caller supplies):
+//      on-demand-trade.yml (ticker analysis, the original "Invest in:" bar)
+//      or invest-allocation.yml (the static fund/crypto buy-and-hold
+//      allocations, added 2026-09-25 for the Mutual Funds/Crypto tabs'
+//      Invest buttons).
 //
 // It never touches the database, never calls Alpaca/Anthropic/Finnhub
 // directly, and never executes anything itself. All of that still happens
-// exactly where it already did — inside the GitHub Actions job, using the
-// same onDemandTrade.js already tested locally. This Worker's only job is
-// "is this a legitimate request, and if so, tell GitHub to run the job."
+// exactly where it already did — inside the GitHub Actions job, using code
+// already tested locally. This Worker's only job is "is this a legitimate
+// request, and if so, tell GitHub to run the job."
 //
 // Honest limitation, stated plainly rather than oversold: a 4-digit PIN is
 // a UX speed bump, not real authentication — it's brute-forceable in
@@ -27,7 +32,6 @@
 
 const ALLOWED_ORIGIN = "https://jacksmiley1.github.io";
 const REPO = "JackSmiley1/market-brief-agent";
-const WORKFLOW_FILE = "on-demand-trade.yml";
 // 1-5 comma-separated letter-only entries, up to 20 chars each — wide enough
 // to accept either a real ticker (AAPL) or a common single-word company/
 // index name (Apple, Nvidia), since the GitHub Actions job now resolves
@@ -36,6 +40,10 @@ const WORKFLOW_FILE = "on-demand-trade.yml";
 // the request ever reaches GitHub, not the real validation (that happens
 // against actual market data in the job itself).
 const TICKER_RE = /^[A-Za-z]{1,20}(,[A-Za-z]{1,20}){0,4}$/;
+// Only these two values are ever accepted for an allocation request — never
+// derived from free-form caller input, so there's no way to smuggle a
+// different workflow input through this field.
+const ALLOCATION_TYPES = new Set(["fund", "crypto"]);
 
 function withCors(resp) {
   resp.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
@@ -67,20 +75,35 @@ export default {
       return json({ error: "Invalid JSON body" }, 400);
     }
 
-    const { ticker, pin } = payload || {};
+    const { ticker, pin, action, allocationType } = payload || {};
 
     if (!pin || pin !== env.PIN) {
       // Deliberately vague — don't confirm/deny which part was wrong.
       return json({ error: "Invalid PIN" }, 401);
     }
 
-    const cleanTicker = String(ticker || "").trim().toUpperCase();
-    if (!TICKER_RE.test(cleanTicker)) {
-      return json({ error: "Invalid ticker format — use 1-6 letter symbols, comma-separated, max 5" }, 400);
+    let workflowFile, dispatchInputs, successBody;
+
+    if (action === "invest_allocation") {
+      if (!ALLOCATION_TYPES.has(allocationType)) {
+        return json({ error: "Invalid allocationType — must be 'fund' or 'crypto'" }, 400);
+      }
+      workflowFile = "invest-allocation.yml";
+      dispatchInputs = { allocationType };
+      successBody = { ok: true, allocationType };
+    } else {
+      // Default/original path — ticker analysis via the on-demand invest bar.
+      const cleanTicker = String(ticker || "").trim().toUpperCase();
+      if (!TICKER_RE.test(cleanTicker)) {
+        return json({ error: "Invalid ticker format — use 1-6 letter symbols, comma-separated, max 5" }, 400);
+      }
+      workflowFile = "on-demand-trade.yml";
+      dispatchInputs = { ticker: cleanTicker, context: "Submitted via dashboard Invest bar" };
+      successBody = { ok: true, ticker: cleanTicker };
     }
 
     const dispatchRes = await fetch(
-      `https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
+      `https://api.github.com/repos/${REPO}/actions/workflows/${workflowFile}/dispatches`,
       {
         method: "POST",
         headers: {
@@ -89,18 +112,12 @@ export default {
           "Content-Type": "application/json",
           "User-Agent": "market-brief-agent-invest-worker",
         },
-        body: JSON.stringify({
-          ref: "main",
-          inputs: {
-            ticker: cleanTicker,
-            context: "Submitted via dashboard Invest bar",
-          },
-        }),
+        body: JSON.stringify({ ref: "main", inputs: dispatchInputs }),
       }
     );
 
     if (dispatchRes.status === 204) {
-      return json({ ok: true, ticker: cleanTicker });
+      return json(successBody);
     }
 
     const errText = await dispatchRes.text().catch(() => "");

@@ -13,6 +13,7 @@
     "checkpoint": "node src/checkpoint.js",
     "export-site": "node src/exportSite.js",
     "invest": "node src/onDemandTrade.js",
+    "invest-allocation": "node src/investAllocation.js",
     "reflect": "node src/reflect.js",
     "lessons": "node src/lessons.js",
     "test": "node --test"

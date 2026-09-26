@@ -1,4 +1,6 @@
-# Market Brief Agent
+# Great Lakes Investments
+
+*(repo name and internal package name remain `market-brief-agent` — this is the public-facing brand name shown on the live dashboard)*
 
 An autonomous research pipeline that generates a nightly market brief from live data, layers evidence-based simulated trades on top of it, grades its own calls against reality, and periodically reviews its own losing trades to write down what it's learned — all running unattended, every trading night, via GitHub Actions.
 
@@ -50,6 +52,8 @@ Node.js (`node:sqlite`, no native binary dependency — chosen after `better-sql
 src/
   index.js            nightly pipeline entry point
   onDemandTrade.js     on-demand (dashboard-triggered or CLI) analysis + trade
+  investAllocation.js  buy-and-hold fund/crypto allocation trigger (idempotent, no Claude call)
+  stats.js               shared trade-aggregation math (used by checkpoint.js + exportSite.js)
   fetchMarketData.js   Alpaca price/volume data
   fetchNews.js         Finnhub news
   buildPrompt.js        prompt construction (nightly + on-demand)
@@ -65,9 +69,9 @@ src/
   computeAccuracy.js     standalone directional-accuracy report (superseded day-to-day by checkpoint.js)
   computePnL.js          standalone P&L report (superseded day-to-day by checkpoint.js)
   computeConfidence.js   standalone confidence-bucket report (superseded day-to-day by checkpoint.js)
-worker/                 Cloudflare Worker for the dashboard's on-demand invest bar
+worker/                 Cloudflare Worker for the dashboard's Invest buttons (on-demand + allocations)
 docs/                   the public dashboard (index.html) + generated data.json
-.github/workflows/      nightly-brief.yml, on-demand-trade.yml
+.github/workflows/      nightly-brief.yml, on-demand-trade.yml, invest-allocation.yml
 status-memo.md          current, honest state of the project — read this for real numbers
 roadmap.md              long-term vision + what it actually takes to get there
 tests/                  npm test (Node's built-in test runner) — see Tests below
@@ -85,6 +89,8 @@ Requires Node 22.5+ (for `node:sqlite`). Copy `.env.example` to `.env` and fill 
 npm install
 npm run brief          # run tonight's pipeline once, locally
 npm run invest -- NVDA "context"   # on-demand analysis/trade for one ticker
+npm run invest-allocation -- fund    # buy-and-hold fund allocation (idempotent, one-time)
+npm run invest-allocation -- crypto  # buy-and-hold crypto allocation (idempotent, one-time)
 npm run checkpoint     # review sizing-lever evidence (n>=20 gate)
 npm run reflect        # run the reflection loop against current losses
 npm run lessons -- list

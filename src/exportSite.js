@@ -194,6 +194,30 @@ for (let i = closed.length - 1; i >= 0; i--) {
   }
 }
 
+// Buy-and-hold allocation positions (see config.js's FUND_ALLOCATION/
+// CRYPTO_ALLOCATION and paperTrade.js's openAllocationPositions) — reported
+// regardless of status (pending fill, open/held, or failed) so the Mutual
+// Funds/Crypto tabs can show real state ("submitted, not filled yet" looks
+// different from "held") rather than only ever showing closed history like
+// onDemand above (these positions are never meant to close).
+function loadHoldings(source) {
+  return db
+    .prepare(
+      `SELECT ticker, notional, status, entry_price, entry_filled_at
+       FROM paper_trades WHERE source = ? ORDER BY ticker`
+    )
+    .all(source)
+    .map((r) => ({
+      ticker: r.ticker,
+      notional: r.notional,
+      status: r.status,
+      entryPrice: r.entry_price,
+      entryFilledAt: r.entry_filled_at,
+    }));
+}
+const fundHoldings = loadHoldings("fund_hold");
+const cryptoHoldings = loadHoldings("crypto_hold");
+
 // Most recent day's fund/index ETF snapshots (see config.js's
 // FUND_WATCHLIST and db.js's fund_snapshots table) — real, live daily
 // performance for the dashboard's Mutual Funds tab. Empty until the nightly
@@ -275,6 +299,8 @@ const output = {
   },
   recentBriefs,
   dailyMovers,
+  fundHoldings,
+  cryptoHoldings,
   fundSnapshots: {
     asOfDate: latestFundDateRow?.d ?? null,
     items: fundSnapshots,

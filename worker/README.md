@@ -1,6 +1,8 @@
 # Invest Bar Backend (Cloudflare Worker)
 
-Connects the dashboard's "Invest in:" bar to a real (simulated) trade. GitHub Pages is static and can't hold secrets or run code, so this small Worker is the only server-side piece in the whole project — it does nothing but check the PIN and tell GitHub Actions to run `on-demand-trade.yml`, which does the actual work using the same `onDemandTrade.js` already tested locally.
+Connects the dashboard's "Invest in:" bar (and, since 2026-09-25, the Mutual Funds/Crypto tabs' Invest buttons) to a real (simulated) trade. GitHub Pages is static and can't hold secrets or run code, so this small Worker is the only server-side piece in the whole project — it does nothing but check the PIN and tell GitHub Actions to run one of exactly two pre-approved workflow files: `on-demand-trade.yml` for ticker analysis, or `invest-allocation.yml` for the static fund/crypto buy-and-hold allocations. Either way, the actual work happens in code already tested locally (`onDemandTrade.js` / `investAllocation.js`).
+
+**Whenever `invest-worker.js` changes** (like this update did), you need to run `wrangler deploy` again from this folder — pushing to GitHub only updates the source file in the repo, it does NOT redeploy the live Worker. See "Deploy steps" below; `wrangler login` should already be authorized from the first deploy, so this is just `wrangler deploy` again.
 
 ## What you need first
 

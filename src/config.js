@@ -32,6 +32,40 @@ export const FUND_WATCHLIST = [
   { ticker: "IWM", label: "Russell 2000 (IWM)" },
 ];
 
+// Buy-and-hold allocations (added 2026-09-25) — deliberately separate from
+// everything above. These are never analyzed by Claude, never sized by the
+// evidence-based SIZING_ADJUSTMENTS (that gate was derived from stock
+// nightly-watchlist trade history and would be contaminated by mixing in a
+// static long-only allocation), and never closed after one session the way
+// nightly/on_demand positions are — see paperTrade.js's closeMaturePositions
+// for the exclusion. Opened once via src/investAllocation.js (triggered from
+// the dashboard's Invest buttons or manually), idempotent: re-running it
+// checks for an existing open/pending position per ticker first rather than
+// buying again.
+//
+// Fund picks: 5 of the 6 tracked FUND_WATCHLIST ETF proxies, dropping IWM
+// (Russell 2000 / small-cap) as the "safest, most historically consistent"
+// cut — small-caps are the most volatile of the six, so excluding it directly
+// matches the stated selection criteria. The remaining five are large-cap/
+// total-market index trackers, the closest honest match to "safe, broad
+// index/mutual-fund-style investing" this system can actually execute.
+export const FUND_ALLOCATION = {
+  tickers: ["SPY", "VOO", "VTI", "QQQ", "DIA"],
+  notionalPerPosition: 300, // see PORTFOLIO_LIMITS comment below for why this size
+  source: "fund_hold",
+};
+
+// Crypto pick: BTC and ETH only — the two largest, most established coins by
+// market cap, long-only, no attempt at picking altcoins without any Claude
+// analysis backing the choice. Alpaca's paper account supports crypto
+// directly (same keys, same paper-api.alpaca.markets base, symbol format
+// "BTC/USD") — no new account, key, or service needed.
+export const CRYPTO_ALLOCATION = {
+  symbols: ["BTC/USD", "ETH/USD"],
+  notionalPerPosition: 300,
+  source: "crypto_hold",
+};
+
 export const ALPACA_DATA_BASE = "https://data.alpaca.markets/v2";
 export const FINNHUB_BASE = "https://finnhub.io/api/v1";
 
@@ -91,7 +125,14 @@ export function computeNotional({ confidence, eventRisk, direction }) {
 // — this is about real (simulated) capital currently at risk in the one
 // Alpaca paper account, not about keeping the sizing-evidence analysis
 // clean (that's what the source column is for, see db.js).
+//
+// Raised 2026-09-25 (from 15 / $6,000) to make permanent room for the
+// buy-and-hold allocations above: 5 fund positions + 2 crypto positions at
+// $300 each is $2,100 held indefinitely, on top of the existing ~$2,000-
+// 4,000 typical nightly range — without raising the cap, those permanent
+// positions would have crowded out normal nightly stock trading capacity
+// for as long as they're held (which, by design, is indefinitely).
 export const PORTFOLIO_LIMITS = {
-  maxConcurrentPositions: 15,
-  maxTotalNotionalUsd: 6000,
+  maxConcurrentPositions: 22,
+  maxTotalNotionalUsd: 8500,
 };
