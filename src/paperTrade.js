@@ -319,8 +319,12 @@ const ALLOCATION_DATE = "allocation";
 // never buys twice. Always long, never sized by SIZING_ADJUSTMENTS (that
 // gate is stock-nightly-evidence-derived and doesn't apply here) — every
 // position in a given allocation uses the same flat notionalPerPosition.
+// 'closed' excluded too (2026-09-26): once a held position has been sold
+// via sellHeldPosition below, buying the same ticker again is allowed. The
+// sold row is re-keyed off ALLOCATION_DATE at sell time, so the new buy
+// can't overwrite its realized P&L.
 const allocationPositionStmt = db.prepare(
-  `SELECT 1 FROM paper_trades WHERE ticker = ? AND source = ? AND status NOT IN ('entry_failed') LIMIT 1`
+  `SELECT 1 FROM paper_trades WHERE ticker = ? AND source = ? AND status NOT IN ('entry_failed', 'closed') LIMIT 1`
 );
 export async function openAllocationPositions(symbols, notionalPerPosition, source) {
   const results = [];
@@ -352,4 +356,55 @@ export async function runPaperTradingCycle(date, newWatchlistItems, priceMap) {
   await reconcileExits();
   await closeMaturePositions();
   await openNewPositions(date, newWatchlistItems, priceMap);
+}
+
+// ---- Selling a held buy-and-hold position (added 2026-09-26) ----
+//
+// Powers the Mutual Funds tab's per-holding "Sell" button (see
+// src/sellPosition.js). Simulated only: a paper-account sell, proceeds stay
+// in the paper account. Nothing here moves real money.
+//
+// Deliberately NOT closePosition() above. DELETE /positions/{symbol}
+// liquidates EVERY share of that symbol in the account, and SPY/QQQ/DIA can
+// be held by both the fund allocation and a nightly pick at the same time.
+// This submits a sell for exactly this row's own filled qty instead, so a
+// fund sale can never touch a nightly position (or vice versa).
+async function submitSellQtyOrder(symbol, qty) {
+  const res = await axios.post(
+    `${ALPACA_TRADING_BASE}/orders`,
+    { symbol, qty: String(qty), side: "sell", type: "market", time_in_force: isCrypto(symbol) ? "gtc" : "day" },
+    { headers }
+  );
+  return res.data;
+}
+
+// 'exit_failed' included so a sell that got canceled/expired can simply be
+// retried with the same button (the shares are still held).
+const heldAllocationStmt = db.prepare(
+  `SELECT date, ticker, qty, notional FROM paper_trades
+   WHERE ticker = ? AND source IN ('fund_hold', 'crypto_hold') AND status IN ('open', 'exit_failed')
+   ORDER BY date LIMIT 1`
+);
+// Re-keys the row's date off the shared ALLOCATION_DATE sentinel at sell
+// time (see allocationPositionStmt's comment) and marks it exit_pending.
+// From there reconcileExits() handles the fill exactly like any other exit
+// (it works generically on (date, ticker)) and books realized P&L.
+const markAllocationSellPendingStmt = db.prepare(
+  `UPDATE paper_trades SET date = ?, exit_order_id = ?, status = 'exit_pending' WHERE date = ? AND ticker = ?`
+);
+
+export async function sellHeldPosition(ticker) {
+  const row = heldAllocationStmt.get(ticker);
+  if (!row) return { ticker, status: "not_held" };
+  if (!row.qty) return { ticker, status: "failed", error: "No filled quantity recorded for this position yet" };
+  try {
+    const order = await submitSellQtyOrder(ticker, row.qty);
+    const newDate = row.date === ALLOCATION_DATE ? `${ALLOCATION_DATE}-sold-${new Date().toISOString()}` : row.date;
+    markAllocationSellPendingStmt.run(newDate, order.id, row.date, ticker);
+    console.log(`paperTrade: sell submitted — ${ticker}, qty ${row.qty}, order ${order.id} (row re-keyed ${row.date} -> ${newDate})`);
+    return { ticker, status: "sell_submitted", orderId: order.id, qty: row.qty, notional: row.notional };
+  } catch (err) {
+    console.error(`paperTrade: sell failed for ${ticker}:`, describeError(err));
+    return { ticker, status: "failed", error: describeError(err) };
+  }
 }

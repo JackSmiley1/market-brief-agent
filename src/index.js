@@ -126,7 +126,7 @@ async function run() {
   // a brief that already saved successfully.
   try {
     const openFundHoldings = db
-      .prepare(`SELECT ticker, qty, notional FROM paper_trades WHERE source = 'fund_hold' AND status = 'open'`)
+      .prepare(`SELECT ticker, qty, notional FROM paper_trades WHERE source = 'fund_hold' AND status IN ('open', 'exit_pending', 'exit_failed')`)
       .all();
     if (openFundHoldings.length > 0) {
       const tickers = [...new Set(openFundHoldings.map((r) => r.ticker))];

@@ -251,18 +251,58 @@ for (let i = closed.length - 1; i >= 0; i--) {
 function loadHoldings(source) {
   return db
     .prepare(
-      `SELECT ticker, notional, status, entry_price, entry_filled_at
-       FROM paper_trades WHERE source = ? ORDER BY ticker`
+      `SELECT ticker, notional, status, entry_price, entry_filled_at, qty
+       FROM paper_trades WHERE source = ? AND status != 'closed' ORDER BY ticker`
     )
     .all(source)
-    .map((r) => ({
-      ticker: r.ticker,
-      notional: r.notional,
-      status: r.status,
-      entryPrice: r.entry_price,
-      entryFilledAt: r.entry_filled_at,
-    }));
+    .map((r) => {
+      // Latest nightly mark-to-market for this ticker (see
+      // fund_holding_value_snapshots) — null until the first snapshot after
+      // the buy fills. Powers the per-holding value/unrealized P&L display.
+      // Only attach a snapshot taken on/after THIS position's fill, and only
+      // for a filled position, so a re-bought ticker never shows the
+      // previous (sold) position's value.
+      const filledDay = r.entry_filled_at ? r.entry_filled_at.slice(0, 10) : null;
+      const rawSnap = ["open", "exit_pending", "exit_failed"].includes(r.status) ? latestHoldingSnapStmt.get(r.ticker) : null;
+      const snap = rawSnap && (!filledDay || rawSnap.date >= filledDay) ? rawSnap : null;
+      return {
+        ticker: r.ticker,
+        notional: r.notional,
+        status: r.status,
+        entryPrice: r.entry_price,
+        entryFilledAt: r.entry_filled_at,
+        qty: r.qty,
+        marketValue: snap?.market_value ?? null,
+        unrealizedPnl: snap?.unrealized_pnl ?? null,
+        unrealizedPnlPct: snap?.unrealized_pnl_pct ?? null,
+        valueAsOf: snap?.date ?? null,
+      };
+    });
 }
+const latestHoldingSnapStmt = db.prepare(
+  `SELECT date, market_value, unrealized_pnl, unrealized_pnl_pct FROM fund_holding_value_snapshots
+   WHERE ticker = ? ORDER BY date DESC LIMIT 1`
+);
+
+// Sold buy-and-hold positions (see paperTrade.js's sellHeldPosition) —
+// realized P&L from the actual sell fill, newest first, plus the running
+// total shown as "Realized gains" on the Mutual Funds tab. Simulated only.
+const fundSold = db
+  .prepare(
+    `SELECT ticker, notional, entry_price, exit_price, realized_pnl, realized_pnl_pct, exit_filled_at
+     FROM paper_trades WHERE source = 'fund_hold' AND status = 'closed' ORDER BY exit_filled_at DESC`
+  )
+  .all()
+  .map((r) => ({
+    ticker: r.ticker,
+    notional: r.notional,
+    entryPrice: r.entry_price,
+    exitPrice: r.exit_price,
+    realizedPnl: r.realized_pnl,
+    realizedPnlPct: r.realized_pnl_pct,
+    soldAt: r.exit_filled_at,
+  }));
+const fundRealizedPnl = Number(fundSold.reduce((sum, r) => sum + (r.realizedPnl ?? 0), 0).toFixed(2));
 const fundHoldings = loadHoldings("fund_hold");
 const cryptoHoldings = loadHoldings("crypto_hold");
 
@@ -387,6 +427,8 @@ const output = {
   recentBriefs,
   dailyMovers,
   fundHoldings,
+  fundSold,
+  fundRealizedPnl,
   fundValueHistory,
   cryptoHoldings,
   cryptoEquityCurve,

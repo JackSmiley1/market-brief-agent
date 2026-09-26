@@ -1,0 +1,50 @@
+name: Sell Position
+
+# Triggered by the Mutual Funds tab's per-holding "Sell" button (via the
+# same PIN-gated Cloudflare Worker as every Invest control — see
+# /worker/README.md) or manually from the Actions tab. Runs
+# src/sellPosition.js: a simulated (paper account) sale of one held
+# buy-and-hold position. Added 2026-09-26. Never real money.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: 'Held ticker to sell (e.g. VXUS)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+# Same group as the other trading workflows — they all read/write the same
+# committed db file, so they queue instead of racing.
+concurrency:
+  group: market-brief-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-sell-position:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with: { node-version: '22' }
+      - run: npm install
+      - name: Run tests (order logic must be correct before it touches orders)
+        run: npm test
+      - name: Sell held position (paper account)
+        run: node src/sellPosition.js "${{ inputs.ticker }}"
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      - name: Export public dashboard data
+        run: npm run export-site
+      - name: Commit result back to repo
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/ docs/data.json
+          git commit -m "Sell position: ${{ inputs.ticker }} ($(date +'%Y-%m-%d %H:%M'))" || echo "No changes"
+          git pull --rebase || true
+          git push

@@ -342,6 +342,8 @@
     border-radius: 4px; padding: 1px 6px; margin-left: 6px; letter-spacing: 0.02em;
   }
 
+  .hold-actions { display: inline-flex; gap: 10px; align-items: center; }
+  .btn-sell { padding: 4px 12px; font-size: 12.5px; }
   .req-row { display: block; }
   .req-row .req-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
   .req-outcome { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 4px; padding: 1px 7px; border: 1px solid var(--border); color: var(--muted); }
@@ -602,7 +604,15 @@
 
     <section>
       <div class="section-head"><h2>Current Fund Holdings</h2></div>
+      <p class="section-sub">"Sell" closes a position in the paper account at market (simulated, never real money) and books the realized gain or loss below. Sells placed outside market hours fill at the next open. Confirmation required.</p>
       <div class="brief-list" id="fund-holdings-list"><div class="loading">Not invested yet.</div></div>
+      <div id="fund-sell-status" class="status-msg"></div>
+    </section>
+
+    <section id="fund-sold-section" style="display:none;">
+      <div class="section-head"><h2>Sold Positions</h2></div>
+      <p class="section-sub" id="fund-realized-total"></p>
+      <div class="brief-list" id="fund-sold-list"></div>
     </section>
 
     <section>
@@ -1275,6 +1285,7 @@ async function main() {
   renderFundStats(data.fundSnapshots);
   renderStockMovers(data.dailyMovers);
   renderHoldings('fund-holdings-list', data.fundHoldings);
+  renderFundSold(data.fundSold, data.fundRealizedPnl);
   renderCryptoNightlyStats(data.cryptoNightlyOverview, data.minSampleSize);
   renderCryptoEquityChart(data.cryptoEquityCurve);
   renderFundValueChart(data.fundValueHistory);
@@ -1297,6 +1308,8 @@ const REQUEST_OUTCOMES = {
   already_invested: ['Already held', 'pass'],
   failed: ['Order failed', 'bad'],
   no_data: ['Symbol not found', 'bad'],
+  sell_submitted: ['Sell placed', 'ok'],
+  not_held: ['Sell: not held', 'warn'],
 };
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1552,14 +1565,77 @@ function renderHoldings(containerId, holdings) {
     el.innerHTML = '<div class="loading">Not invested yet.</div>';
     return;
   }
-  const statusLabel = { entry_pending: 'Order queued (fills at next market open)', open: 'Held', entry_failed: 'Order failed' };
+  const statusLabel = {
+    entry_pending: 'Order queued (fills at next market open)',
+    open: 'Held',
+    entry_failed: 'Order failed',
+    exit_pending: 'Sell queued (fills at next market open)',
+    exit_failed: 'Sell failed, retry',
+  };
+  const money = (n) => '$' + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   el.innerHTML = items.map((h) => {
     const label = statusLabel[h.status] || h.status;
     const priceStr = h.entryPrice ? ' @ $' + h.entryPrice.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '';
-    return '<div class="brief-row"><span>' + tickerBadge(h.ticker) + h.ticker + '</span>' +
-      '<span class="movers">' + label + priceStr + ' · $' + h.notional + ' notional</span></div>';
+    let valueStr = '';
+    if (h.marketValue != null && h.unrealizedPnl != null) {
+      const cls = h.unrealizedPnl >= 0 ? 'pos' : 'neg';
+      const sign = h.unrealizedPnl >= 0 ? '+' : '−';
+      valueStr = ' · worth ' + money(h.marketValue) + ' <span class="' + cls + '">(' + sign + money(Math.abs(h.unrealizedPnl)) +
+        (h.unrealizedPnlPct != null ? ', ' + sign + Math.abs(h.unrealizedPnlPct).toFixed(2) + '%' : '') + ')</span>';
+    }
+    const canSell = h.status === 'open' || h.status === 'exit_failed';
+    const sellBtn = canSell
+      ? '<button class="btn btn-ghost btn-sell" data-sell="' + escapeHtml(h.ticker) + '">' + (h.status === 'exit_failed' ? 'Retry sell' : 'Sell') + '</button>'
+      : '';
+    return '<div class="brief-row"><span>' + tickerBadge(h.ticker) + escapeHtml(h.ticker) + '</span>' +
+      '<span class="hold-actions"><span class="movers">' + label + priceStr + ' · $' + h.notional + ' cost' + valueStr + '</span>' + sellBtn + '</span></div>';
   }).join('');
 }
+
+// Sold buy-and-hold positions + running realized total (see exportSite.js's
+// fundSold / fundRealizedPnl). Hidden until something has actually sold.
+function renderFundSold(sold, realizedTotal) {
+  const section = document.getElementById('fund-sold-section');
+  if (!section) return;
+  const items = sold || [];
+  if (items.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = '';
+  const signed = (n) => (n >= 0 ? '+$' : '−$') + Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const totalEl = document.getElementById('fund-realized-total');
+  totalEl.innerHTML = 'Realized gains (simulated): <span class="' + (realizedTotal >= 0 ? 'pos' : 'neg') + '">' + signed(realizedTotal) + '</span>';
+  document.getElementById('fund-sold-list').innerHTML = items.map((r) => {
+    const cls = (r.realizedPnl ?? 0) >= 0 ? 'pos' : 'neg';
+    const when = r.soldAt ? new Date(r.soldAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+    const pct = r.realizedPnlPct != null ? ' (' + (r.realizedPnlPct >= 0 ? '+' : '') + r.realizedPnlPct.toFixed(2) + '%)' : '';
+    return '<div class="brief-row"><span>' + tickerBadge(r.ticker) + escapeHtml(r.ticker) + ' · sold ' + when + '</span>' +
+      '<span class="movers ' + cls + '">' + signed(r.realizedPnl ?? 0) + pct + ' on $' + r.notional + '</span></div>';
+  }).join('');
+}
+
+// One delegated click handler for every holding's Sell button (the list is
+// re-rendered on each data load). Same shared PIN modal and Worker path as
+// every Invest control; the Worker's 'sell_position' action dispatches
+// sell-position.yml.
+(function setupSellButtons() {
+  const list = document.getElementById('fund-holdings-list');
+  const status = document.getElementById('fund-sell-status');
+  if (!list || !status) return;
+  function showStatus(msg, ok) {
+    status.textContent = msg;
+    status.className = 'status-msg show ' + (ok ? 'ok' : 'err');
+  }
+  list.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-sell]');
+    if (!btn) return;
+    const ticker = btn.getAttribute('data-sell');
+    openPinModal('Enter your PIN to sell your entire ' + ticker + ' position in the paper account (simulated, never real money). Realized gain or loss is booked once the sell fills.', {
+      payload: { action: 'sell_position', ticker },
+      btn, showStatus,
+      submittingMsg: 'Submitting sell for ' + ticker + '…',
+      successMsg: 'Sell submitted for ' + ticker + '. It shows as "Sell queued" after the next dashboard refresh (~1 min), and in Sold Positions once filled.',
+    });
+  });
+})();
 
 // Top 5 gainers/losers from the most recent nightly WATCHLIST scan — same
 // data (already comes from data.json, no separate fetch) and layout as the

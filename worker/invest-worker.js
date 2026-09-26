@@ -15,7 +15,9 @@
 //      Alpaca-supported crypto pair, Claude-analyzed, user-chosen amount —
 //      added 2026-09-26, replacing the old fixed BTC/ETH allocation), or
 //      fund-custom-invest.yml (any ticker, buy-and-hold, user-chosen
-//      amount — added 2026-09-26 alongside crypto-invest.yml).
+//      amount — added 2026-09-26 alongside crypto-invest.yml), or
+//      sell-position.yml (simulated sale of one held fund position, added
+//      2026-09-26).
 //
 // It never touches the database, never calls Alpaca/Anthropic/Finnhub
 // directly, and never executes anything itself. All of that still happens
@@ -128,6 +130,18 @@ export default {
         context: String(context || "Submitted via dashboard Crypto Invest button").slice(0, 300),
       };
       successBody = { ok: true, symbol: cleanSymbol, amount };
+    } else if (action === "sell_position") {
+      // Simulated sale of one held buy-and-hold position (added
+      // 2026-09-26, Mutual Funds tab "Sell" button). Only a ticker is
+      // accepted; the job itself checks the position is actually held and
+      // sells exactly its own filled qty in the paper account.
+      const cleanTicker = String(ticker || "").trim().toUpperCase();
+      if (!/^[A-Za-z]{1,10}$/.test(cleanTicker)) {
+        return json({ error: "Invalid ticker format — letters only, e.g. VXUS" }, 400);
+      }
+      workflowFile = "sell-position.yml";
+      dispatchInputs = { ticker: cleanTicker };
+      successBody = { ok: true, ticker: cleanTicker };
     } else if (action === "fund_custom") {
       // Keep in sync with config.js's FUND_CUSTOM_LIMITS — same reasoning
       // as crypto_ondemand above.

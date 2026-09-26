@@ -90,6 +90,19 @@ Both charts will read empty ("no data yet") until at least one more nightly run 
 
 Fixes the gap found above. A new `invest_requests` table logs every dashboard/CLI invest request with its outcome: order placed, Claude passed, no parseable decision (kept separate from a pass so a parse bug can't hide as one), skipped by the portfolio cap, already held, failed, or symbol not found. Claude's reasoning is stored with it. Each tab now has a "Your Invest Requests" list under its form, with a "Why" toggle for the reasoning. `openNewPositions` now returns a per-item result so skips and failures are logged accurately; the nightly caller ignores the return value, so nightly behavior is unchanged. Display/audit only, and never read by sizing, checkpoint, or grading. Requests made before this change (SOL $25, VXUS $100) aren't backfilled. VXUS still appears in Current Fund Holdings as a queued order.
 
+
+## New: "Sell" on held fund positions + realized gains (September 26)
+
+Each held position on the Mutual Funds tab now has a Sell button (shown on every held position, not only profitable ones, so losers can be cut too). It sells the whole position in the paper account at market through the same PIN-gated Worker (new `sell_position` action → `sell-position.yml` → `src/sellPosition.js`). The realized gain or loss is booked from the actual sell fill by the existing `reconcileExits()`. The tab now also shows each holding's latest value and unrealized P&L, a Sold Positions list, and a running "Realized gains (simulated)" total. This is simulated only: proceeds stay in the paper account. A real "withdraw earnings" would mean real capital and is out of scope by the project's hard boundary.
+
+Two design choices worth knowing:
+- **Exact-quantity sell, not a whole-symbol close.** The existing `closePosition()` uses `DELETE /positions/{symbol}`, which liquidates every share of that symbol in the account. The sell submits an order for the position's own filled qty, so a fund sale can't touch a nightly position in the same ticker.
+- **Sold rows are re-keyed** off the shared `allocation` date sentinel at sell time, and the buy-once check now ignores closed rows. That lets a ticker be bought again after selling without overwriting the sold row's realized P&L.
+
+Verified with a stubbed-Alpaca dry run on a throwaway copy of the db: sell → exit_pending → fill → closed with correct P&L; sell again → not_held; rebuy allowed with history intact; export and rendering correct. Not yet exercised against the live paper account.
+
+**Latent issue flagged, not fixed:** the nightly `closeMaturePositions()` still closes by whole symbol. If the nightly system ever trades SPY/QQQ/DIA while the Top 5 Funds allocation holds that same ticker, its close would also sell the fund's shares, and a nightly *short* would net against the fund's long at Alpaca. Dormant today (the only fund holding is VXUS, which isn't on the nightly watchlist), but it goes live the moment the Top 5 allocation is bought.
+
 ## Bottom line
 
 This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Directional analysis continues to show real skill (67% hit rate), and for the first time one of the project's own risk-management hypotheses — that shorts underperform — has cleared the statistical bar it set for itself rather than remaining a hunch. It is not yet net profitable, is on an 8-trade losing streak as of this writing, has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.
