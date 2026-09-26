@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T20:13:24.409Z",
+  "generatedAt": "2026-09-26T20:43:43.215Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 97,
@@ -1011,8 +1011,8 @@
     }
   },
   "portfolioRisk": {
-    "currentOpenPositions": 6,
-    "currentDeployedUsd": 4250,
+    "currentOpenPositions": 7,
+    "currentDeployedUsd": 4350,
     "maxConcurrentPositions": 22,
     "maxTotalNotionalUsd": 20000
   },
@@ -1331,8 +1331,18 @@
       }
     ]
   },
-  "fundHoldings": [],
+  "fundHoldings": [
+    {
+      "ticker": "VXUS",
+      "notional": 100,
+      "status": "entry_pending",
+      "entryPrice": null,
+      "entryFilledAt": null
+    }
+  ],
+  "fundValueHistory": [],
   "cryptoHoldings": [],
+  "cryptoEquityCurve": [],
   "cryptoNightlyOverview": {
     "closedTrades": 0,
     "avgReturnPct": null,
