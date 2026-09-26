@@ -19,6 +19,7 @@
     "invest-fund-custom": "node src/investFundCustom.js",
     "reflect": "node src/reflect.js",
     "lessons": "node src/lessons.js",
+    "sell": "node src/sellPosition.js",
     "test": "node --test"
   },
   "dependencies": {

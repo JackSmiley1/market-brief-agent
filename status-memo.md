@@ -101,7 +101,16 @@ Two design choices worth knowing:
 
 Verified with a stubbed-Alpaca dry run on a throwaway copy of the db: sell → exit_pending → fill → closed with correct P&L; sell again → not_held; rebuy allowed with history intact; export and rendering correct. Not yet exercised against the live paper account.
 
-**Latent issue flagged, not fixed:** the nightly `closeMaturePositions()` still closes by whole symbol. If the nightly system ever trades SPY/QQQ/DIA while the Top 5 Funds allocation holds that same ticker, its close would also sell the fund's shares, and a nightly *short* would net against the fund's long at Alpaca. Dormant today (the only fund holding is VXUS, which isn't on the nightly watchlist), but it goes live the moment the Top 5 allocation is bought.
+**Fixed the same day (see below):** the nightly close used to close by whole symbol, which could have sold the fund allocation's shares in a shared ticker.
+
+## Order-safety fixes before closing out Phase 1 (September 26)
+
+- **Quantity-based closes everywhere.** `closeMaturePositions()` now closes each position by its own filled quantity (sell for a long, buy-to-cover for a short) via `src/orders.js`, instead of `DELETE /positions/{symbol}`. A nightly SPY close can no longer sell the Top 5 Funds allocation's SPY shares. Crypto keeps the whole-symbol close (Alpaca takes crypto fees in the asset received, so the held qty is slightly below the filled qty, and crypto has no fund overlap). A stock row with no recorded qty in a fund-held ticker is marked exit_failed for review rather than risking a whole-symbol close.
+- **No netting conflicts.** A short on a ticker the fund allocation holds is skipped (Alpaca would sell the held shares instead of opening a short), and a fund buy is blocked while a live short in that ticker is open (it would cover the short instead of opening a holding). Both show up in the request log.
+- **Crypto closes would have failed, now fixed.** The whole-symbol close sent `/positions/BTC/USD`; Alpaca keys crypto positions as `BTCUSD`, and the slashed path returns 404 (the same bug is documented in alpaca-py issue #537). No crypto position had closed yet, so this never fired, but it would have on the first one.
+- **Nightly schedule is now DST-proof.** The cron moved from 20:30 to 21:30 UTC: after the close year-round (5:30pm ET summer, 4:30pm ET winter). The old time would have run at 3:30pm ET, before the close, from Nov 1.
+- `tests/orders.test.js` adds 6 tests (14 total), and all conflict paths were exercised in a stubbed-Alpaca dry run against a throwaway db copy.
+
 
 ## Bottom line
 

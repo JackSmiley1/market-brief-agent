@@ -1310,6 +1310,8 @@ const REQUEST_OUTCOMES = {
   no_data: ['Symbol not found', 'bad'],
   sell_submitted: ['Sell placed', 'ok'],
   not_held: ['Sell: not held', 'warn'],
+  skipped_conflict: ['Skipped: fund holds this ticker', 'warn'],
+  blocked_by_short: ['Blocked: live short open', 'warn'],
 };
 function escapeHtml(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

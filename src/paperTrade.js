@@ -1,6 +1,7 @@
 import axios from "axios";
 import { db } from "./db.js";
 import { ALPACA_TRADING_BASE, computeNotional, PORTFOLIO_LIMITS } from "./config.js";
+import { buildCloseOrder, isCrypto, positionPathSymbol } from "./orders.js";
 
 const headers = {
   "APCA-API-KEY-ID": process.env.ALPACA_KEY_ID,
@@ -15,10 +16,8 @@ const headers = {
 // (equities' day-order queue-until-market-close semantics don't apply to a
 // market that never closes). Submitting "day" for a crypto symbol would be
 // rejected outright, so this detects it via the presence of "/" rather than
-// requiring every call site to know the distinction itself.
-function isCrypto(symbol) {
-  return symbol.includes("/");
-}
+// requiring every call site to know the distinction itself. (isCrypto now
+// lives in src/orders.js so the pure close-order logic can share it.)
 
 async function submitBuyOrder(symbol, notional) {
   const res = await axios.post(
@@ -50,7 +49,14 @@ async function submitShortOrder(symbol, estimatedPrice, notional) {
 // (possibly fractional, from a notional buy) quantity itself rather than
 // requiring us to track and submit an exact share count.
 async function closePosition(symbol) {
-  const res = await axios.delete(`${ALPACA_TRADING_BASE}/positions/${symbol}`, { headers });
+  // positionPathSymbol: crypto positions are keyed "BTCUSD", not "BTC/USD".
+  const res = await axios.delete(`${ALPACA_TRADING_BASE}/positions/${positionPathSymbol(symbol)}`, { headers });
+  return res.data;
+}
+
+// Submits a fully-specified order (see src/orders.js's buildCloseOrder).
+async function submitOrder(spec) {
+  const res = await axios.post(`${ALPACA_TRADING_BASE}/orders`, spec, { headers });
   return res.data;
 }
 
@@ -134,6 +140,21 @@ const currentExposureStmt = db.prepare(
    FROM paper_trades WHERE status IN ('entry_pending', 'open', 'exit_pending')`
 );
 
+// A buy-and-hold ('fund_hold'/'crypto_hold') position in this ticker that
+// is still held in the account (any pre-close status). Used to keep the
+// nightly/on-demand system from shorting or whole-symbol-closing a ticker
+// the fund allocation holds; Alpaca nets long and short in one account.
+const buyAndHoldHeldStmt = db.prepare(
+  `SELECT 1 FROM paper_trades WHERE ticker = ? AND source IN ('fund_hold', 'crypto_hold')
+   AND status IN ('entry_pending', 'open', 'exit_pending', 'exit_failed') LIMIT 1`
+);
+// The reverse: a live non-allocation SHORT in this ticker. A fund buy while
+// it's open would silently cover the short instead of opening a holding.
+const liveShortStmt = db.prepare(
+  `SELECT 1 FROM paper_trades WHERE ticker = ? AND direction = 'short' AND source NOT IN ('fund_hold', 'crypto_hold')
+   AND status IN ('entry_pending', 'open', 'exit_pending', 'exit_failed') LIMIT 1`
+);
+
 const pendingExitsStmt = db.prepare(
   `SELECT date, ticker, entry_price, notional, direction, qty, exit_order_id FROM paper_trades WHERE status = 'exit_pending' AND exit_order_id IS NOT NULL`
 );
@@ -212,7 +233,16 @@ export async function closeMaturePositions() {
   const open = openPositionsStmt.all();
   for (const row of open) {
     try {
-      const order = await closePosition(row.ticker);
+      // Close by this row's own qty (src/orders.js), so a nightly close can
+      // never liquidate a fund allocation's shares in the same ticker. The
+      // whole-symbol fallback is only used where that can't happen.
+      const spec = buildCloseOrder(row);
+      if (!spec && buyAndHoldHeldStmt.get(row.ticker)) {
+        console.warn(`paperTrade: can't safely close ${row.ticker} (${row.date}) — no recorded qty and a fund allocation holds this ticker; a whole-symbol close would sell it too. Marking exit_failed for manual review.`);
+        markExitFailedStmt.run(row.date, row.ticker);
+        continue;
+      }
+      const order = spec ? await submitOrder(spec) : await closePosition(row.ticker);
       markExitPendingStmt.run(order.id, row.date, row.ticker);
       console.log(`paperTrade: close order submitted — ${row.ticker} (${row.date}, ${row.direction}), order ${order.id}`);
     } catch (err) {
@@ -267,6 +297,11 @@ export async function openNewPositions(date, items, priceMap = {}, source = "nig
         `Not treated as a failure — no row written, this pick is simply not taken this cycle.`
       );
       results.push({ ticker, status: "skipped_cap", notional });
+      continue;
+    }
+    if (direction === "short" && buyAndHoldHeldStmt.get(ticker)) {
+      console.warn(`paperTrade: skipping short on ${ticker} (${date}, source=${source}) — a fund allocation holds this ticker, and Alpaca would net the short against it (selling the held shares) instead of opening a short.`);
+      results.push({ ticker, status: "skipped_conflict", notional });
       continue;
     }
     try {
@@ -332,6 +367,11 @@ export async function openAllocationPositions(symbols, notionalPerPosition, sour
     if (allocationPositionStmt.get(ticker, source)) {
       console.log(`paperTrade: ${ticker} (${source}) already invested — skipping (allocation is buy-once).`);
       results.push({ ticker, status: "already_invested" });
+      continue;
+    }
+    if (liveShortStmt.get(ticker)) {
+      console.warn(`paperTrade: skipping allocation buy for ${ticker} (${source}) — a live short in this ticker exists, and the buy would cover it instead of opening a holding. Try again after it closes.`);
+      results.push({ ticker, status: "blocked_by_short" });
       continue;
     }
     try {
