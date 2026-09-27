@@ -221,3 +221,18 @@ db.exec(`
     analysis TEXT
   );
 `);
+
+// Daily bars for benchmark symbols (SPY), added 2026-09-27. Written by
+// src/fetchBenchmark.js (nightly + on demand); read by exportSite.js to
+// compare every closed trade with SPY over the exact same window (see
+// src/benchmarkMath.js). Dividend/split-adjusted ("all"), so SPY is
+// measured closer to a total return, not just price.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS benchmark_bars (
+    date TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    open REAL NOT NULL,
+    close REAL NOT NULL,
+    PRIMARY KEY (date, symbol)
+  );
+`);

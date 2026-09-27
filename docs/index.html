@@ -515,6 +515,12 @@
       <div class="chart-wrap"><canvas id="equityChart" height="90"></canvas></div>
     </section>
 
+    <section id="benchmark-section">
+      <div class="section-head"><h2>Versus Just Holding SPY</h2></div>
+      <p class="section-sub">Every closed nightly trade compared with SPY over the exact same window (entry open to exit open). "Same dollars in SPY" is the index alternative. "Market-adjusted" removes the market's own move from each trade, signed by direction, so it isolates stock-picking skill from market direction.</p>
+      <div class="stat-grid" id="benchmark-stats"><div class="loading">Loading…</div></div>
+    </section>
+
     <section>
       <div class="section-head"><h2>Live Portfolio Risk</h2></div>
       <div class="chart-wrap" id="risk-wrap"><div class="loading">Loading…</div></div>
@@ -1055,6 +1061,20 @@ async function main() {
 
   function renderChart(range) {
     const slice = range === 'all' ? fullCurve : fullCurve.slice(-Number(range));
+    // SPY same-window line (see exportSite.js's spyCumulativePnl) — only
+    // drawn once the benchmark has data for every point in view.
+    const hasSpy = slice.length > 0 && slice.every(p => p.spyCumulativePnl != null);
+    const spyDataset = hasSpy ? [{
+      label: 'Same dollars in SPY ($)',
+      data: slice.map(p => p.spyCumulativePnl),
+      borderColor: '#93989f',
+      borderDash: [6, 4],
+      fill: false,
+      tension: 0.2,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      borderWidth: 1.8,
+    }] : [];
     const chartData = {
       labels: slice.map((p, i) => i + 1),
       datasets: [{
@@ -1068,7 +1088,7 @@ async function main() {
         pointHoverRadius: 5,
         pointHoverBackgroundColor: '#ff8a4c',
         borderWidth: 2.5,
-      }]
+      }, ...spyDataset]
     };
     if (equityChart) {
       equityChart.data = chartData;
@@ -1097,6 +1117,7 @@ async function main() {
               },
               label: (item) => {
                 const p = slice[item.dataIndex];
+                if (item.datasetIndex === 1) return 'Same dollars in SPY: $' + p.spyCumulativePnl.toFixed(2);
                 const tradeStr = p.tradePnl >= 0 ? '+$' + p.tradePnl.toFixed(2) : '-$' + Math.abs(p.tradePnl).toFixed(2);
                 return ['This trade: ' + tradeStr + ' (' + (p.tradePnlPct >= 0 ? '+' : '') + p.tradePnlPct.toFixed(2) + '%)', 'Cumulative: $' + p.cumulativePnl.toFixed(2)];
               },
@@ -1289,6 +1310,7 @@ async function main() {
   renderCryptoNightlyStats(data.cryptoNightlyOverview, data.minSampleSize);
   renderCryptoEquityChart(data.cryptoEquityCurve);
   renderFundValueChart(data.fundValueHistory);
+  renderBenchmark(data.benchmark);
   renderRequests('stock', data.recentRequests);
   renderRequests('fund', data.recentRequests);
   renderRequests('crypto', data.recentRequests);
@@ -1524,6 +1546,45 @@ function onDemandRowsHtml(pending, closed) {
 // newer, separate evidence pool, not the headline number). Honest about
 // small samples: shows "not enough data yet" below minSampleSize rather
 // than presenting an early win/loss rate as if it means something yet.
+// "Versus Just Holding SPY" (see exportSite.js's benchmark /
+// src/benchmarkMath.js). Honest about uncertainty: the market-adjusted
+// figure carries its 95% interval, and the note says whether that interval
+// excludes zero (i.e. whether there's evidence of skill either way).
+function renderBenchmark(bm) {
+  const el = document.getElementById('benchmark-stats');
+  if (!el) return;
+  if (!bm || !bm.n) {
+    el.innerHTML = '<div class="loading">Benchmark data not loaded yet. It fills in after the next pipeline run fetches SPY prices.</div>';
+    return;
+  }
+  const money = (n) => (n >= 0 ? '+$' : '−$') + Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pct = (n) => n == null ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  const cls = (n) => n == null ? '' : (n >= 0 ? 'pos' : 'neg');
+  const ci = bm.marketAdjustedCi95;
+  const stats = [
+    { label: 'Strategy P&L (' + bm.n + ' trades)', value: money(bm.strategyPnl), cls: cls(bm.strategyPnl), icon: 'percent', color: '#ff8a4c' },
+    { label: 'Same dollars in SPY', value: money(bm.spySameDollarsPnl), cls: cls(bm.spySameDollarsPnl), icon: 'layers', color: '#93989f' },
+    { label: 'Market-adjusted, per trade', value: pct(bm.marketAdjustedAvgPct), cls: cls(bm.marketAdjustedAvgPct), icon: bm.marketAdjustedAvgPct >= 0 ? 'trendUp' : 'trendDown', color: bm.marketAdjustedAvgPct >= 0 ? '#35c98d' : '#ef5b63' },
+  ];
+  if (bm.buyAndHold) stats.push({ label: 'SPY buy-and-hold since ' + bm.buyAndHold.from, value: pct(bm.buyAndHold.pct), cls: cls(bm.buyAndHold.pct), icon: 'target', color: '#8b7cf6' });
+  const grid = stats.map(s =>
+    '<div class="stat-card">' +
+      '<div class="icon-badge" style="background:' + s.color + '26; color:' + s.color + '">' + iconSvg(s.icon) + '</div>' +
+      '<div><div class="value ' + (s.cls||'') + '">' + s.value + '</div><div class="label">' + s.label + '</div></div>' +
+    '</div>'
+  ).join('');
+  let verdict = '';
+  if (ci) {
+    const excl = ci[0] > 0 ? 'above zero: evidence of stock-picking skill.' : ci[1] < 0 ? 'below zero: the picks are doing worse than the market alone.' : 'straddles zero: no evidence of skill either way yet.';
+    verdict = 'Market-adjusted 95% range: ' + pct(ci[0]) + ' to ' + pct(ci[1]) + ', which ' + excl;
+    const side = (s, name) => s && s.n ? name + ' ' + pct(s.mean) + ' (n=' + s.n + ')' : '';
+    const sides = [side(bm.long, 'Longs'), side(bm.short, 'Shorts')].filter(Boolean).join(' · ');
+    if (sides) verdict += ' By side: ' + sides + '.';
+  }
+  const excluded = bm.excluded ? ' ' + bm.excluded + ' trade(s) without SPY data for their window are left out.' : '';
+  el.innerHTML = grid + '<div class="loading" style="margin-top:10px; text-align:left; padding:12px 4px;">' + verdict + excluded + '</div>';
+}
+
 function renderCryptoNightlyStats(overview, minSampleSize) {
   const el = document.getElementById('crypto-nightly-stats');
   if (!el || !overview) return;

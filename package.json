@@ -20,6 +20,7 @@
     "reflect": "node src/reflect.js",
     "lessons": "node src/lessons.js",
     "sell": "node src/sellPosition.js",
+    "benchmark": "node src/fetchBenchmark.js",
     "test": "node --test"
   },
   "dependencies": {

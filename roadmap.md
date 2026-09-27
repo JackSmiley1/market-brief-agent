@@ -28,6 +28,30 @@ Three separate kinds of readiness, kept deliberately separate so "the code is re
 
 None of this changes today. This section exists so that when the data does look different, the decision is a checklist being worked through deliberately, not a switch flipped in the moment.
 
+
+### DRAFT pass/fail bar (September 27): for Jack to decide, not yet adopted
+
+Written down before more results come in, so the bar can't quietly move later. Nothing here is decided until Jack edits it and logs it as a decision. Starting amount under discussion: **$30**.
+
+**Where it stands (97 closed nightly trades, Aug 17 – Sep 23):** −0.49% average per trade (95% range −1.03% to +0.06%). Longs −0.08% on 46 trades; shorts −0.85% on 51, which is most of the loss. No evidence of an edge yet. The SPY comparison on the dashboard fills in after the first benchmark run.
+
+**Gate A: a $30 live mechanics test (not a bet on the strategy).** $30 caps the loss at $30, so the question here is "is it safe to run," not "does it make money":
+1. Scope: nightly picks only, **long-only** (shorting needs a $2,000 margin account), fractional shares, a handful of dollars per position. No dashboard buttons, no on-demand, no crypto, no fund allocation on the live account.
+2. Separation: the live account runs from its own workflow with its own secrets. The public Worker/PIN path can never reach it. Live trades are recorded apart from paper evidence and never pooled with it.
+3. A kill switch: one setting that stops all live orders, checked before every order.
+4. Reliability: 20 consecutive weekday nightly runs on paper with no failed step and no manual fix.
+5. Account mechanics confirmed with Alpaca before the first order: how settlement works for a sub-$2,000 account with daily turnover, and fractional-share support for every watchlist ticker.
+6. The switch itself (`ALPACA_TRADING_BASE` + live keys) is flipped by Jack deliberately, logged here as a decision, per this project's hard line. Not by an assistant, not as a routine change.
+
+**Gate B: evidence to go beyond $30.** Measured on nightly **long** trades only, since live is long-only:
+1. At least **150 closed nightly long trades** (46 today). At roughly 1.7 long trades a day, that's around the end of December 2026 at the earliest.
+2. Average **market-adjusted** return per long trade (trade minus SPY over the same window) above zero, with the 95% range's lower end also above zero.
+3. Long-side P&L still positive after assuming 0.1% round-trip slippage/costs per trade.
+4. After at least 30 live trades, live results track paper within about 0.2% per trade (tests whether paper fills were realistic).
+5. Step up gradually ($30 → $100 → $300), with the gate still holding at each step.
+
+**What resets the count:** a material change to what the nightly agent picks (its prompt, watchlist, or sizing rules). Trades before and after such a change are different strategies and shouldn't be pooled into one sample.
+
 ## Phase 3: opening the platform to other users (accounts, stocks, crypto, mutual funds)
 
 This is where the project stops being "an app you built" and starts being "a licensed financial institution," because holding other people's money and executing trades on their behalf is custody — one of the most heavily regulated activities in finance. Two realistic paths exist:
@@ -58,7 +82,7 @@ September 25: between the two Phase 3 paths described above, this project's inte
 
 ## Sequencing, if this is ever pursued for real
 
-1. Phase 2 (personal live trading) only once the paper-trading evidence actually supports it — this is close, not distant.
+1. Phase 2 (personal live trading) only once the paper-trading evidence actually supports it. As of September 27 it does not: see the draft pass/fail bar below, which puts the earliest point for anything beyond a $30 mechanics test around the end of December 2026, and only if the results turn positive.
 2. If Phase 3 is pursued, broker-as-a-service (Path B) over direct SEC/FINRA registration (Path A) — same end capability, a small fraction of the cost and time.
 3. Crypto via a crypto-as-a-service partner (Zero Hash or similar) rather than pursuing money transmitter licenses independently.
 4. International access evaluated per Phase 3 partner's existing reach before assuming a separate FCA/Asian-market track is needed.

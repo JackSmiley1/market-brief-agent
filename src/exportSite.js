@@ -4,6 +4,7 @@ import path from "path";
 import { db } from "./db.js";
 import { PAPER_TRADE_BASE_NOTIONAL, SIZING_ADJUSTMENTS, PORTFOLIO_LIMITS } from "./config.js";
 import { aggregateTrades } from "./stats.js";
+import { benchmarkTrade, summarizeBenchmark, spyBuyAndHold } from "./benchmarkMath.js";
 
 // Turns logs/brief-data.db into a single static JSON file the dashboard
 // (docs/index.html) fetches client-side. Runs nightly in CI right after the
@@ -36,7 +37,7 @@ function summarize(rows) {
 // this analysis rather than blended in.
 const closed = db
   .prepare(
-    `SELECT p.date, p.ticker, p.direction, p.notional, p.realized_pnl, p.realized_pnl_pct, p.exit_filled_at,
+    `SELECT p.date, p.ticker, p.direction, p.notional, p.realized_pnl, p.realized_pnl_pct, p.entry_filled_at, p.exit_filled_at,
             w.confidence, w.event_risk, w.peer_catalyst
      FROM paper_trades p
      LEFT JOIN watchlist_followups w ON p.date = w.date AND p.ticker = w.ticker
@@ -167,8 +168,24 @@ const directionalHitRatePct = resolvedN > 0 ? Number(((validOutcomes.played_out 
 let cumulative = 0;
 let peak = 0;
 let maxDrawdown = 0;
+// SPY benchmark (see src/benchmarkMath.js and db.js's benchmark_bars).
+// Empty until src/fetchBenchmark.js has run at least once in production.
+const spyBars = Object.fromEntries(
+  db.prepare(`SELECT date, open, close FROM benchmark_bars WHERE symbol = 'SPY'`).all().map((b) => [b.date, { open: b.open, close: b.close }])
+);
+const benchmark = {
+  symbol: "SPY",
+  ...summarizeBenchmark(closed, spyBars),
+  buyAndHold: closed.length ? spyBuyAndHold(spyBars, closed.map((r) => r.entry_filled_at?.slice(0, 10) ?? r.date).sort()[0]) : null,
+};
+let spyCumulative = 0;
+let spyCurveBroken = false; // once any trade lacks bars, stop drawing the SPY line rather than draw a wrong one
+
 const equityCurve = closed.map((r) => {
   cumulative += r.realized_pnl;
+  const bm = benchmarkTrade(r, spyBars);
+  if (!bm) spyCurveBroken = true;
+  else spyCumulative += bm.spyPnl;
   peak = Math.max(peak, cumulative);
   maxDrawdown = Math.max(maxDrawdown, peak - cumulative);
   return {
@@ -178,6 +195,7 @@ const equityCurve = closed.map((r) => {
     tradePnl: Number(r.realized_pnl.toFixed(2)),
     tradePnlPct: r.realized_pnl_pct,
     cumulativePnl: Number(cumulative.toFixed(2)),
+    spyCumulativePnl: spyCurveBroken ? null : Number(spyCumulative.toFixed(2)),
   };
 });
 
@@ -412,6 +430,7 @@ const output = {
     currentStreak: streakType && { type: streakType, count: currentStreak },
   },
   equityCurve,
+  benchmark,
   buckets,
   byTicker,
   methodology: {

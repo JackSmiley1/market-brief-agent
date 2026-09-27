@@ -58,6 +58,14 @@ jobs:
         run: npm run reflect
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Refresh SPY benchmark bars (read-only market data)
+        # Non-fatal: a data hiccup here only leaves the benchmark a day
+        # stale, never blocks the brief/trades above or the export below.
+        run: npm run benchmark
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+        continue-on-error: true
       - name: Export public dashboard data
         run: npm run export-site
       - name: Commit brief + dashboard data back to repo

@@ -113,6 +113,12 @@ Verified with a stubbed-Alpaca dry run on a throwaway copy of the db: sell → e
 - `tests/orders.test.js` adds 6 tests (14 total), and all conflict paths were exercised in a stubbed-Alpaca dry run against a throwaway db copy.
 
 
+
+## New: SPY benchmark + a draft Phase 2 bar (September 27)
+
+- **SPY benchmark.** Every closed nightly trade is now compared with SPY over its exact window (both fills happen at the 9:30 ET open, so that's SPY's open-to-open move). The dashboard shows the same dollars held in SPY as a dashed line on the equity curve, plus a "Versus Just Holding SPY" section: strategy P&L vs. SPY, **market-adjusted** return per trade (the trade minus SPY, signed by direction) with its 95% range, split by long and short, and SPY buy-and-hold since the first trade. Prices come from `src/fetchBenchmark.js` (Alpaca IEX daily bars, dividend-adjusted), which runs nightly and via the manual "Refresh Benchmark" workflow. The math lives in `src/benchmarkMath.js` with 5 tests (19 total).
+- **Draft Phase 2 pass/fail bar** is in `roadmap.md`, marked as not yet adopted. Gate A covers a $30 long-only live mechanics test (safety and separation, not evidence). Gate B covers going beyond $30: 150+ closed nightly long trades, market-adjusted return above zero with the 95% range's lower end above zero, positive after costs, and live results tracking paper. At the current pace, the earliest Gate B could be met is around the end of December 2026.
+
 ## Bottom line
 
 This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Directional analysis continues to show real skill (67% hit rate), and for the first time one of the project's own risk-management hypotheses — that shorts underperform — has cleared the statistical bar it set for itself rather than remaining a hunch. It is not yet net profitable (-0.41% blended across 97 trades), has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.

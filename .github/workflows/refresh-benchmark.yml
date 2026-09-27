@@ -1,0 +1,41 @@
+name: Refresh Benchmark
+
+# Manual (Actions tab -> Run workflow). Fetches SPY daily bars and
+# regenerates the dashboard, without running the brief or any trades.
+# Added 2026-09-27 for the first backfill; the nightly workflow keeps it
+# current after that. Read-only market data; places no orders.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: market-brief-pipeline
+  cancel-in-progress: false
+
+jobs:
+  refresh-benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with: { node-version: '22' }
+      - run: npm install
+      - run: npm test
+      - name: Fetch SPY benchmark bars
+        run: npm run benchmark
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      - name: Export public dashboard data
+        run: npm run export-site
+      - name: Commit result back to repo
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/ docs/data.json
+          git commit -m "Refresh benchmark ($(date +'%Y-%m-%d %H:%M'))" || echo "No changes"
+          git pull --rebase || true
+          git push
