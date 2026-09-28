@@ -1030,7 +1030,10 @@ async function main() {
 
   const stats = [
     { label: 'Win rate', value: o.winRatePct + '%', icon: 'target', color: '#4f8ef7' },
-    { label: 'Directional hit rate', value: fmtPct(o.directionalHitRatePct) + ' (n=' + o.directionalResolvedN + ')', icon: 'percent', color: '#8b7cf6' },
+    // Price-checked (see exportSite.js): the stock actually moved the called
+    // way. Claude's own, more generous self-grade is shown separately.
+    { label: 'Direction right, price-checked', value: (o.directionalHitRatePct == null ? 'n/a' : o.directionalHitRatePct.toFixed(1) + '%') + ' (n=' + o.directionalResolvedN + ')', icon: 'percent', color: '#8b7cf6' },
+    ...(o.claudeSelfGradePct != null ? [{ label: "Claude's own grade of its calls", value: o.claudeSelfGradePct.toFixed(1) + '% (n=' + o.claudeSelfGradeN + ')', icon: 'target', color: '#93989f' }] : []),
     { label: 'Max drawdown', value: '-$' + (o.maxDrawdownUsd ?? 0).toFixed(2), cls: 'neg', icon: 'trendDown', color: '#ef5b63' },
   ];
   if (o.bestTrade) stats.push({ label: 'Best trade', value: o.bestTrade.ticker + ' ' + fmtPct(o.bestTrade.pnlPct), cls: 'pos', icon: 'award', color: '#35c98d' });

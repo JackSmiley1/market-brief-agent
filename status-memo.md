@@ -15,12 +15,12 @@ This is Phase 1 of a longer-term plan. There is no live trading, no investor cap
 - Average return per trade: **-0.49%**
 - Total realized P&L: **-$344.87** on $84,250 notional deployed (-0.41% blended)
 - Win/loss split: 46 wins / 51 losses (47.4% win rate)
-- Directional accuracy (does the call's thesis play out, independent of position sizing/P&L): **66.9%** across 133 graded calls
+- Direction right, price-checked: **52.7%** of 93 calls (95% range 42.5%–62.8%). Claude's own grade of its calls says 66.9% (n=133); see the September 27 note below.
 - Max drawdown: **-$348.63**
 - Current streak: **1 loss**. The 8-loss streak reported at the previous checkpoint (93 trades) has since been broken; it's kept in this memo's history because the reflection-loop lesson below was generated against it.
 - Best single trade: ORCL, +6.02% (Sept 2). Worst: CRM, -15.59% (Aug 25, a short into earnings — the trade that originally motivated the event-risk sizing cut).
 
-The same gap flagged last time is still there: directional accuracy (67%) is meaningfully better than a coin flip, but blended P&L is still negative. That combination — often right about direction, still losing money — continues to point at sizing/risk-management as the live problem, not obviously signal quality.
+Correction (September 27): earlier versions of this memo read a 67% "directional accuracy" as meaningfully better than a coin flip and concluded the problem was sizing, not signal. That 67% was Claude's own verdict on its calls. Price-checked, it's 52.7%, statistically indistinguishable from 50%. So neither the signal nor the sizing is shown to work yet, and the shorts are the one clearly negative result.
 
 ## What's now statistically real, and what isn't yet
 
@@ -119,6 +119,10 @@ Verified with a stubbed-Alpaca dry run on a throwaway copy of the db: sell → e
 - **SPY benchmark.** Every closed nightly trade is now compared with SPY over its exact window (both fills happen at the 9:30 ET open, so that's SPY's open-to-open move). The dashboard shows the same dollars held in SPY as a dashed line on the equity curve, plus a "Versus Just Holding SPY" section: strategy P&L vs. SPY, **market-adjusted** return per trade (the trade minus SPY, signed by direction) with its 95% range, split by long and short, and SPY buy-and-hold since the first trade. Prices come from `src/fetchBenchmark.js` (Alpaca IEX daily bars, dividend-adjusted), which runs nightly and via the manual "Refresh Benchmark" workflow. The math lives in `src/benchmarkMath.js` with 5 tests (19 total).
 - **Draft Phase 2 pass/fail bar** is in `roadmap.md`, marked as not yet adopted. Gate A covers a $30 long-only live mechanics test (safety and separation, not evidence). Gate B covers going beyond $30: 150+ closed nightly long trades, market-adjusted return above zero with the 95% range's lower end above zero, positive after costs, and live results tracking paper. At the current pace, the earliest Gate B could be met is around the end of December 2026.
 
+## Finding: Claude grades itself too generously (September 27)
+
+The headline "directional hit rate" was Claude's own verdict word (played_out / partial / missed) on its prior calls. The verdicts were given the code-computed move, but the verdict itself was Claude's. Checked against the sign of that move: Claude said "played out" on 68% of matched calls where the price actually moved the called way 54% of the time, and 23 "played out" verdicts were on moves in the wrong direction. The dashboard now leads with the price-checked figure (52.7%, n=93) and shows Claude's self-grade beside it, labeled, so the gap stays visible. Sizing, the checkpoint, and the n≥20 rules never used the self-grade (they run on realized P&L), so no trading decision was affected. The grading window (close to close) also differs from the trade window (open to open), which is part of why a correct call can still lose money.
+
 ## Bottom line
 
-This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Directional analysis continues to show real skill (67% hit rate), and for the first time one of the project's own risk-management hypotheses — that shorts underperform — has cleared the statistical bar it set for itself rather than remaining a hunch. It is not yet net profitable (-0.41% blended across 97 trades), has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.
+This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Price-checked, its directional calls are not yet distinguishable from a coin flip (52.7%), and it hasn't beaten simply holding SPY. The one result that has cleared the project's own statistical bar is that shorts underperform, even after removing the market's move. It is not yet net profitable (-0.41% blended across 97 trades), has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.

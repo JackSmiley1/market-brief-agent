@@ -151,13 +151,37 @@ const overallSummary = summarize(closed);
 // specifically because the two can (and currently do) diverge; showing only
 // one would misrepresent the system in either an overly flattering or overly
 // harsh direction.
-const graded = db
-  .prepare(`SELECT outcome FROM watchlist_followups WHERE outcome IS NOT NULL`)
+//
+// CHANGED 2026-09-27: this used to be Claude's own verdict word
+// ("played_out" / "partial" / "missed") on its own calls, which turned out
+// to be generous: 68% "played out" vs. 54% of calls where the price actually
+// moved the called way, with 23 "played out" verdicts on moves in the wrong
+// direction. The headline figure is now PRICE-CHECKED: the sign of the
+// code-computed next-day move (result_pct_change) vs. the trade's direction.
+// Claude's self-grade is still reported, separately and labeled, so the gap
+// stays visible. Stock calls only (crypto tickers contain "/").
+const priceChecked = db
+  .prepare(
+    `SELECT w.result_pct_change AS r, p.direction AS d
+     FROM watchlist_followups w
+     JOIN paper_trades p ON p.date = w.date AND p.ticker = w.ticker AND p.source = 'nightly'
+     WHERE w.ticker NOT LIKE '%/%' AND w.result_pct_change IS NOT NULL AND p.direction IS NOT NULL`
+  )
   .all();
-const validOutcomes = { played_out: 0, partial: 0, missed: 0, unclear: 0 };
-for (const row of graded) validOutcomes[row.outcome] = (validOutcomes[row.outcome] ?? 0) + 1;
-const resolvedN = validOutcomes.played_out + validOutcomes.partial + validOutcomes.missed;
-const directionalHitRatePct = resolvedN > 0 ? Number(((validOutcomes.played_out / resolvedN) * 100).toFixed(1)) : null;
+const signed = (r, d) => (d === "short" ? -r : r);
+const resolvedN = priceChecked.length;
+const directionalHits = priceChecked.filter((x) => signed(x.r, x.d) > 0).length;
+const directionalHitRatePct = resolvedN > 0 ? Number(((directionalHits / resolvedN) * 100).toFixed(1)) : null;
+// Normal-approximation 95% range for a proportion, in percentage points.
+const directionalCi95 = resolvedN > 1
+  ? (() => { const ph = directionalHits / resolvedN, h = 1.96 * Math.sqrt((ph * (1 - ph)) / resolvedN); return [Number(((ph - h) * 100).toFixed(1)), Number(((ph + h) * 100).toFixed(1))]; })()
+  : null;
+
+const selfGraded = db
+  .prepare(`SELECT outcome FROM watchlist_followups WHERE ticker NOT LIKE '%/%' AND outcome IN ('played_out', 'partial', 'missed')`)
+  .all();
+const selfGradeN = selfGraded.length;
+const selfGradePct = selfGradeN > 0 ? Number(((selfGraded.filter((x) => x.outcome === "played_out").length / selfGradeN) * 100).toFixed(1)) : null;
 
 // Equity curve: cumulative realized P&L over time, one point per closed trade
 // in resolution order. This is a paper-trading curve on simulated capital,
@@ -424,6 +448,9 @@ const output = {
     winRatePct: overallSummary?.winRatePct ?? null,
     directionalHitRatePct,
     directionalResolvedN: resolvedN,
+    directionalCi95,
+    claudeSelfGradePct: selfGradePct,
+    claudeSelfGradeN: selfGradeN,
     maxDrawdownUsd: Number(maxDrawdown.toFixed(2)),
     bestTrade: bestTrade && { ticker: bestTrade.ticker, date: bestTrade.date, pnlPct: bestTrade.realized_pnl_pct },
     worstTrade: worstTrade && { ticker: worstTrade.ticker, date: worstTrade.date, pnlPct: worstTrade.realized_pnl_pct },

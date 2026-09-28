@@ -12,7 +12,8 @@ An autonomous research pipeline that generates a nightly market brief from live 
 
 Numbers as of the September 25 nightly run, straight from the system's own data, not cherry-picked — including the ones that aren't flattering (live figures are on the dashboard):
 
-- 97 closed simulated trades, 66.9% directional accuracy across 133 graded calls (does the call's thesis play out), but still net-negative blended P&L (-0.41%) — a real, stated gap, not glossed over.
+- 97 closed simulated trades, net-negative blended P&L (-0.41%), and roughly even with SPY at best: the same dollars held in SPY over the same windows lost $3.66, while the strategy lost $344.87.
+- The stock moved the called direction on 52.7% of 93 price-checked calls (95% range 42.5%–62.8%), which isn't yet distinguishable from a coin flip. Claude's own grade of those calls was a more generous 66.9%, a self-evaluation gap the system now reports instead of hiding.
 - One sizing hypothesis has cleared this project's own n≥20 statistical bar and is documented as fact, not guess: shorts underperform longs even after an existing 0.5x size cut.
 - Every sizing rule requires 20+ closed trades on both sides of a comparison before it's treated as real instead of noise — enforced in code (`src/checkpoint.js`), not just policy.
 - A self-reflection loop periodically reviews its own losing trades and is explicitly allowed to conclude "no clear pattern" rather than force one.
