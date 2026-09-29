@@ -29,7 +29,7 @@ Three separate kinds of readiness, kept deliberately separate so "the code is re
 None of this changes today. This section exists so that when the data does look different, the decision is a checklist being worked through deliberately, not a switch flipped in the moment.
 
 
-### DRAFT pass/fail bar (September 27): for Jack to decide, not yet adopted
+### DRAFT pass/fail bar (September 27): proposed to Dr. Drover for critique, not yet adopted
 
 Written down before more results come in, so the bar can't quietly move later. Nothing here is decided until Jack edits it and logs it as a decision. Starting amount under discussion: **$30**.
 
@@ -39,12 +39,13 @@ Written down before more results come in, so the bar can't quietly move later. N
 1. Scope: nightly picks only, **long-only** (shorting needs a $2,000 margin account), fractional shares, a handful of dollars per position. No dashboard buttons, no on-demand, no crypto, no fund allocation on the live account.
 2. Separation: the live account runs from its own workflow with its own secrets. The public Worker/PIN path can never reach it. Live trades are recorded apart from paper evidence and never pooled with it.
 3. A kill switch: one setting that stops all live orders, checked before every order.
+   Stop rule: live trading pauses if the live account falls 20% from its high, pending review.
 4. Reliability: 20 consecutive weekday nightly runs on paper with no failed step and no manual fix.
 5. Account mechanics confirmed with Alpaca before the first order: how settlement works for a sub-$2,000 account with daily turnover, and fractional-share support for every watchlist ticker.
 6. The switch itself (`ALPACA_TRADING_BASE` + live keys) is flipped by Jack deliberately, logged here as a decision, per this project's hard line. Not by an assistant, not as a routine change.
 
 **Gate B: evidence to go beyond $30.** Measured on nightly **long** trades only, since live is long-only:
-1. At least **150 closed nightly long trades** (46 today). At roughly 1.7 long trades a day, that's around the end of December 2026 at the earliest.
+1. At least **150 closed nightly long trades** (46 today). Per-trade returns swing about ±2.7%, so roughly 140 trades are needed to detect a 0.45% per-trade edge at 95% confidence. At roughly 1.7 long trades a day, that's around the end of December 2026 at the earliest.
 2. Average **market-adjusted** return per long trade (trade minus SPY over the same window) above zero, with the 95% range's lower end also above zero.
 3. Long-side P&L still positive after assuming 0.1% round-trip slippage/costs per trade.
 4. After at least 30 live trades, live results track paper within about 0.2% per trade (tests whether paper fills were realistic).
