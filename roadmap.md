@@ -53,6 +53,29 @@ Written down before more results come in, so the bar can't quietly move later. N
 
 **What resets the count:** a material change to what the nightly agent picks (its prompt, watchlist, or sizing rules). Trades before and after such a change are different strategies and shouldn't be pooled into one sample.
 
+
+### Pre-registered experiment: buying no-news losers (September 30, not yet built)
+
+Written down before any data exists, so the success bar can't be fitted to the results afterward. To be built after review with Dr. Drover; nothing here runs yet.
+
+**Hypothesis.** Stocks that drop sharply without company-specific fundamental news tend to rebound over the following week (the short-term reversal effect). This system's own shorts lost money betting on the opposite: that such drops continue.
+
+**Rules.**
+- Universe: the nightly watchlist.
+- Signal: a stock down 2% or more on the day. Claude classifies that day's headlines for the stock as fundamental (earnings, guidance, downgrade, legal or regulatory, M&A) or not. Only "not fundamental" drops qualify.
+- Entry: long at the next open, $500 flat, at most 3 per night, skipping any ticker the main strategy holds or picked that night.
+- Exit: after 5 trading days, closed by its own quantity.
+- Separation: its own source tag, never pooled with the main strategy's evidence, and subject to the same kill switch.
+
+**Success bar (all required, on at least 60 closed trades, about 2-3 months).**
+1. Average market-adjusted return per trade above zero, with the 95% range's lower end above zero.
+2. Positive after an assumed 0.1% round-trip cost.
+3. The "not fundamental" drops do better than the "fundamental" drops over the same window. That tests whether the AI classification adds anything over a plain "buy big losers" rule.
+
+**Failure means dropping it.** If the bar isn't met at 60 trades, the idea is recorded as tested and rejected, not tuned until it passes.
+
+**Why it matters for the plan.** It's long-only, so if it works, it fits the $30 account, which can't short anyway.
+
 ## Phase 3: opening the platform to other users (accounts, stocks, crypto, mutual funds)
 
 This is where the project stops being "an app you built" and starts being "a licensed financial institution," because holding other people's money and executing trades on their behalf is custody — one of the most heavily regulated activities in finance. Two realistic paths exist:
