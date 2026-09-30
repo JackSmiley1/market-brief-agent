@@ -267,3 +267,17 @@ db.exec(`
     note TEXT
   );
 `);
+
+// Per-symbol eligibility from Alpaca's own asset records (added 2026-09-30),
+// written by src/checkAssets.js. Answers the Gate A question "does every
+// watchlist stock support fractional shares?" from Alpaca directly, not
+// from assumption.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS asset_checks (
+    symbol TEXT PRIMARY KEY,
+    tradable INTEGER,
+    fractionable INTEGER,
+    easy_to_borrow INTEGER,
+    checked_at TEXT NOT NULL
+  );
+`);

@@ -2,7 +2,7 @@ import "dotenv/config";
 import fs from "fs";
 import path from "path";
 import { db } from "./db.js";
-import { PAPER_TRADE_BASE_NOTIONAL, SIZING_ADJUSTMENTS, PORTFOLIO_LIMITS } from "./config.js";
+import { PAPER_TRADE_BASE_NOTIONAL, SIZING_ADJUSTMENTS, PORTFOLIO_LIMITS, WATCHLIST as WATCHLIST_FOR_CHECK } from "./config.js";
 import { aggregateTrades } from "./stats.js";
 import { benchmarkTrade, summarizeBenchmark, spyBuyAndHold } from "./benchmarkMath.js";
 import { tradingHalted } from "./orders.js";
@@ -518,6 +518,24 @@ for (const r of nightlyRuns) { if (r.clean) cleanStreak += 1; else break; }
 const firstLogged = nightlyRuns.length ? nightlyRuns.at(-1).run_at.slice(0, 10) : null;
 const mirrorRows = db.prepare(`SELECT pick_date, ticker, notional, status, note FROM live_dryrun_orders ORDER BY id DESC LIMIT 12`).all();
 const lastMirrorDate = mirrorRows[0]?.pick_date ?? null;
+// Account check (Gate A item): per-symbol fractional support comes from
+// Alpaca's asset records (asset_checks, via src/checkAssets.js). The
+// settlement answer comes from Alpaca's own documentation (see
+// status-memo.md, September 30): accounts under $2,000 are "limited margin"
+// at 1x buying power, and Alpaca covers the settlement float, so sale
+// proceeds can be reused immediately.
+const assetRows = db.prepare(`SELECT symbol, fractionable, tradable, checked_at FROM asset_checks`).all();
+const assetBySym = Object.fromEntries(assetRows.map((r) => [r.symbol, r]));
+const uncheckedSyms = WATCHLIST_FOR_CHECK.filter((s) => !assetBySym[s]);
+const nonFractional = WATCHLIST_FOR_CHECK.filter((s) => assetBySym[s] && !(assetBySym[s].fractionable && assetBySym[s].tradable));
+const assetCheckedAt = assetRows.length ? assetRows.map((r) => r.checked_at).sort().at(-1).slice(0, 10) : null;
+const accountItem =
+  uncheckedSyms.length === WATCHLIST_FOR_CHECK.length
+    ? { status: "in_progress", detail: "Settlement confirmed from Alpaca's docs (1x buying power, proceeds reusable immediately). Fractional-share check against Alpaca's asset records pending." }
+    : uncheckedSyms.length === 0 && nonFractional.length === 0
+      ? { status: "done", detail: `All ${WATCHLIST_FOR_CHECK.length} watchlist stocks support fractional shares (checked with Alpaca ${assetCheckedAt}). Settlement: 1x buying power, proceeds reusable immediately.` }
+      : { status: "in_progress", detail: `Fractional issues: ${[...nonFractional, ...uncheckedSyms.map((s) => s + " (unchecked)")].join(", ")}. The mirror would need to skip these.` };
+
 const launchReadiness = {
   requiredCleanRuns: REQUIRED_CLEAN_RUNS,
   cleanStreak,
@@ -533,7 +551,7 @@ const launchReadiness = {
       detail: "One repository setting halts all new orders." },
     { key: "reliability", label: `${REQUIRED_CLEAN_RUNS} consecutive clean nightly runs`, status: cleanStreak >= REQUIRED_CLEAN_RUNS ? "done" : "in_progress",
       detail: nightlyRuns.length ? `${cleanStreak} of ${REQUIRED_CLEAN_RUNS} so far (counting since ${firstLogged}).` : "Counting starts with the next nightly run." },
-    { key: "account", label: "Confirm small-account settlement and fractional support with Alpaca", status: "todo", detail: "A manual check before any real order." },
+    { key: "account", label: "Confirm small-account settlement and fractional support with Alpaca", ...accountItem },
     { key: "stoprule", label: "Stop rule: pause live trading after a 20% drop from the high", status: "todo", detail: "Only matters once live; to be built into the live path." },
     { key: "decision", label: "The go-live decision, made and logged by the owner", status: "todo", detail: "Not an automatic step, by design." },
   ],

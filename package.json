@@ -21,6 +21,7 @@
     "lessons": "node src/lessons.js",
     "sell": "node src/sellPosition.js",
     "benchmark": "node src/fetchBenchmark.js",
+    "check-assets": "node src/checkAssets.js",
     "test": "node --test"
   },
   "dependencies": {

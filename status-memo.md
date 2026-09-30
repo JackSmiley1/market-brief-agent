@@ -145,6 +145,15 @@ Effect on the draft pass/fail bar: this is a prompt change, so short trades befo
 
 GitHub's scheduler has been firing the nightly run 2.5 to 3.7 hours late (for example, 9:11 PM ET on Sep 28), consistent with other users' reports since late August. After-close analysis with next-open entry is the only timing that tolerates that, since anything finishing before 9:30 AM still works. A pre-market run would be fresher, since it would see overnight news, but on this scheduler it would sometimes miss the open. It would also need a more punctual trigger (for example, a Cloudflare Worker cron dispatching the workflow) and would restart the evidence count. The bigger open question is the one-day hold, not the clock time: research on short-term reversal and overnight returns suggests one-day, open-to-open trades mostly capture noise. That's worth testing as a separate paper experiment, not as a change to the main strategy.
 
+
+## Gate A research: small-account rules at Alpaca (September 30)
+
+From Alpaca's own documentation:
+- **Under $2,000 equity:** a "limited margin" account at 1x buying power, meaning cash only, with no shorting and no leverage. This confirms the $30 test is long-only.
+- **Settlement:** US stocks settle T+1. Alpaca covers the settlement float, so proceeds from a sale can buy the next position immediately; unsettled funds just can't be withdrawn. Daily turnover in a small account shouldn't hit settlement problems.
+- **Fractional shares:** each symbol must be flagged `fractionable` by Alpaca. Fractional orders are day orders, and fractional sells are long-only. Our code already uses `time_in_force: "day"` for stocks. Per-symbol support for the watchlist is now checked directly against Alpaca's asset records by `src/checkAssets.js`, which runs in the manual Refresh Benchmark workflow, and the dashboard checklist reports the result.
+- **Pattern day trader rule:** doesn't apply either way, since positions are held overnight. FINRA has also adopted new intraday margin standards that replace the PDT designation and its $25,000 minimum, with the effective date set by a later FINRA notice.
+
 ## Bottom line
 
 This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Price-checked, its directional calls are not yet distinguishable from a coin flip (52.7%), and it hasn't beaten simply holding SPY. The one result that has cleared the project's own statistical bar is that shorts underperform, even after removing the market's move. It is not yet net profitable (-0.41% blended across 97 trades), has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.
