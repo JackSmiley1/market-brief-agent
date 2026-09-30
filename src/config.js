@@ -205,3 +205,14 @@ export const PORTFOLIO_LIMITS = {
   maxConcurrentPositions: 22,
   maxTotalNotionalUsd: 20000,
 };
+
+// Gate A "$30 live mechanics test" shadow settings (added 2026-09-30). Used
+// ONLY by src/liveMirror.js, which is a dry run: it computes and records the
+// orders a $30 long-only live account would place, and sends nothing. There
+// is deliberately no live Alpaca endpoint anywhere in this repo. Going live
+// would mean adding one, plus live keys, as an explicit logged decision
+// (see roadmap.md's draft pass/fail bar).
+export const LIVE_MIRROR = {
+  budgetUsd: 30,
+  minOrderUsd: 1, // Alpaca's minimum notional for a fractional order
+};

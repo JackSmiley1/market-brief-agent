@@ -44,6 +44,7 @@ jobs:
         env:
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
       - name: Export public dashboard data
         run: npm run export-site
       - name: Commit result back to repo

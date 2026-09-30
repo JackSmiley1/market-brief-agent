@@ -1,0 +1,48 @@
+name: Live Mirror (dry run)
+
+# Gate A shadow of the $30 live account (added 2026-09-30). INERT: runs
+# src/liveMirror.js, which records the orders a $30 long-only live account
+# WOULD place from each night's picks and sends nothing. It is given no
+# secrets at all, and the dashboard's Cloudflare Worker cannot trigger it
+# (the Worker only dispatches its five allow-listed workflows). Runs
+# automatically after each Nightly Market Brief completes, or manually.
+
+on:
+  workflow_run:
+    workflows: ["Nightly Market Brief"]
+    types: [completed]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: market-brief-pipeline
+  cancel-in-progress: false
+
+jobs:
+  live-mirror-dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with: { ref: main }
+      - uses: actions/setup-node@v6
+        with: { node-version: '22' }
+      - run: npm install
+      - run: npm test
+      - name: Mirror tonight's long picks into the $30 shadow account (DRY RUN, no broker calls)
+        run: node src/liveMirror.js
+        env:
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
+      - name: Export public dashboard data
+        run: npm run export-site
+        env:
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
+      - name: Commit result back to repo
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/ docs/data.json
+          git commit -m "Live mirror dry run ($(date +'%Y-%m-%d %H:%M'))" || echo "No changes"
+          git pull --rebase || true
+          git push

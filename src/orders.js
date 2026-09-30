@@ -42,3 +42,12 @@ export function buildCloseOrder({ ticker, direction, qty }) {
 export function positionPathSymbol(symbol) {
   return encodeURIComponent(symbol.replace("/", ""));
 }
+
+// Kill switch (added 2026-09-30). One GitHub repository variable,
+// TRADING_HALTED, passed into every trading workflow step as an env var.
+// When it's "true", nothing new is ordered anywhere (opens, closes, fund
+// buys, sells); reconciliation of already-placed orders still runs.
+// Case-insensitive; anything other than "true" means trading is allowed.
+export function tradingHalted(env = process.env) {
+  return String(env.TRADING_HALTED ?? "").trim().toLowerCase() === "true";
+}

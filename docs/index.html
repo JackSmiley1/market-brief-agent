@@ -342,6 +342,10 @@
     border-radius: 4px; padding: 1px 6px; margin-left: 6px; letter-spacing: 0.02em;
   }
 
+  .ready-progress { display: flex; align-items: center; gap: 14px; }
+  .ready-bar { flex: 1; height: 8px; background: var(--border-soft); border-radius: 4px; overflow: hidden; }
+  .ready-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+  .ready-count { color: var(--muted); font-size: 13px; white-space: nowrap; }
   .hold-actions { display: inline-flex; gap: 10px; align-items: center; }
   .btn-sell { padding: 4px 12px; font-size: 12.5px; }
   .req-row { display: block; }
@@ -434,6 +438,7 @@
         <a href="#" class="tab-link active" data-view="dashboard">Dashboard</a>
         <a href="#mutual-funds" class="tab-link" data-view="mutual-funds">Mutual Funds</a>
         <a href="#crypto" class="tab-link" data-view="crypto">Crypto</a>
+        <a href="#about" class="tab-link" data-view="about">About</a>
       </nav>
     </div>
     <nav>
@@ -519,6 +524,28 @@
       <div class="section-head"><h2>Versus Just Holding SPY</h2></div>
       <p class="section-sub">Every closed nightly trade compared with SPY over the exact same window (entry open to exit open). "Same dollars in SPY" is the index alternative. "Market-adjusted" removes the market's own move from each trade, signed by direction, so it isolates stock-picking skill from market direction.</p>
       <div class="stat-grid" id="benchmark-stats"><div class="loading">Loading…</div></div>
+    </section>
+
+    <section id="honesty-section">
+      <div class="section-head"><h2>Is Claude Honest About Its Own Calls?</h2></div>
+      <p class="section-sub">Claude grades each of its calls the next day. This checks those grades against what the price actually did, and whether its confidence ratings mean anything. It measures the AI itself, separately from profit or loss.</p>
+      <div class="stat-grid" id="honesty-stats"><div class="loading">Loading…</div></div>
+      <div class="chart-wrap" style="margin-top:14px;"><div style="position:relative; height:300px;"><canvas id="honestyChart"></canvas></div></div>
+      <div class="bucket-grid" style="margin-top:14px;"><div class="bucket-group"><h3>Does confidence mean anything?</h3><table id="honesty-conf"><thead><tr><th>Claude's confidence</th><th>Calls</th><th>Direction right</th><th>Avg trade return</th></tr></thead><tbody></tbody></table></div></div>
+      <p class="section-sub" id="honesty-note" style="margin-top:12px;"></p>
+    </section>
+
+    <section id="readiness-section">
+      <div class="section-head"><h2>Road to a $30 Live Test</h2></div>
+      <p class="section-sub">What has to be true before any real money goes in, even $30. This first step tests the plumbing with real fills, not whether the strategy works. Everything here is still paper; nothing is live.</p>
+      <div class="bucket-group">
+        <div class="ready-progress"><div class="ready-bar"><div class="ready-fill" id="ready-fill" style="width:0%"></div></div><div class="ready-count" id="ready-count">Loading…</div></div>
+        <div class="brief-list" id="ready-list" style="margin-top:12px;"></div>
+      </div>
+      <div class="bucket-group" style="margin-top:14px;">
+        <h3>Last night's $30 dry run (nothing sent to any broker)</h3>
+        <div class="brief-list" id="ready-mirror"><div class="loading">No dry run yet. It runs automatically after each nightly run.</div></div>
+      </div>
     </section>
 
     <section>
@@ -727,6 +754,62 @@
   </main>
 </div>
 <!-- /view-crypto -->
+
+<div id="view-about" class="view">
+  <div class="hero">
+    <h1>About</h1>
+    <p class="tag">What Great Lakes Investments is, how it works, and what it is not.</p>
+  </div>
+  <div class="disclaimer">
+    <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
+    <span>Everything on this site is simulated, using a paper-trading account with no real money. Nothing here is investment advice or a recommendation to buy or sell anything.</span>
+  </div>
+  <main>
+    <section>
+      <div class="section-head"><h2>What it is</h2></div>
+      <div class="methodology">
+        <p>Great Lakes Investments is an AI research system that studies the stock market every weekday, makes calls on what it expects to happen next, places simulated trades on those calls, and then grades itself against what actually happened.</p>
+        <p>It runs entirely on its own. Nobody picks the stocks or edits the results. The point is to find out, honestly and in public, whether an AI can make market calls that hold up, and to learn from it when it can't.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>How a day works</h2></div>
+      <div class="methodology">
+        <p><strong>1. After the market closes,</strong> the system pulls the day's prices and news for a fixed watchlist of large US stocks and index funds.</p>
+        <p><strong>2. Claude, an AI model made by Anthropic,</strong> writes a market brief and picks a few stocks to watch, each with a direction (up or down), a confidence level, and a flag for upcoming events like earnings. Short calls need a specific, stated reason.</p>
+        <p><strong>3. Simulated trades</strong> open at the next morning's open, sized by rules the system has earned from its own track record, and close one day later.</p>
+        <p><strong>4. The next evening,</strong> every call is graded against real prices, and the dashboard updates with the results, good or bad.</p>
+        <p>Alongside that, the system periodically reviews its losing trades and writes down lessons that feed into future briefs. Visitors can also request an AI analysis of any stock or coin, or simulate a buy-and-hold fund purchase, and every request is shown with its outcome, including the times the AI decided not to trade.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>How it keeps itself honest</h2></div>
+      <div class="methodology">
+        <p><strong>Prices decide, not the AI.</strong> Profit and loss come from real fill prices. When the system found that Claude was grading its own calls more generously than the prices supported, it started showing both numbers side by side.</p>
+        <p><strong>No rule changes on thin evidence.</strong> A sizing rule only changes after at least 20 closed trades on each side of a comparison, so it doesn't chase noise.</p>
+        <p><strong>Always compared with the simple alternative.</strong> Every trade is measured against just holding the S&amp;P 500 (SPY) over the same window.</p>
+        <p><strong>Losses stay visible.</strong> The results are shown as they are, including the fact that the system has not yet shown an edge.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Where it's going</h2></div>
+      <div class="methodology">
+        <p>The plan moves one gated step at a time. First, keep building an honest paper track record. Next, a tiny real-money test of about $30, only after a written checklist is met, to prove the mechanics work with real fills. Larger amounts come only if the evidence shows a real edge after costs, and anything involving other people's money would require a proper legal structure first. The current checklist is on the Dashboard under "Road to a $30 Live Test."</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Built with</h2></div>
+      <div class="methodology">
+        <p>Claude (Anthropic) for analysis, Alpaca for market data and paper trading, Finnhub for news, GitHub Actions to run everything on a schedule, GitHub Pages for this site, and a small Cloudflare Worker for the request forms. The full code, a candid status memo, and the long-term roadmap are public on <a href="https://github.com/JackSmiley1/market-brief-agent" target="_blank" style="color:inherit; text-decoration:underline;">GitHub</a>.</p>
+      </div>
+    </section>
+  </main>
+</div>
+<!-- /view-about -->
 </div>
 <!-- /shell -->
 
@@ -1314,6 +1397,8 @@ async function main() {
   renderCryptoEquityChart(data.cryptoEquityCurve);
   renderFundValueChart(data.fundValueHistory);
   renderBenchmark(data.benchmark);
+  renderHonesty(data.honesty, data.overview);
+  renderReadiness(data.launchReadiness);
   renderRequests('stock', data.recentRequests);
   renderRequests('fund', data.recentRequests);
   renderRequests('crypto', data.recentRequests);
@@ -1334,6 +1419,7 @@ const REQUEST_OUTCOMES = {
   failed: ['Order failed', 'bad'],
   no_data: ['Symbol not found', 'bad'],
   sell_submitted: ['Sell placed', 'ok'],
+  halted: ['Halted: kill switch on', 'warn'],
   not_held: ['Sell: not held', 'warn'],
   skipped_conflict: ['Skipped: fund holds this ticker', 'warn'],
   blocked_by_short: ['Blocked: live short open', 'warn'],
@@ -1553,6 +1639,114 @@ function onDemandRowsHtml(pending, closed) {
 // src/benchmarkMath.js). Honest about uncertainty: the market-adjusted
 // figure carries its 95% interval, and the note says whether that interval
 // excludes zero (i.e. whether there's evidence of skill either way).
+// "Is Claude Honest About Its Own Calls?" (see exportSite.js's honesty).
+// Two series on ONE percent axis (same unit, no dual axis): the
+// price-checked hit rate and Claude's own grade, per week, plus a dashed
+// 50% coin-flip reference drawn as a third, unlabeled-in-tooltip dataset.
+function renderHonesty(h, o) {
+  const statsEl = document.getElementById('honesty-stats');
+  if (!statsEl) return;
+  if (!h || !h.weekly || h.weekly.length === 0) {
+    statsEl.innerHTML = '<div class="loading">Not enough graded calls yet.</div>';
+    return;
+  }
+  const v = h.verdicts;
+  const stats = [
+    { label: "Claude's own grade of its calls", value: o.claudeSelfGradePct != null ? o.claudeSelfGradePct.toFixed(1) + '%' : 'n/a', icon: 'target', color: '#8b7cf6' },
+    { label: 'What the prices actually say', value: o.directionalHitRatePct != null ? o.directionalHitRatePct.toFixed(1) + '%' : 'n/a', icon: 'percent', color: '#ff8a4c' },
+    { label: '"Played out" but the price went the wrong way', value: v.playedOutButWrongN + ' of ' + v.playedOutN, icon: 'alert', color: '#ef5b63' },
+    { label: '"Missed" but the price went the right way', value: v.missedButRightN + ' of ' + v.missedN, icon: 'activity', color: '#93989f' },
+  ];
+  statsEl.innerHTML = stats.map(s =>
+    '<div class="stat-card"><div class="icon-badge" style="background:' + s.color + '26; color:' + s.color + '">' + iconSvg(s.icon) + '</div>' +
+    '<div><div class="value">' + s.value + '</div><div class="label">' + s.label + '</div></div></div>'
+  ).join('');
+
+  const canvas = document.getElementById('honestyChart');
+  if (canvas) {
+    const fmtWeek = (w) => 'Week of ' + new Date(w + 'T12:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
+    new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: h.weekly.map(w => fmtWeek(w.week)),
+        datasets: [
+          { label: "Claude's own grade", data: h.weekly.map(w => w.selfGradePct), borderColor: '#8b7cf6', backgroundColor: '#8b7cf6', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0.2, fill: false },
+          { label: 'Price-checked', data: h.weekly.map(w => w.priceCheckedPct), borderColor: '#ff8a4c', backgroundColor: '#ff8a4c', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0.2, fill: false },
+          { label: 'Coin flip (50%)', data: h.weekly.map(() => 50), borderColor: 'rgba(147,152,159,0.6)', borderDash: [5, 4], borderWidth: 1.25, pointRadius: 0, pointHoverRadius: 0, fill: false },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false, // fixed-height wrapper, so it stays readable on phones
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: '#a6a29a', font: { family: 'Inter' } } },
+          tooltip: {
+            backgroundColor: '#131315', borderColor: '#2b2a26', borderWidth: 1, padding: 10,
+            filter: (item) => item.datasetIndex !== 2,
+            callbacks: {
+              label: (item) => {
+                const w = h.weekly[item.dataIndex];
+                return item.datasetIndex === 0
+                  ? "Claude's own grade: " + (w.selfGradePct ?? 'n/a') + '% (n=' + w.selfGradeN + ')'
+                  : 'Price-checked: ' + (w.priceCheckedPct ?? 'n/a') + '% (n=' + w.n + ')';
+              },
+            },
+          },
+        },
+        scales: {
+          x: { ticks: { color: '#a6a29a' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+          y: { min: 0, max: 100, ticks: { color: '#a6a29a', callback: (x) => x + '%' }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Calls graded as right', color: '#a6a29a', font: { family: 'Inter' } } },
+        },
+      },
+    });
+  }
+
+  const conf = h.byConfidence || [];
+  const tbody = document.querySelector('#honesty-conf tbody');
+  if (tbody) {
+    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    tbody.innerHTML = conf.map(b =>
+      '<tr><td>' + cap(b.confidence) + (b.n < 20 ? '<span class="flag">small sample</span>' : '') + '</td><td>' + b.n + '</td><td>' +
+      (b.priceCheckedPct != null ? b.priceCheckedPct.toFixed(1) + '%' : 'n/a') + '</td><td class="' + (b.avgTradePct == null ? '' : b.avgTradePct >= 0 ? 'pos' : 'neg') + '">' +
+      (b.avgTradePct != null ? (b.avgTradePct >= 0 ? '+' : '') + b.avgTradePct.toFixed(2) + '%' : 'n/a') + '</td></tr>'
+    ).join('');
+  }
+  const note = document.getElementById('honesty-note');
+  if (note) {
+    note.textContent = "Claude's grade is shown as-is and never used for sizing or trading decisions; the price check is what counts. " +
+      "Grading uses the next day's close-to-close move, so it can disagree with a trade's own result, which runs open to open.";
+  }
+}
+
+// "Road to a $30 Live Test" (see exportSite.js's launchReadiness).
+function renderReadiness(lr) {
+  const list = document.getElementById('ready-list');
+  if (!list) return;
+  if (!lr) { list.innerHTML = '<div class="loading">Not available yet.</div>'; return; }
+  const pct = Math.min(100, Math.round((lr.cleanStreak / lr.requiredCleanRuns) * 100));
+  document.getElementById('ready-fill').style.width = pct + '%';
+  document.getElementById('ready-count').textContent = lr.cleanStreak + ' of ' + lr.requiredCleanRuns + ' clean nightly runs in a row' +
+    (lr.killSwitchOn ? ' · kill switch ON' : '');
+  const pill = { done: ['Done', 'ok'], in_progress: ['In progress', 'warn'], todo: ['Not done', 'pass'] };
+  list.innerHTML = lr.items.map(it => {
+    const [label, cls] = pill[it.status] || [it.status, 'pass'];
+    return '<div class="brief-row req-row"><div class="req-head"><span>' + escapeHtml(it.label) + '</span>' +
+      '<span class="req-outcome ' + cls + '">' + label + '</span></div>' +
+      '<div class="movers" style="margin-top:4px;">' + escapeHtml(it.detail) + '</div></div>';
+  }).join('');
+  const mirror = document.getElementById('ready-mirror');
+  const order = { would_buy: 0, skipped_min: 1, skipped_short: 2 };
+  const rows = [...(lr.mirror || [])].sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3));
+  if (mirror && rows.length) {
+    const lbl = { would_buy: 'Would buy', skipped_short: 'Skipped (short)', skipped_min: 'Skipped (under $1)', no_longs: 'No long picks', halted: 'Halted' };
+    mirror.innerHTML = rows.map(r =>
+      '<div class="brief-row"><span>' + (r.ticker !== '-' ? tickerBadge(r.ticker) + escapeHtml(r.ticker) + ' · ' : '') + escapeHtml(r.date) + '</span>' +
+      '<span class="movers">' + (lbl[r.status] || escapeHtml(r.status)) + (r.notional != null ? ' $' + Number(r.notional).toFixed(2) : '') + '</span></div>'
+    ).join('');
+  }
+}
+
 function renderBenchmark(bm) {
   const el = document.getElementById('benchmark-stats');
   if (!el) return;
@@ -1801,7 +1995,7 @@ main().catch(err => {
 // server, no separate HTML files, just toggling which .view is displayed
 // and mirroring the choice into location.hash so a link/refresh lands on
 // the right tab.
-const VIEWS = ['dashboard', 'mutual-funds', 'crypto'];
+const VIEWS = ['dashboard', 'mutual-funds', 'crypto', 'about'];
 let cryptoLoaded = false;
 
 function switchView(viewName, pushHash) {

@@ -236,3 +236,34 @@ db.exec(`
     PRIMARY KEY (date, symbol)
   );
 `);
+
+// One row per scheduled pipeline run (added 2026-09-30), written by
+// src/logRun.js at the end of the nightly workflow from GitHub's own step
+// outcomes. Powers the dashboard's launch-readiness tracker ("N consecutive
+// clean nightly runs"). clean = every tracked step succeeded, including the
+// ones allowed to fail without stopping the run (crypto, benchmark).
+db.exec(`
+  CREATE TABLE IF NOT EXISTS pipeline_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_at TEXT NOT NULL,
+    workflow TEXT NOT NULL,
+    run_id TEXT,
+    event TEXT,
+    clean INTEGER NOT NULL,
+    steps_json TEXT NOT NULL
+  );
+`);
+
+// Dry-run orders for the $30 shadow account (added 2026-09-30), written by
+// src/liveMirror.js. Nothing in this table was ever sent to any broker.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS live_dryrun_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL,
+    pick_date TEXT NOT NULL,
+    ticker TEXT NOT NULL,
+    notional REAL,
+    status TEXT NOT NULL,
+    note TEXT
+  );
+`);

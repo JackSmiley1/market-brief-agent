@@ -1,7 +1,7 @@
 import axios from "axios";
 import { db } from "./db.js";
 import { ALPACA_TRADING_BASE, computeNotional, PORTFOLIO_LIMITS } from "./config.js";
-import { buildCloseOrder, isCrypto, positionPathSymbol } from "./orders.js";
+import { buildCloseOrder, isCrypto, positionPathSymbol, tradingHalted } from "./orders.js";
 
 const headers = {
   "APCA-API-KEY-ID": process.env.ALPACA_KEY_ID,
@@ -230,6 +230,10 @@ export async function reconcileExits() {
 // them. (Self-healing: if a previous run's close attempt failed and left a
 // position stuck 'open', this will retry it too, not just today's batch.)
 export async function closeMaturePositions() {
+  if (tradingHalted()) {
+    console.warn("paperTrade: TRADING_HALTED is on (kill switch) — closing positions skipped, nothing ordered.");
+    return;
+  }
   const open = openPositionsStmt.all();
   for (const row of open) {
     try {
@@ -263,6 +267,10 @@ export async function closeMaturePositions() {
 // the notional buys used for longs) — not used as the actual fill price,
 // which still comes from the reconciled order itself.
 export async function openNewPositions(date, items, priceMap = {}, source = "nightly") {
+  if (tradingHalted()) {
+    console.warn("paperTrade: TRADING_HALTED is on (kill switch) — opening new positions skipped, nothing ordered.");
+    return items.map((i) => ({ ticker: i.ticker, status: "halted" }));
+  }
   // Snapshot current exposure once, then track it running as this batch
   // opens positions — each new order counts against the cap for the rest
   // of this same call, not just against what was already open before it
@@ -362,6 +370,10 @@ const allocationPositionStmt = db.prepare(
   `SELECT 1 FROM paper_trades WHERE ticker = ? AND source = ? AND status NOT IN ('entry_failed', 'closed') LIMIT 1`
 );
 export async function openAllocationPositions(symbols, notionalPerPosition, source) {
+  if (tradingHalted()) {
+    console.warn("paperTrade: TRADING_HALTED is on (kill switch) — allocation buys skipped, nothing ordered.");
+    return symbols.map((ticker) => ({ ticker, status: "halted" }));
+  }
   const results = [];
   for (const ticker of symbols) {
     if (allocationPositionStmt.get(ticker, source)) {
@@ -434,6 +446,10 @@ const markAllocationSellPendingStmt = db.prepare(
 );
 
 export async function sellHeldPosition(ticker) {
+  if (tradingHalted()) {
+    console.warn("paperTrade: TRADING_HALTED is on (kill switch) — sell skipped, nothing ordered.");
+    return { ticker, status: "halted" };
+  }
   const row = heldAllocationStmt.get(ticker);
   if (!row) return { ticker, status: "not_held" };
   if (!row.qty) return { ticker, status: "failed", error: "No filled quantity recorded for this position yet" };

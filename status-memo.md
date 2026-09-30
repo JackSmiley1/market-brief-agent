@@ -132,6 +132,19 @@ Why the old shorts lost, per a September 29 review of our own trades plus publis
 
 Effect on the draft pass/fail bar: this is a prompt change, so short trades before and after September 29 shouldn't be pooled. The long-side count for Gate B is arguably unaffected, since long instructions didn't change, but the list-length change could shift which longs get picked. Treat that as an open question for the Drover conversation rather than settled.
 
+
+## New: AI honesty tracking, launch readiness, kill switch, About tab (September 30)
+
+- **"Is Claude Honest About Its Own Calls?"** (Dashboard): Claude's self-grade vs. the price-checked hit rate per week, verdict asymmetry, and whether its confidence ratings mean anything. First read: the self-grading gap is widening, not shrinking (the weeks of Sep 14 and Sep 21 graded themselves around 70-75% while prices said about 40%). Claude says "played out" on calls where the price went the wrong way far more often than it says "missed" on calls that went right. "Low" confidence calls do worst on return, but "high" has too few calls to judge. Display only, no effect on trading.
+- **"Road to a $30 Live Test"** (Dashboard): Gate A as a live checklist, with a clean-run counter fed by a new `pipeline_runs` log (`src/logRun.js`, recorded from GitHub's own step outcomes, including steps allowed to fail). The nightly workflow's log, export, and commit steps now run even when an earlier step fails, so a broken night is recorded and published instead of silently skipped.
+- **Kill switch:** a `TRADING_HALTED` repository variable (GitHub → Settings → Secrets and variables → Actions → Variables). When set to `true`, no workflow places any new order; reconciliation of existing orders continues. It's passed into every trading step and tested in `tests/orders.test.js`.
+- **Inert live workflow** (`live-mirror.yml` → `src/liveMirror.js`): after each nightly run, it records what a $30 long-only account would buy (the budget split evenly across that night's longs, shorts skipped, $1 minimum). It is a dry run. There is no live endpoint or live key anywhere in the repo, and the Worker cannot trigger it. Going live would take a deliberate code change plus a logged decision.
+- **About tab:** a plain-language explanation of the project, with no personal details.
+
+## Schedule review (September 30): keep after-close, for now
+
+GitHub's scheduler has been firing the nightly run 2.5 to 3.7 hours late (for example, 9:11 PM ET on Sep 28), consistent with other users' reports since late August. After-close analysis with next-open entry is the only timing that tolerates that, since anything finishing before 9:30 AM still works. A pre-market run would be fresher, since it would see overnight news, but on this scheduler it would sometimes miss the open. It would also need a more punctual trigger (for example, a Cloudflare Worker cron dispatching the workflow) and would restart the evidence count. The bigger open question is the one-day hold, not the clock time: research on short-term reversal and overnight returns suggests one-day, open-to-open trades mostly capture noise. That's worth testing as a separate paper experiment, not as a change to the main strategy.
+
 ## Bottom line
 
 This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Price-checked, its directional calls are not yet distinguishable from a coin flip (52.7%), and it hasn't beaten simply holding SPY. The one result that has cleared the project's own statistical bar is that shorts underperform, even after removing the market's move. It is not yet net profitable (-0.41% blended across 97 trades), has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.

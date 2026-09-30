@@ -37,3 +37,13 @@ test("positions path uses Alpaca's unslashed crypto symbol (BTC/USD -> BTCUSD)",
 test("positions path leaves stock symbols unchanged", () => {
   assert.equal(positionPathSymbol("SPY"), "SPY");
 });
+
+import { tradingHalted } from "../src/orders.js";
+
+test("kill switch: only an explicit 'true' halts trading", () => {
+  assert.equal(tradingHalted({ TRADING_HALTED: "true" }), true);
+  assert.equal(tradingHalted({ TRADING_HALTED: " TRUE " }), true);
+  assert.equal(tradingHalted({ TRADING_HALTED: "false" }), false);
+  assert.equal(tradingHalted({ TRADING_HALTED: "" }), false);
+  assert.equal(tradingHalted({}), false);
+});

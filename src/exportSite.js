@@ -5,6 +5,7 @@ import { db } from "./db.js";
 import { PAPER_TRADE_BASE_NOTIONAL, SIZING_ADJUSTMENTS, PORTFOLIO_LIMITS } from "./config.js";
 import { aggregateTrades } from "./stats.js";
 import { benchmarkTrade, summarizeBenchmark, spyBuyAndHold } from "./benchmarkMath.js";
+import { tradingHalted } from "./orders.js";
 
 // Turns logs/brief-data.db into a single static JSON file the dashboard
 // (docs/index.html) fetches client-side. Runs nightly in CI right after the
@@ -437,6 +438,108 @@ const recentRequests = db
     analysis: r.analysis && r.analysis.length > ANALYSIS_MAX_CHARS ? r.analysis.slice(0, ANALYSIS_MAX_CHARS) + "…" : r.analysis,
   }));
 
+// ---- AI honesty (added 2026-09-30) ----
+// Measures Claude as a forecaster, separately from P&L:
+//   - weekly: Claude's self-grade vs. the price-checked hit rate, per week,
+//     so the dashboard shows whether the self-grading gap is shrinking.
+//   - byConfidence: does "high" confidence actually beat "low"?
+//   - verdicts: how often "played out" came with the price moving the
+//     WRONG way, and "missed" with the price moving the RIGHT way.
+// Stock nightly calls only. Display only; never feeds sizing or picks.
+const honestyRows = db
+  .prepare(
+    `SELECT w.date, w.outcome, w.confidence, w.result_pct_change AS r, p.direction AS d,
+            CASE WHEN p.status = 'closed' THEN p.realized_pnl_pct END AS tradePct
+     FROM watchlist_followups w
+     JOIN paper_trades p ON p.date = w.date AND p.ticker = w.ticker AND p.source = 'nightly'
+     WHERE w.ticker NOT LIKE '%/%' AND w.result_pct_change IS NOT NULL AND p.direction IS NOT NULL`
+  )
+  .all()
+  .map((x) => ({ ...x, right: (x.d === "short" ? -x.r : x.r) > 0 }));
+const pct1 = (a, b) => (b > 0 ? Number(((a / b) * 100).toFixed(1)) : null);
+const mondayOf = (d) => {
+  const t = new Date(d + "T12:00:00Z");
+  const back = (t.getUTCDay() + 6) % 7;
+  return new Date(t.getTime() - back * 864e5).toISOString().slice(0, 10);
+};
+const weekMap = new Map();
+for (const x of honestyRows) {
+  const k = mondayOf(x.date);
+  const w = weekMap.get(k) ?? { week: k, n: 0, right: 0, verdictN: 0, playedOut: 0 };
+  w.n += 1;
+  if (x.right) w.right += 1;
+  if (["played_out", "partial", "missed"].includes(x.outcome)) {
+    w.verdictN += 1;
+    if (x.outcome === "played_out") w.playedOut += 1;
+  }
+  weekMap.set(k, w);
+}
+// Weeks with fewer than 5 graded calls (usually the current, partial week)
+// are left off the chart: one or two calls make a meaningless 0% or 100%.
+const HONESTY_MIN_WEEK_N = 5;
+const honestyWeekly = [...weekMap.values()]
+  .filter((w) => w.n >= HONESTY_MIN_WEEK_N)
+  .sort((a, b) => a.week.localeCompare(b.week))
+  .map((w) => ({ week: w.week, n: w.n, priceCheckedPct: pct1(w.right, w.n), selfGradePct: pct1(w.playedOut, w.verdictN), selfGradeN: w.verdictN }));
+const honestyByConfidence = ["high", "medium", "low"]
+  .map((c) => {
+    const xs = honestyRows.filter((x) => x.confidence === c);
+    const traded = xs.filter((x) => x.tradePct != null);
+    return {
+      confidence: c,
+      n: xs.length,
+      priceCheckedPct: pct1(xs.filter((x) => x.right).length, xs.length),
+      avgTradePct: traded.length ? Number((traded.reduce((a, x) => a + x.tradePct, 0) / traded.length).toFixed(2)) : null,
+      tradeN: traded.length,
+    };
+  })
+  .filter((b) => b.n > 0);
+const po = honestyRows.filter((x) => x.outcome === "played_out");
+const mi = honestyRows.filter((x) => x.outcome === "missed");
+const honesty = {
+  weekly: honestyWeekly,
+  byConfidence: honestyByConfidence,
+  verdicts: {
+    playedOutN: po.length,
+    playedOutButWrongN: po.filter((x) => !x.right).length,
+    missedN: mi.length,
+    missedButRightN: mi.filter((x) => x.right).length,
+  },
+};
+
+// ---- Launch readiness: Gate A of roadmap.md's draft pass/fail bar ----
+// (added 2026-09-30). Statuses are computed where the repo can know them
+// (clean-run streak, kill switch, dry-run mirror); the rest are manual
+// steps and stay "not done" until someone changes them here on purpose.
+const REQUIRED_CLEAN_RUNS = 20;
+const nightlyRuns = db.prepare(`SELECT run_at, clean FROM pipeline_runs WHERE workflow = 'nightly' ORDER BY id DESC`).all();
+let cleanStreak = 0;
+for (const r of nightlyRuns) { if (r.clean) cleanStreak += 1; else break; }
+const firstLogged = nightlyRuns.length ? nightlyRuns.at(-1).run_at.slice(0, 10) : null;
+const mirrorRows = db.prepare(`SELECT pick_date, ticker, notional, status, note FROM live_dryrun_orders ORDER BY id DESC LIMIT 12`).all();
+const lastMirrorDate = mirrorRows[0]?.pick_date ?? null;
+const launchReadiness = {
+  requiredCleanRuns: REQUIRED_CLEAN_RUNS,
+  cleanStreak,
+  loggedRuns: nightlyRuns.length,
+  countingSince: firstLogged,
+  killSwitchOn: tradingHalted(),
+  items: [
+    { key: "scope", label: "Scope: nightly long picks only, fractional shares, $30", status: lastMirrorDate ? "done" : "in_progress",
+      detail: lastMirrorDate ? "Modeled every night by the dry-run mirror below." : "Dry-run mirror built; first run pending." },
+    { key: "separation", label: "Separate live workflow, unreachable from the public dashboard", status: "done",
+      detail: "Built inert: no live endpoint or keys exist in the code, and the dashboard's Worker can't trigger it." },
+    { key: "killswitch", label: "Kill switch checked before every order", status: "done",
+      detail: "One repository setting halts all new orders." },
+    { key: "reliability", label: `${REQUIRED_CLEAN_RUNS} consecutive clean nightly runs`, status: cleanStreak >= REQUIRED_CLEAN_RUNS ? "done" : "in_progress",
+      detail: nightlyRuns.length ? `${cleanStreak} of ${REQUIRED_CLEAN_RUNS} so far (counting since ${firstLogged}).` : "Counting starts with the next nightly run." },
+    { key: "account", label: "Confirm small-account settlement and fractional support with Alpaca", status: "todo", detail: "A manual check before any real order." },
+    { key: "stoprule", label: "Stop rule: pause live trading after a 20% drop from the high", status: "todo", detail: "Only matters once live; to be built into the live path." },
+    { key: "decision", label: "The go-live decision, made and logged by the owner", status: "todo", detail: "Not an automatic step, by design." },
+  ],
+  mirror: mirrorRows.filter((r) => r.pick_date === lastMirrorDate).map((r) => ({ date: r.pick_date, ticker: r.ticker, notional: r.notional, status: r.status, note: r.note })),
+};
+
 const output = {
   generatedAt: new Date().toISOString(),
   minSampleSize: MIN_N,
@@ -458,6 +561,8 @@ const output = {
   },
   equityCurve,
   benchmark,
+  honesty,
+  launchReadiness,
   buckets,
   byTicker,
   methodology: {

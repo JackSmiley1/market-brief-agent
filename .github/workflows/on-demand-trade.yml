@@ -61,6 +61,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
       - name: Export public dashboard data
         run: npm run export-site

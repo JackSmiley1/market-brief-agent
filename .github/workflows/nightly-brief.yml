@@ -27,12 +27,16 @@ jobs:
         with: { node-version: '22' }   # node:sqlite (used by src/db.js) needs Node 22.5+
       - run: npm install
       - name: Run tests (sizing logic must be correct before it touches real orders)
+        id: tests
         run: npm test
-      - run: npm run brief
+      - name: Run stock brief + paper trades
+        id: brief
+        run: npm run brief
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
       - name: Run nightly crypto watchlist (separate source tag, long-only, flat sizing)
         # Same job/commit as the stock brief above, not a separate cron —
@@ -40,11 +44,13 @@ jobs:
         # Failure here is non-fatal to the rest of the workflow (own
         # try/catch inside cryptoNightly.js isn't needed at this level since
         # this step runs independently of reflect/export-site below it).
+        id: crypto
         run: npm run crypto-brief
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
           FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
         continue-on-error: true
       - name: Reflect on recent losing trades (Reflexion-style lesson synthesis)
@@ -55,20 +61,37 @@ jobs:
         # row when there's actually a big enough new batch to reflect on.
         # Whatever it writes here feeds into the NEXT night's brief, not
         # tonight's (already generated above).
+        id: reflect
         run: npm run reflect
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       - name: Refresh SPY benchmark bars (read-only market data)
         # Non-fatal: a data hiccup here only leaves the benchmark a day
         # stale, never blocks the brief/trades above or the export below.
+        id: benchmark
         run: npm run benchmark
         env:
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
         continue-on-error: true
+      - name: Log this run for the launch-readiness tracker
+        # always(): a failed step above must still be recorded as a failure.
+        if: always()
+        run: node src/logRun.js nightly
+        env:
+          STEPS_JSON: ${{ toJSON(steps) }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_EVENT: ${{ github.event_name }}
       - name: Export public dashboard data
+        # always(): publish the record even when an earlier step failed, so
+        # the dashboard never hides a broken night.
+        if: always()
         run: npm run export-site
+        env:
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
       - name: Commit brief + dashboard data back to repo
+        if: always()
         run: |
           git config user.name "brief-bot"
           git config user.email "actions@github.com"
