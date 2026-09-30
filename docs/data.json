@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T00:43:51.630Z",
+  "generatedAt": "2026-09-30T17:08:37.896Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 103,
@@ -991,9 +991,136 @@
     },
     "buyAndHold": {
       "from": "2026-08-18",
-      "to": "2026-09-29",
-      "pct": -0.33
+      "to": "2026-09-30",
+      "pct": 0.18
     }
+  },
+  "honesty": {
+    "weekly": [
+      {
+        "week": "2026-08-17",
+        "n": 18,
+        "priceCheckedPct": 55.6,
+        "selfGradePct": 82.4,
+        "selfGradeN": 17
+      },
+      {
+        "week": "2026-08-24",
+        "n": 15,
+        "priceCheckedPct": 46.7,
+        "selfGradePct": 50,
+        "selfGradeN": 14
+      },
+      {
+        "week": "2026-08-31",
+        "n": 17,
+        "priceCheckedPct": 70.6,
+        "selfGradePct": 68.8,
+        "selfGradeN": 16
+      },
+      {
+        "week": "2026-09-07",
+        "n": 13,
+        "priceCheckedPct": 69.2,
+        "selfGradePct": 61.5,
+        "selfGradeN": 13
+      },
+      {
+        "week": "2026-09-14",
+        "n": 17,
+        "priceCheckedPct": 41.2,
+        "selfGradePct": 75,
+        "selfGradeN": 16
+      },
+      {
+        "week": "2026-09-21",
+        "n": 16,
+        "priceCheckedPct": 37.5,
+        "selfGradePct": 68.8,
+        "selfGradeN": 16
+      }
+    ],
+    "byConfidence": [
+      {
+        "confidence": "high",
+        "n": 4,
+        "priceCheckedPct": 50,
+        "avgTradePct": -0.09,
+        "tradeN": 4
+      },
+      {
+        "confidence": "medium",
+        "n": 52,
+        "priceCheckedPct": 55.8,
+        "avgTradePct": -0.19,
+        "tradeN": 49
+      },
+      {
+        "confidence": "low",
+        "n": 23,
+        "priceCheckedPct": 47.8,
+        "avgTradePct": -1.49,
+        "tradeN": 22
+      }
+    ],
+    "verdicts": {
+      "playedOutN": 65,
+      "playedOutButWrongN": 28,
+      "missedN": 10,
+      "missedButRightN": 1
+    }
+  },
+  "launchReadiness": {
+    "requiredCleanRuns": 20,
+    "cleanStreak": 0,
+    "loggedRuns": 0,
+    "countingSince": null,
+    "killSwitchOn": false,
+    "items": [
+      {
+        "key": "scope",
+        "label": "Scope: nightly long picks only, fractional shares, $30",
+        "status": "in_progress",
+        "detail": "Dry-run mirror built; first run pending."
+      },
+      {
+        "key": "separation",
+        "label": "Separate live workflow, unreachable from the public dashboard",
+        "status": "done",
+        "detail": "Built inert: no live endpoint or keys exist in the code, and the dashboard's Worker can't trigger it."
+      },
+      {
+        "key": "killswitch",
+        "label": "Kill switch checked before every order",
+        "status": "done",
+        "detail": "One repository setting halts all new orders."
+      },
+      {
+        "key": "reliability",
+        "label": "20 consecutive clean nightly runs",
+        "status": "in_progress",
+        "detail": "Counting starts with the next nightly run."
+      },
+      {
+        "key": "account",
+        "label": "Confirm small-account settlement and fractional support with Alpaca",
+        "status": "done",
+        "detail": "All 32 watchlist stocks support fractional shares (checked with Alpaca 2026-09-30). Settlement: 1x buying power, proceeds reusable immediately."
+      },
+      {
+        "key": "stoprule",
+        "label": "Stop rule: pause live trading after a 20% drop from the high",
+        "status": "todo",
+        "detail": "Only matters once live; to be built into the live path."
+      },
+      {
+        "key": "decision",
+        "label": "The go-live decision, made and logged by the owner",
+        "status": "todo",
+        "detail": "Not an automatic step, by design."
+      }
+    ],
+    "mirror": []
   },
   "buckets": {
     "direction": [
