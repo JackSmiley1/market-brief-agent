@@ -12,34 +12,37 @@ const headers = {
   "APCA-API-SECRET-KEY": process.env.ALPACA_SECRET_KEY,
 };
 
-// Unlike fetchMarketData.js's per-symbol loop, Alpaca's crypto bars endpoint
-// accepts multiple symbols in a single request (a "symbols" query param,
-// comma-separated) — one HTTP call covers everything requested. Currently
-// only ever called with one symbol at a time (onDemandCrypto.js analyzes one
-// crypto per request), but written to accept a list since the endpoint
-// itself does, same spirit as fetchMarketData's own symbols param.
+// ONE REQUEST PER SYMBOL (fixed 2026-10-01). This used to send every symbol
+// in a single multi-symbol request with limit=6. But Alpaca's `limit` counts
+// TOTAL data points across all symbols, not per symbol ("The limit applies
+// to the total number of data points, not per symbol!", Alpaca crypto bars
+// docs). With sort=desc, all 6 slots went to XRP/USD, so from Sep 26 to Sep
+// 30 the nightly crypto agent only ever saw XRP and never traded. Same
+// per-symbol pattern as fetchMarketData.js; one symbol failing no longer
+// affects the others.
 export async function fetchCryptoMarketData(symbols) {
   if (!symbols || symbols.length === 0) return [];
 
   const start = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const params = {
-    symbols: symbols.join(","),
-    timeframe: "1Day",
-    limit: 6,
-    start,
-    sort: "desc", // see fetchMarketData.js's identical comment — avoids silently getting the OLDEST 6 bars in the window
-  };
-
-  let barsBySymbol;
-  try {
-    const res = await axios.get(`${CRYPTO_DATA_BASE}/bars`, { headers, params });
-    barsBySymbol = res.data?.bars ?? {};
-  } catch (err) {
-    console.error(
-      "fetchCryptoMarketData: request failed:",
-      err.response?.data ? JSON.stringify(err.response.data) : err.message
-    );
-    return [];
+  const barsBySymbol = {};
+  for (const symbol of symbols) {
+    const params = {
+      symbols: symbol,
+      timeframe: "1Day",
+      limit: 6,
+      start,
+      sort: "desc", // see fetchMarketData.js's identical comment — avoids silently getting the OLDEST 6 bars in the window
+    };
+    try {
+      const res = await axios.get(`${CRYPTO_DATA_BASE}/bars`, { headers, params });
+      barsBySymbol[symbol] = res.data?.bars?.[symbol] ?? [];
+    } catch (err) {
+      console.error(
+        `fetchCryptoMarketData: request for ${symbol} failed:`,
+        err.response?.data ? JSON.stringify(err.response.data) : err.message
+      );
+      barsBySymbol[symbol] = [];
+    }
   }
 
   const results = [];

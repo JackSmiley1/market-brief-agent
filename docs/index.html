@@ -1806,7 +1806,7 @@ function renderChangeLog(items) {
   if (!el) return;
   const list = items || [];
   if (!list.length) { el.innerHTML = '<div class="loading">No changes logged.</div>'; return; }
-  const cls = { Strategy: 'warn', Measurement: 'ok', Safety: 'pass', Decision: 'pass', Experiment: 'ok' };
+  const cls = { Strategy: 'warn', Measurement: 'ok', Safety: 'pass', Decision: 'pass', Experiment: 'ok', Fix: 'bad' };
   el.innerHTML = list.map(c =>
     '<div class="brief-row req-row"><div class="req-head"><span>' + escapeHtml(new Date(c.date + 'T12:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })) + '</span>' +
     '<span class="req-outcome ' + (cls[c.kind] || 'pass') + '">' + escapeHtml(c.kind) + '</span></div>' +

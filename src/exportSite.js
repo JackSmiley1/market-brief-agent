@@ -605,6 +605,7 @@ try {
 // dashboard so results can be read against what changed when. Add to it in
 // the same commit as any future change.
 const changeLog = [
+  { date: "2026-10-01", kind: "Fix", text: "Fixed a data bug: the nightly crypto agent had only been receiving prices for XRP (one of its 10 coins), so it never found a trade. It now sees all 10. Crypto results before this date reflect the bug." },
   { date: "2026-10-01", kind: "Experiment", text: "Started a separate long-horizon track: Claude forecasts company fundamentals, code ranks them, and a virtual top-5 portfolio is tracked against SPY. It places no orders and doesn't touch the nightly strategy." },
   { date: "2026-09-30", kind: "Safety", text: "Added a kill switch, a clean-run log, and a dry-run of a $30 live account. Nothing about which trades get made changed." },
   { date: "2026-09-29", kind: "Strategy", text: "Shorts now need a specific, stated reason, and the agent is no longer forced to make 3-5 picks a night. Shorts had been the main source of losses." },
