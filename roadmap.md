@@ -76,6 +76,20 @@ Written down before any data exists, so the success bar can't be fitted to the r
 
 **Why it matters for the plan.** It's long-only, so if it works, it fits the $30 account, which can't short anyway.
 
+
+### Long-horizon track (October 1, built and running as a separate experiment)
+
+Inspired by FutureSearch's S&P 500 study, whose central lesson is that short-term moves are close to unpredictable while long-run business forecasts may not be. Pre-registered here before any results exist.
+
+**Design.** Each quarter (the 15th of Feb, May, Aug, and Nov), Claude forecasts each watchlist company's 5-year revenue growth (p10/p50/p90) and year-5 net margin from Finnhub fundamentals and recent headlines. Code converts that into an implied annual return: today's revenue grown at the p50 rate, times the margin, at a uniform 18x exit P/E, against today's market cap. The top 5 are held equally weighted from the next session's open until the next quarter. It's a virtual portfolio marked to daily prices: no orders, separate tables, and it never touches the nightly strategy.
+
+**Success bar (judged at 4 quarters, about October 2027):**
+1. The top-5 portfolio beats SPY over the full period.
+2. Forecast calibration: actual reported revenue growth falls inside Claude's p10-p90 range about 80% of the time.
+3. The top half of the ranking beats the bottom half. That tests whether the ranking itself carries information, not just a lucky top 5.
+
+**What it is not.** Four quarters of one 5-stock portfolio is still a small sample, and FutureSearch's own result shrank by half within three months of being published. Even if the bar is met, it's a reason to continue, not proof.
+
 ## Phase 3: opening the platform to other users (accounts, stocks, crypto, mutual funds)
 
 This is where the project stops being "an app you built" and starts being "a licensed financial institution," because holding other people's money and executing trades on their behalf is custody — one of the most heavily regulated activities in finance. Two realistic paths exist:

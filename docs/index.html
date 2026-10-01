@@ -110,6 +110,10 @@
 
   /* ---- Page tabs (Dashboard / Mutual Funds / Crypto) ---- */
   .tab-nav a { font-weight: 600; }
+  /* Five tabs don't fit a phone's width: let the row wrap instead of
+     pushing the page sideways. */
+  .tab-nav { flex-wrap: wrap; row-gap: 4px; min-width: 0; }
+  @media (max-width: 600px) { .tab-nav a { padding: 6px 10px; font-size: 13px; } }
   .tab-nav a.active { color: var(--on-accent); background: var(--accent); }
   .tab-nav a.active:hover { color: var(--on-accent); background: var(--accent); }
   .view { display: none; }
@@ -348,7 +352,8 @@
   .ready-count { color: var(--muted); font-size: 13px; white-space: nowrap; }
   .hold-actions { display: inline-flex; gap: 10px; align-items: center; }
   .btn-sell { padding: 4px 12px; font-size: 12.5px; }
-  .req-row { display: block; }
+  .brief-row.req-row { display: block; }
+  .req-row > .movers { text-align: left; }
   .req-row .req-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
   .req-outcome { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 4px; padding: 1px 7px; border: 1px solid var(--border); color: var(--muted); }
   .req-outcome.ok { color: var(--green); border-color: hsla(155, 58%, 50%, 0.35); background: hsla(155, 58%, 50%, 0.08); }
@@ -438,6 +443,7 @@
         <a href="#" class="tab-link active" data-view="dashboard">Dashboard</a>
         <a href="#mutual-funds" class="tab-link" data-view="mutual-funds">Mutual Funds</a>
         <a href="#crypto" class="tab-link" data-view="crypto">Crypto</a>
+        <a href="#long-horizon" class="tab-link" data-view="long-horizon">Long-Horizon</a>
         <a href="#about" class="tab-link" data-view="about">About</a>
       </nav>
     </div>
@@ -518,6 +524,12 @@
         </div>
       </div>
       <div class="chart-wrap"><canvas id="equityChart" height="90"></canvas></div>
+    </section>
+
+    <section id="changes-section">
+      <div class="section-head"><h2>What Changed, and When</h2></div>
+      <p class="section-sub">Every change to the strategy or how it's measured, dated, so the results above can be read against what was changed and when. Losses stay on the record; changes are logged rather than hidden.</p>
+      <div class="brief-list" id="change-list"><div class="loading">Loading…</div></div>
     </section>
 
     <section id="benchmark-section">
@@ -754,6 +766,38 @@
   </main>
 </div>
 <!-- /view-crypto -->
+
+<div id="view-long-horizon" class="view">
+  <div class="hero">
+    <h1>Long-Horizon</h1>
+    <p class="tag">A separate experiment: Claude forecasts each company's business years ahead, and code turns those forecasts into a ranking.</p>
+  </div>
+  <div class="disclaimer">
+    <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
+    <span>A virtual paper portfolio. No orders are placed, and it never affects the nightly strategy. Not investment advice.</span>
+  </div>
+  <main>
+    <section>
+      <div class="section-head"><h2>How it works</h2></div>
+      <div class="methodology">
+        <p>Every quarter, after earnings season, Claude reads each company's current fundamentals and recent news and forecasts two things: how fast revenue will grow over the next five years (with a low, middle, and high estimate) and what its profit margin will be in year five. It never says "buy" or "sell."</p>
+        <p>Code then values each company the same way: today's revenue grown at the middle estimate, times the forecast margin, at one uniform price-to-earnings multiple, compared with today's market value. That gives an implied yearly return, used only to rank. The five highest-ranked stocks are held, equally weighted, until the next quarter.</p>
+        <p>The idea comes from FutureSearch's study of the S&amp;P 500, whose central lesson is that short-term moves are close to unpredictable while long-run business forecasts may not be. Results here will take a year or more to mean anything.</p>
+      </div>
+    </section>
+    <section>
+      <div class="section-head"><h2>Performance vs. SPY</h2></div>
+      <div class="stat-grid" id="lh-stats"><div class="loading">The first forecasts haven't run yet.</div></div>
+      <div class="chart-wrap" style="margin-top:14px;"><div style="position:relative; height:280px;"><canvas id="lhChart"></canvas></div></div>
+    </section>
+    <section>
+      <div class="section-head"><h2>This quarter's forecasts</h2></div>
+      <p class="section-sub" id="lh-asof"></p>
+      <div class="bucket-group" style="overflow-x:auto;"><table id="lh-table" style="min-width:560px;"><thead><tr><th>Rank</th><th>Stock</th><th>Revenue growth / yr (low, mid, high)</th><th>Year-5 margin</th><th>Implied return / yr</th></tr></thead><tbody></tbody></table></div>
+    </section>
+  </main>
+</div>
+<!-- /view-long-horizon -->
 
 <div id="view-about" class="view">
   <div class="hero">
@@ -1106,8 +1150,15 @@ async function main() {
   const heroPnl = o.totalPnl ?? 0;
   const heroHtml =
     '<div class="hero-card"><div class="label">Total Realized P&amp;L</div>' +
-    '<div class="value">' + (heroPnl >= 0 ? '+' : '') + '$' + heroPnl.toFixed(2) + '</div>' +
-    '<div class="sub">' + o.closedTrades + ' closed simulated trades · ' + fmtPct(o.avgReturnPct) + ' avg return</div></div>';
+    '<div class="value">' + (heroPnl >= 0 ? '+$' : '−$') + Math.abs(heroPnl).toFixed(2) + '</div>' +
+    '<div class="sub">' + o.closedTrades + ' closed simulated trades · ' + fmtPct(o.avgReturnPct) + ' avg return</div>' +
+    // Context, not concealment: the same loss as a share of all dollars
+    // traded, and what the same dollars would have done in SPY.
+    ((o.totalNotional && o.totalNotional > 0)
+      ? '<div class="sub">' + ((heroPnl / o.totalNotional) * 100).toFixed(2) + '% of $' + Math.round(o.totalNotional).toLocaleString() + ' traded' +
+        ((data.benchmark && data.benchmark.n) ? ' · same dollars in SPY: ' + (data.benchmark.spySameDollarsPnl >= 0 ? '+' : '−') + '$' + Math.abs(data.benchmark.spySameDollarsPnl).toFixed(2) : '') + '</div>'
+      : '') +
+    '</div>';
 
   const tintBg = (hex) => hex + '26'; // ~15% alpha hex suffix, for icon-badge backgrounds
 
@@ -1399,6 +1450,8 @@ async function main() {
   renderBenchmark(data.benchmark);
   renderHonesty(data.honesty, data.overview);
   renderReadiness(data.launchReadiness);
+  renderChangeLog(data.changeLog);
+  renderLongHorizon(data.longHorizon);
   renderRequests('stock', data.recentRequests);
   renderRequests('fund', data.recentRequests);
   renderRequests('crypto', data.recentRequests);
@@ -1747,6 +1800,74 @@ function renderReadiness(lr) {
   }
 }
 
+// "What Changed, and When" (see exportSite.js's changeLog).
+function renderChangeLog(items) {
+  const el = document.getElementById('change-list');
+  if (!el) return;
+  const list = items || [];
+  if (!list.length) { el.innerHTML = '<div class="loading">No changes logged.</div>'; return; }
+  const cls = { Strategy: 'warn', Measurement: 'ok', Safety: 'pass', Decision: 'pass', Experiment: 'ok' };
+  el.innerHTML = list.map(c =>
+    '<div class="brief-row req-row"><div class="req-head"><span>' + escapeHtml(new Date(c.date + 'T12:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })) + '</span>' +
+    '<span class="req-outcome ' + (cls[c.kind] || 'pass') + '">' + escapeHtml(c.kind) + '</span></div>' +
+    '<div class="movers" style="margin-top:4px;">' + escapeHtml(c.text) + '</div></div>'
+  ).join('');
+}
+
+// Long-Horizon tab (see exportSite.js's longHorizon).
+function renderLongHorizon(lh) {
+  const stats = document.getElementById('lh-stats');
+  if (!stats || !lh) return;
+  const pct = (n) => n == null ? 'n/a' : (n >= 0 ? '+' : '') + Number(n).toFixed(2) + '%';
+  const cls = (n) => n == null ? '' : n >= 0 ? 'pos' : 'neg';
+  const last = (lh.series || []).at(-1);
+  const cards = [
+    { label: 'Top-5 portfolio' + (lh.startDate ? ' since ' + lh.startDate : ''), value: last ? pct(last.portfolioPct) : 'Starts next session', c: last ? cls(last.portfolioPct) : '', icon: 'trendUp', color: '#ff8a4c' },
+    { label: 'SPY over the same period', value: last ? pct(last.spyPct) : 'n/a', c: last ? cls(last.spyPct) : '', icon: 'layers', color: '#93989f' },
+    { label: 'Holding now', value: (lh.holdings || []).join(', '), c: '', icon: 'target', color: '#8b7cf6' },
+  ];
+  stats.innerHTML = cards.map(s =>
+    '<div class="stat-card"><div class="icon-badge" style="background:' + s.color + '26; color:' + s.color + '">' + iconSvg(s.icon) + '</div>' +
+    '<div><div class="value ' + s.c + '" style="font-size:20px;">' + escapeHtml(s.value) + '</div><div class="label">' + escapeHtml(s.label) + '</div></div></div>'
+  ).join('');
+  const asof = document.getElementById('lh-asof');
+  if (asof) asof.textContent = 'Forecast ' + lh.formedDate + '. ' + (lh.note ? lh.note.charAt(0).toUpperCase() + lh.note.slice(1) + '.' : '') + ' Implied return is a ranking signal, not a price target.';
+  const tbody = document.querySelector('#lh-table tbody');
+  if (tbody) {
+    const g = (x) => x == null ? 'n/a' : Number(x).toFixed(1) + '%';
+    tbody.innerHTML = (lh.ranking || []).map(r =>
+      '<tr title="' + escapeHtml(r.reasoning || '') + '"><td>' + (r.rank ?? '–') + (r.held ? '<span class="flag" style="color:var(--accent); border-color:var(--accent); background:var(--accent-dim);">held</span>' : '') + '</td>' +
+      '<td>' + tickerBadge(r.symbol) + escapeHtml(r.symbol) + '</td>' +
+      '<td>' + (r.status === 'ok' ? g(r.cagr[0]) + ', <strong>' + g(r.cagr[1]) + '</strong>, ' + g(r.cagr[2]) : '<span class="movers">' + escapeHtml(r.status.replace('_', ' ')) + '</span>') + '</td>' +
+      '<td>' + (r.status === 'ok' ? g(r.margin) : '') + '</td>' +
+      '<td class="' + cls(r.impliedReturn) + '">' + (r.status === 'ok' ? pct(r.impliedReturn) : '') + '</td></tr>'
+    ).join('');
+  }
+  const canvas = document.getElementById('lhChart');
+  const series = lh.series || [];
+  if (canvas && series.length >= 2) {
+    new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: series.map(p => p.date),
+        datasets: [
+          { label: 'Top-5 portfolio', data: series.map(p => p.portfolioPct), borderColor: '#ff8a4c', backgroundColor: '#ff8a4c', borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, tension: 0.2, fill: false },
+          { label: 'SPY', data: series.map(p => p.spyPct), borderColor: '#93989f', borderDash: [6, 4], borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 4, tension: 0.2, fill: false },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { labels: { color: '#a6a29a', font: { family: 'Inter' } } },
+          tooltip: { backgroundColor: '#131315', borderColor: '#2b2a26', borderWidth: 1, padding: 10, callbacks: { label: (i) => i.dataset.label + ': ' + pct(i.parsed.y) } } },
+        scales: { x: { ticks: { color: '#a6a29a', maxTicksLimit: 8 }, grid: { color: 'rgba(255,255,255,0.04)' } },
+          y: { ticks: { color: '#a6a29a', callback: (v) => v + '%' }, grid: { color: 'rgba(255,255,255,0.04)' }, title: { display: true, text: 'Return since start', color: '#a6a29a', font: { family: 'Inter' } } } },
+      },
+    });
+  } else if (canvas) {
+    canvas.parentElement.parentElement.innerHTML = '<div class="loading">The chart appears after a few trading days of prices.</div>';
+  }
+}
+
 function renderBenchmark(bm) {
   const el = document.getElementById('benchmark-stats');
   if (!el) return;
@@ -1995,7 +2116,7 @@ main().catch(err => {
 // server, no separate HTML files, just toggling which .view is displayed
 // and mirroring the choice into location.hash so a link/refresh lands on
 // the right tab.
-const VIEWS = ['dashboard', 'mutual-funds', 'crypto', 'about'];
+const VIEWS = ['dashboard', 'mutual-funds', 'crypto', 'long-horizon', 'about'];
 let cryptoLoaded = false;
 
 function switchView(viewName, pushHash) {

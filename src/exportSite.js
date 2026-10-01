@@ -6,6 +6,7 @@ import { PAPER_TRADE_BASE_NOTIONAL, SIZING_ADJUSTMENTS, PORTFOLIO_LIMITS, WATCHL
 import { aggregateTrades } from "./stats.js";
 import { benchmarkTrade, summarizeBenchmark, spyBuyAndHold } from "./benchmarkMath.js";
 import { tradingHalted } from "./orders.js";
+import { portfolioSeries } from "./longHorizonMath.js";
 
 // Turns logs/brief-data.db into a single static JSON file the dashboard
 // (docs/index.html) fetches client-side. Runs nightly in CI right after the
@@ -558,6 +559,65 @@ const launchReadiness = {
   mirror: mirrorRows.filter((r) => r.pick_date === lastMirrorDate).map((r) => ({ date: r.pick_date, ticker: r.ticker, notional: r.notional, status: r.status, note: r.note })),
 };
 
+// ---- Long-horizon track (added 2026-10-01; see src/longHorizon.js) ----
+// Wrapped so a problem here can never break the nightly export.
+let longHorizon = null;
+try {
+  const periods = db.prepare(`SELECT id, formed_date, model, note FROM lh_periods ORDER BY id`).all();
+  const spyDates = db.prepare(`SELECT date FROM benchmark_bars WHERE symbol = 'SPY' ORDER BY date`).all().map((r) => r.date);
+  const withHoldings = periods
+    .map((p) => ({
+      ...p,
+      holdings: db.prepare(`SELECT symbol FROM lh_forecasts WHERE period_id = ? AND held = 1 ORDER BY rank`).all(p.id).map((r) => r.symbol),
+      startDate: spyDates.find((d) => d > p.formed_date) ?? null, // entered at the next session's open
+    }))
+    .filter((p) => p.holdings.length > 0);
+  if (withHoldings.length) {
+    const latest = withHoldings.at(-1);
+    const symbols = [...new Set(withHoldings.flatMap((p) => p.holdings)), "SPY"];
+    const bars = {};
+    for (const s of symbols) {
+      bars[s] = Object.fromEntries(db.prepare(`SELECT date, open, close FROM benchmark_bars WHERE symbol = ?`).all(s).map((b) => [b.date, { open: b.open, close: b.close }]));
+    }
+    const valued = withHoldings.filter((p) => p.startDate).map((p) => ({ startDate: p.startDate, symbols: p.holdings }));
+    const series = portfolioSeries(valued, bars);
+    longHorizon = {
+      formedDate: latest.formed_date,
+      startDate: latest.startDate,
+      note: latest.note,
+      periods: withHoldings.length,
+      holdings: latest.holdings,
+      ranking: db.prepare(
+        `SELECT symbol, industry, cagr_p10, cagr_p50, cagr_p90, margin_2031, implied_return, rank, held, reasoning, status
+         FROM lh_forecasts WHERE period_id = ? ORDER BY CASE WHEN rank IS NULL THEN 1 ELSE 0 END, rank`
+      ).all(latest.id).map((r) => ({
+        symbol: r.symbol, industry: r.industry, cagr: [r.cagr_p10, r.cagr_p50, r.cagr_p90], margin: r.margin_2031,
+        impliedReturn: r.implied_return, rank: r.rank, held: !!r.held, reasoning: r.reasoning, status: r.status,
+      })),
+      series,
+    };
+  }
+} catch (err) {
+  console.error("exportSite: long-horizon block failed (non-fatal):", err.message);
+}
+
+// Dated log of every change to the strategy or its measurement, shown on the
+// dashboard so results can be read against what changed when. Add to it in
+// the same commit as any future change.
+const changeLog = [
+  { date: "2026-10-01", kind: "Experiment", text: "Started a separate long-horizon track: Claude forecasts company fundamentals, code ranks them, and a virtual top-5 portfolio is tracked against SPY. It places no orders and doesn't touch the nightly strategy." },
+  { date: "2026-09-30", kind: "Safety", text: "Added a kill switch, a clean-run log, and a dry-run of a $30 live account. Nothing about which trades get made changed." },
+  { date: "2026-09-29", kind: "Strategy", text: "Shorts now need a specific, stated reason, and the agent is no longer forced to make 3-5 picks a night. Shorts had been the main source of losses." },
+  { date: "2026-09-27", kind: "Measurement", text: "The direction hit rate is now checked against real prices. Claude's own, more generous grade is shown separately." },
+  { date: "2026-09-27", kind: "Measurement", text: "Every trade is now compared with simply holding SPY over the same window." },
+  { date: "2026-09-26", kind: "Safety", text: "Positions now close by their own share count, with guards so different strategies can't net against each other." },
+  { date: "2026-09-25", kind: "Decision", text: "Kept short-side sizing unchanged despite weak results, to avoid acting twice on the same small sample." },
+  { date: "2026-09-10", kind: "Strategy", text: "Position size is cut in half for low confidence, upcoming events, and shorts, based on the system's own results." },
+  { date: "2026-08-24", kind: "Strategy", text: "Claude started rating its own confidence on each pick." },
+  { date: "2026-08-20", kind: "Strategy", text: "Simulated trades can be long or short." },
+  { date: "2026-08-17", kind: "Strategy", text: "Simulated paper trading began." },
+];
+
 const output = {
   generatedAt: new Date().toISOString(),
   minSampleSize: MIN_N,
@@ -581,6 +641,8 @@ const output = {
   benchmark,
   honesty,
   launchReadiness,
+  longHorizon,
+  changeLog,
   buckets,
   byTicker,
   methodology: {

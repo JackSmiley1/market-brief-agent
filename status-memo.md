@@ -154,6 +154,14 @@ From Alpaca's own documentation:
 - **Fractional shares:** each symbol must be flagged `fractionable` by Alpaca. Fractional orders are day orders, and fractional sells are long-only. Our code already uses `time_in_force: "day"` for stocks. Per-symbol support for the watchlist is now checked directly against Alpaca's asset records by `src/checkAssets.js`, which runs in the manual Refresh Benchmark workflow, and the dashboard checklist reports the result.
 - **Pattern day trader rule:** doesn't apply either way, since positions are held overnight. FINRA has also adopted new intraday margin standards that replace the PDT designation and its $25,000 minimum, with the effective date set by a later FINRA notice.
 
+
+## October 1: honest context, a change log, and a long-horizon track
+
+- **The loss, in context, not hidden.** The dashboard's headline P&L now also shows it as a share of all dollars traded (−0.45% of $90,500 as of today) and what the same dollars did in SPY. A new "What Changed, and When" section dates every strategy and measurement change, so results can be read against them.
+- **Where the −$406 comes from:** shorts −$296 (56 trades) and low-confidence calls −$264 (23 trades), largely overlapping. Medium-confidence longs made +$37 (22 trades).
+- **Candidate change, logged, not made: stop trading low-confidence calls** (keep grading them). Low-confidence calls averaged −1.43% per trade vs. −0.24% for medium. They clear the n≥20 minimum, but the difference isn't statistically significant yet (t ≈ −1.3), and Jack chose not to change the strategy while the September 29 short rule is being tested. Revisit with more data, or with Dr. Drover.
+- **Long-horizon track:** a separate, FutureSearch-inspired experiment (see roadmap.md for design and success bar). Its own workflow (`long-horizon.yml`): quarterly forecasts, plus daily price marks after each nightly run. It has its own Long-Horizon tab, places no orders, and doesn't touch the nightly strategy or the clean-run count.
+
 ## Bottom line
 
 This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Price-checked, its directional calls are not yet distinguishable from a coin flip (52.7%), and it hasn't beaten simply holding SPY. The one result that has cleared the project's own statistical bar is that shorts underperform, even after removing the market's move. It is not yet net profitable (-0.41% blended across 97 trades), has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.

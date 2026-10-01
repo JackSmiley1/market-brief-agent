@@ -1,0 +1,74 @@
+name: Long-Horizon Track
+
+# Separate paper experiment (added 2026-10-01), inspired by FutureSearch:
+# Claude forecasts each watchlist company's revenue growth and future margin,
+# code ranks them by implied long-run return, and a virtual long-only top-5
+# portfolio is tracked against SPY. It PLACES NO ORDERS and never touches the
+# nightly strategy. See src/longHorizon.js and roadmap.md.
+#
+#   - Quarterly (15th of Feb/May/Aug/Nov, after earnings season): re-forecast
+#     and rebalance.
+#   - After each Nightly Market Brief: mark the portfolio to that day's prices.
+#   - Manually from the Actions tab: choose forecast or mark.
+
+on:
+  schedule:
+    - cron: '7 14 15 2,5,8,11 *'
+  workflow_run:
+    workflows: ["Nightly Market Brief"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'forecast = new quarterly forecasts + rebalance; mark = update prices only'
+        required: true
+        type: choice
+        options: [mark, forecast]
+        default: mark
+
+permissions:
+  contents: write
+
+concurrency:
+  group: market-brief-pipeline
+  cancel-in-progress: false
+
+jobs:
+  long-horizon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with: { ref: main }
+      - uses: actions/setup-node@v6
+        with: { node-version: '22' }
+      - run: npm install
+      - run: npm test
+      - name: Decide mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then echo "mode=forecast" >> "$GITHUB_OUTPUT";
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT";
+          else echo "mode=mark" >> "$GITHUB_OUTPUT"; fi
+      - name: Quarterly forecasts + rebalance (no orders)
+        if: steps.mode.outputs.mode == 'forecast'
+        run: node src/longHorizon.js forecast
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+      - name: Mark the virtual portfolio to market (read-only prices)
+        run: node src/longHorizon.js mark
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      - name: Export public dashboard data
+        run: npm run export-site
+        env:
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
+      - name: Commit result back to repo
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/ docs/data.json
+          git commit -m "Long-horizon ${{ steps.mode.outputs.mode }} ($(date +'%Y-%m-%d %H:%M'))" || echo "No changes"
+          git pull --rebase || true
+          git push

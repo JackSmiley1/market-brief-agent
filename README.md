@@ -71,6 +71,8 @@ src/
   orders.js            pure order-construction helpers (quantity-based closes, position symbols, kill switch) — unit tested
   logRun.js            records each nightly run's step outcomes (launch-readiness clean-run counter)
   liveMirror.js        INERT $30 long-only shadow account: records orders it would place, sends nothing
+  longHorizon.js       separate long-horizon experiment: quarterly fundamental forecasts, virtual top-5 portfolio vs SPY (no orders)
+  longHorizonMath.js   pure valuation/ranking/tracking math for it, unit tested
   fetchCryptoMarketData.js  Alpaca crypto price/volume data (v1beta3)
   stats.js               shared trade-aggregation math (used by checkpoint.js + exportSite.js)
   fetchMarketData.js   Alpaca price/volume data
@@ -90,7 +92,7 @@ src/
   computeConfidence.js   standalone confidence-bucket report (superseded day-to-day by checkpoint.js)
 worker/                 Cloudflare Worker for the dashboard's Invest and Sell buttons (PIN-gated proxy to workflow_dispatch)
 docs/                   the public dashboard (index.html) + generated data.json
-.github/workflows/      nightly-brief.yml (stocks + crypto), on-demand-trade.yml, invest-allocation.yml, crypto-invest.yml, fund-custom-invest.yml, sell-position.yml, refresh-benchmark.yml, live-mirror.yml (dry run)
+.github/workflows/      nightly-brief.yml (stocks + crypto), on-demand-trade.yml, invest-allocation.yml, crypto-invest.yml, fund-custom-invest.yml, sell-position.yml, refresh-benchmark.yml, live-mirror.yml (dry run), long-horizon.yml
 status-memo.md          current, honest state of the project — read this for real numbers
 roadmap.md              long-term vision + what it actually takes to get there
 tests/                  npm test (Node's built-in test runner) — see Tests below

@@ -281,3 +281,33 @@ db.exec(`
     checked_at TEXT NOT NULL
   );
 `);
+
+// Long-horizon track (added 2026-10-01), written by src/longHorizon.js. A
+// separate paper experiment: quarterly fundamental forecasts, a virtual
+// long-only top-5 portfolio, no orders. Never read by the nightly strategy.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS lh_periods (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    formed_at TEXT NOT NULL,
+    formed_date TEXT NOT NULL,
+    model TEXT,
+    note TEXT
+  );
+  CREATE TABLE IF NOT EXISTS lh_forecasts (
+    period_id INTEGER NOT NULL,
+    symbol TEXT NOT NULL,
+    industry TEXT,
+    revenue_now_m REAL,
+    market_cap_m REAL,
+    cagr_p10 REAL,
+    cagr_p50 REAL,
+    cagr_p90 REAL,
+    margin_2031 REAL,
+    implied_return REAL,
+    rank INTEGER,
+    held INTEGER NOT NULL DEFAULT 0,
+    reasoning TEXT,
+    status TEXT NOT NULL,
+    PRIMARY KEY (period_id, symbol)
+  );
+`);
