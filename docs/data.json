@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-01T00:47:56.651Z",
+  "generatedAt": "2026-10-01T00:48:10.933Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 107,
@@ -1123,8 +1123,8 @@
       {
         "key": "scope",
         "label": "Scope: nightly long picks only, fractional shares, $30",
-        "status": "in_progress",
-        "detail": "Dry-run mirror built; first run pending."
+        "status": "done",
+        "detail": "Modeled every night by the dry-run mirror below."
       },
       {
         "key": "separation",
@@ -1163,7 +1163,36 @@
         "detail": "Not an automatic step, by design."
       }
     ],
-    "mirror": []
+    "mirror": [
+      {
+        "date": "2026-09-30",
+        "ticker": "WMT",
+        "notional": null,
+        "status": "skipped_short",
+        "note": "Long-only account: shorts need a $2,000 margin account."
+      },
+      {
+        "date": "2026-09-30",
+        "ticker": "UNH",
+        "notional": null,
+        "status": "skipped_short",
+        "note": "Long-only account: shorts need a $2,000 margin account."
+      },
+      {
+        "date": "2026-09-30",
+        "ticker": "INTC",
+        "notional": 15,
+        "status": "would_buy",
+        "note": "DRY RUN: nothing was sent to any broker."
+      },
+      {
+        "date": "2026-09-30",
+        "ticker": "AMZN",
+        "notional": 15,
+        "status": "would_buy",
+        "note": "DRY RUN: nothing was sent to any broker."
+      }
+    ]
   },
   "buckets": {
     "direction": [
