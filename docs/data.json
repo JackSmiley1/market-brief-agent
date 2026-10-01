@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-01T00:48:10.933Z",
+  "generatedAt": "2026-10-01T14:19:29.485Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 107,
@@ -1194,6 +1194,64 @@
       }
     ]
   },
+  "longHorizon": null,
+  "changeLog": [
+    {
+      "date": "2026-10-01",
+      "kind": "Experiment",
+      "text": "Started a separate long-horizon track: Claude forecasts company fundamentals, code ranks them, and a virtual top-5 portfolio is tracked against SPY. It places no orders and doesn't touch the nightly strategy."
+    },
+    {
+      "date": "2026-09-30",
+      "kind": "Safety",
+      "text": "Added a kill switch, a clean-run log, and a dry-run of a $30 live account. Nothing about which trades get made changed."
+    },
+    {
+      "date": "2026-09-29",
+      "kind": "Strategy",
+      "text": "Shorts now need a specific, stated reason, and the agent is no longer forced to make 3-5 picks a night. Shorts had been the main source of losses."
+    },
+    {
+      "date": "2026-09-27",
+      "kind": "Measurement",
+      "text": "The direction hit rate is now checked against real prices. Claude's own, more generous grade is shown separately."
+    },
+    {
+      "date": "2026-09-27",
+      "kind": "Measurement",
+      "text": "Every trade is now compared with simply holding SPY over the same window."
+    },
+    {
+      "date": "2026-09-26",
+      "kind": "Safety",
+      "text": "Positions now close by their own share count, with guards so different strategies can't net against each other."
+    },
+    {
+      "date": "2026-09-25",
+      "kind": "Decision",
+      "text": "Kept short-side sizing unchanged despite weak results, to avoid acting twice on the same small sample."
+    },
+    {
+      "date": "2026-09-10",
+      "kind": "Strategy",
+      "text": "Position size is cut in half for low confidence, upcoming events, and shorts, based on the system's own results."
+    },
+    {
+      "date": "2026-08-24",
+      "kind": "Strategy",
+      "text": "Claude started rating its own confidence on each pick."
+    },
+    {
+      "date": "2026-08-20",
+      "kind": "Strategy",
+      "text": "Simulated trades can be long or short."
+    },
+    {
+      "date": "2026-08-17",
+      "kind": "Strategy",
+      "text": "Simulated paper trading began."
+    }
+  ],
   "buckets": {
     "direction": [
       {
