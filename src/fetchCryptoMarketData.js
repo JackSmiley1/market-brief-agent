@@ -29,7 +29,7 @@ export async function fetchCryptoMarketData(symbols) {
     const params = {
       symbols: symbol,
       timeframe: "1Day",
-      limit: 6,
+      limit: 7, // one extra, since the still-forming current bar is dropped below
       start,
       sort: "desc", // see fetchMarketData.js's identical comment — avoids silently getting the OLDEST 6 bars in the window
     };
@@ -45,9 +45,18 @@ export async function fetchCryptoMarketData(symbols) {
     }
   }
 
+  // COMPLETED BARS ONLY (fixed 2026-10-01). Crypto trades 24/7 and the
+  // current daily bar is still forming: the nightly run starts around 01:00
+  // UTC, so "today's" bar held about an hour of trading, and the agent was
+  // comparing a one-hour sliver (volume ratios of 0.00-0.04) against full
+  // days. A bar counts only once a full 24 hours have passed since it opened,
+  // which holds whatever time of day Alpaca aligns daily bars to.
+  const now = Date.now();
+  const complete = (b) => Date.parse(b.t) + 24 * 60 * 60 * 1000 <= now;
+
   const results = [];
   for (const symbol of symbols) {
-    const bars = (barsBySymbol[symbol] ?? []).slice().reverse();
+    const bars = (barsBySymbol[symbol] ?? []).filter(complete).slice().reverse();
     if (bars.length < 2) {
       console.warn(
         `fetchCryptoMarketData: only got ${bars.length} bar(s) for ${symbol}, skipping (need at least 2 — check the symbol is a real Alpaca-supported pair, e.g. "BTC/USD").`
