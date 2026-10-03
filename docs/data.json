@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-03T00:41:21.611Z",
+  "generatedAt": "2026-10-03T00:41:35.251Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 116,
@@ -1709,7 +1709,13 @@
         "status": "bad_forecast"
       }
     ],
-    "series": []
+    "series": [
+      {
+        "date": "2026-10-02",
+        "portfolioPct": 0.41,
+        "spyPct": -0.13
+      }
+    ]
   },
   "changeLog": [
     {
