@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-03T00:41:47.283Z",
+  "generatedAt": "2026-10-05T11:19:07.972Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 116,
@@ -2073,8 +2073,8 @@
     }
   },
   "portfolioRisk": {
-    "currentOpenPositions": 11,
-    "currentDeployedUsd": 5725,
+    "currentOpenPositions": 12,
+    "currentDeployedUsd": 5750,
     "maxConcurrentPositions": 22,
     "maxTotalNotionalUsd": 20000
   },
@@ -2395,6 +2395,18 @@
   },
   "fundHoldings": [
     {
+      "ticker": "SPY",
+      "notional": 25,
+      "status": "entry_pending",
+      "entryPrice": null,
+      "entryFilledAt": null,
+      "qty": null,
+      "marketValue": null,
+      "unrealizedPnl": null,
+      "unrealizedPnlPct": null,
+      "valueAsOf": null
+    },
+    {
       "ticker": "VXUS",
       "notional": 100,
       "status": "open",
@@ -2453,7 +2465,17 @@
       "cumulativePnl": -1.97
     }
   ],
-  "recentRequests": [],
+  "recentRequests": [
+    {
+      "createdAt": "2026-10-05T11:19:07.783Z",
+      "kind": "fund",
+      "ticker": "SPY",
+      "amount": 25,
+      "outcome": "submitted",
+      "detail": null,
+      "analysis": null
+    }
+  ],
   "cryptoNightlyOverview": {
     "closedTrades": 1,
     "avgReturnPct": -0.4,
@@ -2531,7 +2553,7 @@
       "date": "2026-10-02",
       "ticker": "LTC/USD",
       "direction": "long",
-      "status": "entry_pending",
+      "status": "open",
       "notional": 500,
       "source": "nightly_crypto"
     }
