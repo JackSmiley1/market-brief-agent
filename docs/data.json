@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-07T00:59:17.603Z",
+  "generatedAt": "2026-10-07T00:59:29.884Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 125,
@@ -1334,37 +1334,30 @@
     ],
     "mirror": [
       {
-        "date": "2026-10-05",
-        "ticker": "JNJ",
-        "notional": null,
-        "status": "skipped_short",
-        "note": "Long-only account: shorts need a $2,000 margin account."
-      },
-      {
-        "date": "2026-10-05",
-        "ticker": "INTC",
-        "notional": null,
-        "status": "skipped_short",
-        "note": "Long-only account: shorts need a $2,000 margin account."
-      },
-      {
-        "date": "2026-10-05",
-        "ticker": "CRM",
-        "notional": null,
-        "status": "skipped_short",
-        "note": "Long-only account: shorts need a $2,000 margin account."
-      },
-      {
-        "date": "2026-10-05",
-        "ticker": "NVDA",
-        "notional": 15,
+        "date": "2026-10-06",
+        "ticker": "WMT",
+        "notional": 7.5,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       },
       {
-        "date": "2026-10-05",
-        "ticker": "MSFT",
-        "notional": 15,
+        "date": "2026-10-06",
+        "ticker": "HD",
+        "notional": 7.5,
+        "status": "would_buy",
+        "note": "DRY RUN: nothing was sent to any broker."
+      },
+      {
+        "date": "2026-10-06",
+        "ticker": "CAT",
+        "notional": 7.5,
+        "status": "would_buy",
+        "note": "DRY RUN: nothing was sent to any broker."
+      },
+      {
+        "date": "2026-10-06",
+        "ticker": "AMD",
+        "notional": 7.5,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       }
