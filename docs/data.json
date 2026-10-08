@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T01:14:52.527Z",
+  "generatedAt": "2026-10-08T01:15:17.664Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 130,
@@ -1379,30 +1379,30 @@
     ],
     "mirror": [
       {
-        "date": "2026-10-06",
-        "ticker": "WMT",
-        "notional": 7.5,
+        "date": "2026-10-07",
+        "ticker": "IWM",
+        "notional": null,
+        "status": "skipped_short",
+        "note": "Long-only account: shorts need a $2,000 margin account."
+      },
+      {
+        "date": "2026-10-07",
+        "ticker": "NVDA",
+        "notional": 10,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       },
       {
-        "date": "2026-10-06",
-        "ticker": "HD",
-        "notional": 7.5,
+        "date": "2026-10-07",
+        "ticker": "JNJ",
+        "notional": 10,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       },
       {
-        "date": "2026-10-06",
-        "ticker": "CAT",
-        "notional": 7.5,
-        "status": "would_buy",
-        "note": "DRY RUN: nothing was sent to any broker."
-      },
-      {
-        "date": "2026-10-06",
-        "ticker": "AMD",
-        "notional": 7.5,
+        "date": "2026-10-07",
+        "ticker": "AAPL",
+        "notional": 10,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       }
