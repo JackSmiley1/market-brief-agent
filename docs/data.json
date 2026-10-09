@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-09T01:22:32.789Z",
+  "generatedAt": "2026-10-09T01:22:52.045Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 134,
@@ -1898,6 +1898,11 @@
         "date": "2026-10-07",
         "portfolioPct": 0.65,
         "spyPct": 0.84
+      },
+      {
+        "date": "2026-10-08",
+        "portfolioPct": 0.85,
+        "spyPct": 0.42
       }
     ]
   },
