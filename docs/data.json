@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-10-09T01:23:04.794Z",
+  "generatedAt": "2026-10-10T01:11:25.714Z",
   "minSampleSize": 20,
   "overview": {
-    "closedTrades": 134,
-    "avgReturnPct": -0.34,
-    "totalPnl": -357.13,
-    "totalNotional": 107375,
-    "winRatePct": 51.5,
+    "closedTrades": 138,
+    "avgReturnPct": -0.351,
+    "totalPnl": -380.84,
+    "totalNotional": 110875,
+    "winRatePct": 50,
     "directionalHitRatePct": 51.9,
-    "directionalResolvedN": 131,
+    "directionalResolvedN": 135,
     "directionalCi95": [
       43.4,
-      60.5
+      60.3
     ],
-    "claudeSelfGradePct": 62.1,
-    "claudeSelfGradeN": 174,
+    "claudeSelfGradePct": 60.3,
+    "claudeSelfGradeN": 179,
     "maxDrawdownUsd": 417.33,
     "bestTrade": {
       "ticker": "ORCL",
@@ -27,8 +27,8 @@
       "pnlPct": -15.59
     },
     "currentStreak": {
-      "type": "win",
-      "count": 1
+      "type": "loss",
+      "count": 4
     }
   },
   "equityCurve": [
@@ -1237,41 +1237,77 @@
       "tradePnlPct": 0.21,
       "cumulativePnl": -357.13,
       "spyCumulativePnl": 23.51
+    },
+    {
+      "date": "2026-10-09",
+      "ticker": "IWM",
+      "direction": "short",
+      "tradePnl": -1.96,
+      "tradePnlPct": -0.71,
+      "cumulativePnl": -359.09,
+      "spyCumulativePnl": 24.37
+    },
+    {
+      "date": "2026-10-09",
+      "ticker": "JNJ",
+      "direction": "long",
+      "tradePnl": -1.72,
+      "tradePnlPct": -0.17,
+      "cumulativePnl": -360.81,
+      "spyCumulativePnl": 26.09
+    },
+    {
+      "date": "2026-10-09",
+      "ticker": "NVDA",
+      "direction": "long",
+      "tradePnl": -6.04,
+      "tradePnlPct": -0.6,
+      "cumulativePnl": -366.85,
+      "spyCumulativePnl": 27.81
+    },
+    {
+      "date": "2026-10-09",
+      "ticker": "AAPL",
+      "direction": "long",
+      "tradePnl": -13.99,
+      "tradePnlPct": -1.4,
+      "cumulativePnl": -380.84,
+      "spyCumulativePnl": 29.53
     }
   ],
   "benchmark": {
     "symbol": "SPY",
-    "n": 134,
+    "n": 138,
     "excluded": 0,
-    "strategyPnl": -357.13,
-    "spySameDollarsPnl": 23.51,
-    "strategyAvgPct": -0.34,
-    "spyAvgPct": 0.049,
-    "marketAdjustedAvgPct": -0.342,
+    "strategyPnl": -380.84,
+    "spySameDollarsPnl": 29.53,
+    "strategyAvgPct": -0.351,
+    "spyAvgPct": 0.053,
+    "marketAdjustedAvgPct": -0.355,
     "marketAdjustedCi95": [
-      -0.747,
-      0.063
+      -0.749,
+      0.038
     ],
     "long": {
-      "n": 67,
-      "mean": -0.133,
+      "n": 70,
+      "mean": -0.165,
       "ci95": [
-        -0.651,
-        0.386
+        -0.664,
+        0.333
       ]
     },
     "short": {
-      "n": 67,
+      "n": 68,
       "mean": -0.551,
       "ci95": [
-        -1.172,
-        0.07
+        -1.163,
+        0.061
       ]
     },
     "buyAndHold": {
       "from": "2026-08-18",
-      "to": "2026-10-08",
-      "pct": 0.91
+      "to": "2026-10-09",
+      "pct": 1.51
     }
   },
   "honesty": {
@@ -1327,10 +1363,10 @@
       },
       {
         "week": "2026-10-05",
-        "n": 13,
-        "priceCheckedPct": 53.8,
-        "selfGradePct": 23.1,
-        "selfGradeN": 13
+        "n": 17,
+        "priceCheckedPct": 52.9,
+        "selfGradePct": 17.6,
+        "selfGradeN": 17
       }
     ],
     "byConfidence": [
@@ -1343,15 +1379,15 @@
       },
       {
         "confidence": "medium",
-        "n": 77,
-        "priceCheckedPct": 53.2,
-        "avgTradePct": -0.05,
-        "tradeN": 73
+        "n": 80,
+        "priceCheckedPct": 53.8,
+        "avgTradePct": -0.09,
+        "tradeN": 77
       },
       {
         "confidence": "low",
-        "n": 29,
-        "priceCheckedPct": 48.3,
+        "n": 30,
+        "priceCheckedPct": 46.7,
         "avgTradePct": -1.05,
         "tradeN": 29
       }
@@ -1359,14 +1395,14 @@
     "verdicts": {
       "playedOutN": 77,
       "playedOutButWrongN": 31,
-      "missedN": 24,
+      "missedN": 26,
       "missedButRightN": 2
     }
   },
   "launchReadiness": {
     "requiredCleanRuns": 20,
-    "cleanStreak": 7,
-    "loggedRuns": 7,
+    "cleanStreak": 8,
+    "loggedRuns": 8,
     "countingSince": "2026-10-01",
     "killSwitchOn": false,
     "items": [
@@ -1392,7 +1428,7 @@
         "key": "reliability",
         "label": "20 consecutive clean nightly runs",
         "status": "in_progress",
-        "detail": "7 of 20 so far (counting since 2026-10-01)."
+        "detail": "8 of 20 so far (counting since 2026-10-01)."
       },
       {
         "key": "account",
@@ -1977,20 +2013,20 @@
     "direction": [
       {
         "label": "long",
-        "n": 67,
-        "totalPnl": -82.1,
-        "totalNotional": 63000,
-        "avgReturnPct": -0.082,
-        "winRatePct": 55.2,
+        "n": 70,
+        "totalPnl": -103.85,
+        "totalNotional": 66000,
+        "avgReturnPct": -0.109,
+        "winRatePct": 52.9,
         "meetsMinN": true
       },
       {
         "label": "short",
-        "n": 67,
-        "totalPnl": -275.03,
-        "totalNotional": 44375,
-        "avgReturnPct": -0.598,
-        "winRatePct": 47.8,
+        "n": 68,
+        "totalPnl": -276.99,
+        "totalNotional": 44875,
+        "avgReturnPct": -0.6,
+        "winRatePct": 47.1,
         "meetsMinN": true
       }
     ],
@@ -2006,11 +2042,11 @@
       },
       {
         "label": "medium",
-        "n": 73,
-        "totalPnl": 24.24,
-        "totalNotional": 57750,
-        "avgReturnPct": -0.051,
-        "winRatePct": 50.7,
+        "n": 77,
+        "totalPnl": 0.53,
+        "totalNotional": 61250,
+        "avgReturnPct": -0.086,
+        "winRatePct": 48.1,
         "meetsMinN": true
       },
       {
@@ -2035,22 +2071,22 @@
       },
       {
         "label": "no_event_risk",
-        "n": 58,
-        "totalPnl": -157.18,
-        "totalNotional": 37500,
-        "avgReturnPct": -0.414,
-        "winRatePct": 46.6,
+        "n": 62,
+        "totalPnl": -180.89,
+        "totalNotional": 41000,
+        "avgReturnPct": -0.434,
+        "winRatePct": 43.5,
         "meetsMinN": true
       }
     ],
     "peerCatalystShorts": [
       {
         "label": "peer_catalyst",
-        "n": 7,
-        "totalPnl": 14.94,
-        "totalNotional": 2750,
-        "avgReturnPct": 0.736,
-        "winRatePct": 85.7,
+        "n": 8,
+        "totalPnl": 12.98,
+        "totalNotional": 3250,
+        "avgReturnPct": 0.555,
+        "winRatePct": 75,
         "meetsMinN": false
       },
       {
@@ -2085,20 +2121,11 @@
     },
     {
       "label": "NVDA",
-      "n": 8,
-      "totalPnl": 54.4,
-      "totalNotional": 7500,
-      "avgReturnPct": 0.729,
-      "winRatePct": 50,
-      "meetsMinN": false
-    },
-    {
-      "label": "AAPL",
-      "n": 3,
-      "totalPnl": 14.85,
-      "totalNotional": 2500,
-      "avgReturnPct": 0.633,
-      "winRatePct": 100,
+      "n": 9,
+      "totalPnl": 48.36,
+      "totalNotional": 8500,
+      "avgReturnPct": 0.581,
+      "winRatePct": 44.4,
       "meetsMinN": false
     },
     {
@@ -2129,6 +2156,15 @@
       "meetsMinN": false
     },
     {
+      "label": "AAPL",
+      "n": 4,
+      "totalPnl": 0.86,
+      "totalNotional": 3500,
+      "avgReturnPct": 0.125,
+      "winRatePct": 75,
+      "meetsMinN": false
+    },
+    {
       "label": "HD",
       "n": 5,
       "totalPnl": -10.13,
@@ -2148,11 +2184,11 @@
     },
     {
       "label": "JNJ",
-      "n": 3,
-      "totalPnl": -0.75,
-      "totalNotional": 1500,
-      "avgReturnPct": -0.207,
-      "winRatePct": 66.7,
+      "n": 4,
+      "totalPnl": -2.47,
+      "totalNotional": 2500,
+      "avgReturnPct": -0.197,
+      "winRatePct": 50,
       "meetsMinN": false
     },
     {
@@ -2282,12 +2318,31 @@
     }
   },
   "portfolioRisk": {
-    "currentOpenPositions": 9,
-    "currentDeployedUsd": 6125,
+    "currentOpenPositions": 12,
+    "currentDeployedUsd": 5875,
     "maxConcurrentPositions": 22,
     "maxTotalNotionalUsd": 20000
   },
   "recentBriefs": [
+    {
+      "date": "2026-10-09",
+      "topWinner": "ORCL",
+      "winnerPct": 4.36,
+      "topLoser": "INTC",
+      "loserPct": -2.28,
+      "watchlistTickers": [
+        "ORCL",
+        "AMZN",
+        "V",
+        "MA",
+        "MSFT",
+        "INTC",
+        "AMD",
+        "NFLX",
+        "HD",
+        "AAPL"
+      ]
+    },
     {
       "date": "2026-10-08",
       "topWinner": "HD",
@@ -2534,71 +2589,52 @@
         "MA",
         "BA"
       ]
-    },
-    {
-      "date": "2026-09-21",
-      "topWinner": "INTC",
-      "winnerPct": 12.02,
-      "topLoser": "XOM",
-      "loserPct": -3,
-      "watchlistTickers": [
-        "INTC",
-        "META",
-        "AMD",
-        "TSLA",
-        "QQQ",
-        "XOM",
-        "CVX",
-        "HD",
-        "CRM",
-        "JNJ"
-      ]
     }
   ],
   "dailyMovers": {
-    "asOfDate": "2026-10-08",
+    "asOfDate": "2026-10-09",
     "gainers": [
       {
-        "ticker": "HD",
-        "pctChange": 3.41
+        "ticker": "ORCL",
+        "pctChange": 4.36
       },
       {
-        "ticker": "CVX",
-        "pctChange": 3.11
+        "ticker": "AMZN",
+        "pctChange": 3.27
       },
       {
-        "ticker": "XOM",
-        "pctChange": 2.74
+        "ticker": "V",
+        "pctChange": 2.77
       },
       {
-        "ticker": "NFLX",
-        "pctChange": 2.72
+        "ticker": "MA",
+        "pctChange": 2.51
       },
       {
-        "ticker": "WMT",
-        "pctChange": 2.28
+        "ticker": "MSFT",
+        "pctChange": 2.39
       }
     ],
     "losers": [
       {
-        "ticker": "ORCL",
-        "pctChange": -5.59
-      },
-      {
         "ticker": "INTC",
-        "pctChange": -5.23
+        "pctChange": -2.28
       },
       {
         "ticker": "AMD",
-        "pctChange": -3.88
+        "pctChange": -2.09
       },
       {
-        "ticker": "NVDA",
-        "pctChange": -2.88
+        "ticker": "NFLX",
+        "pctChange": -1.79
       },
       {
-        "ticker": "AMZN",
-        "pctChange": -2.23
+        "ticker": "HD",
+        "pctChange": -1.6
+      },
+      {
+        "ticker": "AAPL",
+        "pctChange": -1.16
       }
     ]
   },
@@ -2610,10 +2646,10 @@
       "entryPrice": 769.73,
       "entryFilledAt": "2026-10-05T13:30:00.80379Z",
       "qty": 0.032465929,
-      "marketValue": 25.12,
-      "unrealizedPnl": 0.12,
-      "unrealizedPnlPct": 0.499,
-      "valueAsOf": "2026-10-08"
+      "marketValue": 25.28,
+      "unrealizedPnl": 0.28,
+      "unrealizedPnlPct": 1.1,
+      "valueAsOf": "2026-10-09"
     },
     {
       "ticker": "VXUS",
@@ -2622,10 +2658,10 @@
       "entryPrice": 85.79,
       "entryFilledAt": "2026-09-28T13:30:01.018279Z",
       "qty": 1.165520456,
-      "marketValue": 98.01,
-      "unrealizedPnl": -1.99,
-      "unrealizedPnlPct": -1.991,
-      "valueAsOf": "2026-10-08"
+      "marketValue": 98.84,
+      "unrealizedPnl": -1.16,
+      "unrealizedPnlPct": -1.164,
+      "valueAsOf": "2026-10-09"
     }
   ],
   "fundSold": [],
@@ -2684,6 +2720,12 @@
       "totalMarketValue": 123.13,
       "totalCostBasis": 125,
       "unrealizedPnl": -1.87
+    },
+    {
+      "date": "2026-10-09",
+      "totalMarketValue": 124.12,
+      "totalCostBasis": 125,
+      "unrealizedPnl": -0.88
     }
   ],
   "cryptoHoldings": [],
@@ -2744,47 +2786,53 @@
     "meetsMinN": false
   },
   "fundSnapshots": {
-    "asOfDate": "2026-10-08",
+    "asOfDate": "2026-10-09",
     "items": [
       {
         "ticker": "DIA",
         "label": "Dow Jones Industrial Average (DIA)",
-        "close": 511.57,
-        "pctChange": 0.11
+        "close": 516.05,
+        "pctChange": 0.88
       },
       {
         "ticker": "IWM",
         "label": "Russell 2000 (IWM)",
-        "close": 277.505,
-        "pctChange": -0.07
+        "close": 278.91,
+        "pctChange": 0.51
       },
       {
         "ticker": "QQQ",
         "label": "Nasdaq-100 (QQQ)",
-        "close": 747.5,
-        "pctChange": -1.35
+        "close": 751.26,
+        "pctChange": 0.5
       },
       {
         "ticker": "SPY",
         "label": "S&P 500 (SPY)",
-        "close": 773.88,
-        "pctChange": -0.42
+        "close": 778.51,
+        "pctChange": 0.6
       },
       {
         "ticker": "VOO",
         "label": "Vanguard S&P 500 ETF (VOO)",
-        "close": 711.23,
-        "pctChange": -0.48
+        "close": 715.58,
+        "pctChange": 0.61
       },
       {
         "ticker": "VTI",
         "label": "Vanguard Total Stock Market ETF (VTI)",
-        "close": 379.505,
-        "pctChange": -0.44
+        "close": 381.9,
+        "pctChange": 0.63
       }
     ]
   },
   "lessons": [
+    {
+      "id": 3,
+      "createdAt": "2026-10-10T01:11:25.007Z",
+      "basedOnTradeCount": 11,
+      "lessonText": "All 11 trades here are \"watch whether X extends/continues\" framings riding on someone else's cited catalyst (analyst upgrade, sector peer news, macro data point) rather than a primary, firm-specific data event — and all 11 lost, regardless of long/short or confidence. Worth weighing: second-hand narrative catalysts (Ives grouping AAPL with AI names, Cramer citing SpaceX/GPUs, \"sector also rallying\" framing for JNJ/HD/CAT) may be weaker signals than they appear, since they're sentiment-echo rather than company-specific fundamentals. Also notable: eventRisk=false dominates this batch (9 of 11) yet losses were still frequent and sometimes large (CAT -4.17%, NVDA -2.03%, CRM -2.21%), suggesting the eventRisk flag as currently set isn't capturing the actual risk driving these losses. Sample is small and single-themed (mostly AI/industrial momentum names in one week), so treat this as a narrow pattern, not a general rule."
+    },
     {
       "id": 2,
       "createdAt": "2026-10-02T01:04:35.852Z",
@@ -2832,5 +2880,22 @@
       "source": "nightly_crypto"
     }
   ],
-  "onDemandPending": []
+  "onDemandPending": [
+    {
+      "date": "2026-10-09",
+      "ticker": "BTC/USD",
+      "direction": "long",
+      "status": "entry_pending",
+      "notional": 500,
+      "source": "nightly_crypto"
+    },
+    {
+      "date": "2026-10-09",
+      "ticker": "ADA/USD",
+      "direction": "long",
+      "status": "entry_pending",
+      "notional": 500,
+      "source": "nightly_crypto"
+    }
+  ]
 }
