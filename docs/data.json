@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-10T01:11:25.714Z",
+  "generatedAt": "2026-10-10T01:11:40.036Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 138,
@@ -1451,29 +1451,36 @@
     ],
     "mirror": [
       {
-        "date": "2026-10-08",
-        "ticker": "ORCL",
+        "date": "2026-10-09",
+        "ticker": "INTC",
         "notional": null,
         "status": "skipped_short",
         "note": "Long-only account: shorts need a $2,000 margin account."
       },
       {
-        "date": "2026-10-08",
-        "ticker": "XOM",
+        "date": "2026-10-09",
+        "ticker": "AAPL",
+        "notional": null,
+        "status": "skipped_short",
+        "note": "Long-only account: shorts need a $2,000 margin account."
+      },
+      {
+        "date": "2026-10-09",
+        "ticker": "V",
         "notional": 10,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       },
       {
-        "date": "2026-10-08",
-        "ticker": "HD",
+        "date": "2026-10-09",
+        "ticker": "UNH",
         "notional": 10,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       },
       {
-        "date": "2026-10-08",
-        "ticker": "CVX",
+        "date": "2026-10-09",
+        "ticker": "ORCL",
         "notional": 10,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
