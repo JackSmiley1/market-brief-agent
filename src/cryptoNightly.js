@@ -11,6 +11,7 @@ import {
 } from "./saveBrief.js";
 import { reconcileEntries, reconcileExits, closeMaturePositions, openNewPositions } from "./paperTrade.js";
 import { CRYPTO_WATCHLIST, CRYPTO_PAPER_TRADE_BASE_NOTIONAL } from "./config.js";
+import { closeSourcesFor } from "./orders.js";
 
 // Nightly automated crypto trading — the automatic counterpart to
 // onDemandCrypto.js's button-triggered flow, added 2026-09-26 to run on the
@@ -38,6 +39,10 @@ import { CRYPTO_WATCHLIST, CRYPTO_PAPER_TRADE_BASE_NOTIONAL } from "./config.js"
 // alongside the stock brief, not a separate cron — same commit, same
 // concurrency group, no risk of the two racing each other.
 //
+// Since 2026-10-12 it also runs Saturday and Sunday on its own
+// (.github/workflows/weekend-crypto.yml), so every crypto position is held
+// about one day instead of Friday-to-Monday.
+//
 // Usage: node src/cryptoNightly.js
 
 function todayISO() {
@@ -57,7 +62,9 @@ async function run() {
   // index.js's runPaperTradingCycle may have already called it tonight too
   // (nothing left to close the second time, same as onDemandTrade.js already
   // calling reconcile/close independently of the nightly pipeline).
-  await closeMaturePositions();
+  // On weekends (.github/workflows/weekend-crypto.yml sets
+  // CRYPTO_ONLY_CLOSE=true) only crypto rows are closed, never stocks.
+  await closeMaturePositions({ sources: closeSourcesFor() });
 
   const marketData = await fetchCryptoMarketData(CRYPTO_WATCHLIST);
   if (marketData.length === 0) {

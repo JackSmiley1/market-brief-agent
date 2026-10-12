@@ -47,3 +47,19 @@ test("kill switch: only an explicit 'true' halts trading", () => {
   assert.equal(tradingHalted({ TRADING_HALTED: "" }), false);
   assert.equal(tradingHalted({}), false);
 });
+
+import { isUnshortableRejection, closeSourcesFor } from "../src/orders.js";
+
+test("Alpaca's 'cannot be sold short' rejection is recognized (ORCL, 2026-10-08)", () => {
+  assert.equal(isUnshortableRejection({ code: 42210000, message: 'asset "ORCL" cannot be sold short' }), true);
+});
+
+test("other order errors are still treated as real failures", () => {
+  assert.equal(isUnshortableRejection({ code: 40310000, message: "insufficient buying power" }), false);
+  assert.equal(isUnshortableRejection(undefined), false);
+});
+
+test("weekend runs close crypto only; weekdays close everything", () => {
+  assert.deepEqual(closeSourcesFor({ CRYPTO_ONLY_CLOSE: "true" }), ["nightly_crypto", "crypto_ondemand"]);
+  assert.equal(closeSourcesFor({}), null);
+});

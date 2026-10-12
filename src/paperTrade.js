@@ -1,7 +1,7 @@
 import axios from "axios";
 import { db } from "./db.js";
 import { ALPACA_TRADING_BASE, computeNotional, PORTFOLIO_LIMITS } from "./config.js";
-import { buildCloseOrder, isCrypto, positionPathSymbol, tradingHalted } from "./orders.js";
+import { buildCloseOrder, isCrypto, positionPathSymbol, tradingHalted, isUnshortableRejection } from "./orders.js";
 
 const headers = {
   "APCA-API-KEY-ID": process.env.ALPACA_KEY_ID,
@@ -102,7 +102,7 @@ const pendingEntriesStmt = db.prepare(
 // stays in this exclusion list so any position already opened under it
 // keeps being held rather than getting force-closed by this later change.
 const openPositionsStmt = db.prepare(
-  `SELECT date, ticker, entry_price, notional, direction, qty FROM paper_trades WHERE status = 'open' AND source NOT IN ('fund_hold', 'crypto_hold')`
+  `SELECT date, ticker, entry_price, notional, direction, qty, source FROM paper_trades WHERE status = 'open' AND source NOT IN ('fund_hold', 'crypto_hold')`
 );
 const markExitPendingStmt = db.prepare(
   `UPDATE paper_trades SET exit_order_id = ?, status = 'exit_pending' WHERE date = ? AND ticker = ?`
@@ -229,12 +229,15 @@ export async function reconcileExits() {
 // once-a-day cycle, already been held for one full session — close all of
 // them. (Self-healing: if a previous run's close attempt failed and left a
 // position stuck 'open', this will retry it too, not just today's batch.)
-export async function closeMaturePositions() {
+// `sources` (optional): only close rows with one of these source tags.
+// Omitted on weekdays (close everything); the weekend crypto run passes the
+// crypto sources (see orders.js's closeSourcesFor).
+export async function closeMaturePositions({ sources = null } = {}) {
   if (tradingHalted()) {
     console.warn("paperTrade: TRADING_HALTED is on (kill switch) — closing positions skipped, nothing ordered.");
     return;
   }
-  const open = openPositionsStmt.all();
+  const open = openPositionsStmt.all().filter((r) => !sources || sources.includes(r.source));
   for (const row of open) {
     try {
       // Close by this row's own qty (src/orders.js), so a nightly close can
@@ -332,6 +335,14 @@ export async function openNewPositions(date, items, priceMap = {}, source = "nig
       results.push({ ticker, status: "submitted", notional, orderId: order.id });
       console.log(`paperTrade: ${direction} order submitted — ${ticker} (${date}), order ${order.id}, $${notional} notional (confidence=${item.confidence ?? "?"}, eventRisk=${item.eventRisk ?? "?"}, source=${source})`);
     } catch (err) {
+      if (direction === "short" && isUnshortableRejection(err.response?.data)) {
+        // The broker declined to lend the stock. Not a pipeline failure: no
+        // row written (same as skipped_cap), so it doesn't count as a failed
+        // order. Claude's call is still graded from the brief as usual.
+        console.warn(`paperTrade: skipping short on ${ticker} (${date}) — Alpaca won't allow shorting it right now: ${describeError(err)}`);
+        results.push({ ticker, status: "skipped_unshortable", notional });
+        continue;
+      }
       console.error(`paperTrade: failed to submit ${direction} order for ${ticker} (${date}):`, describeError(err));
       markEntryFailedStmt.run(date, ticker, notional, direction, source);
       results.push({ ticker, status: "failed", notional, error: describeError(err) });

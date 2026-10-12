@@ -1,0 +1,60 @@
+name: Weekend Crypto
+# Crypto trades 24/7, but the nightly pipeline only runs Mon-Fri, so Friday
+# night's crypto picks used to sit until Monday (~3 days instead of ~1).
+# This runs ONLY the crypto agent on Saturday and Sunday, same time of day
+# as the weekday run. Stocks are never touched: CRYPTO_ONLY_CLOSE limits the
+# closing pass to crypto rows, and the stock brief isn't run at all.
+# Logged as 'crypto-weekend', so it doesn't count toward (or break) the
+# 20-clean-weekday-runs launch gate. Its name differs from "Nightly Market
+# Brief", so live-mirror and long-horizon (workflow_run) don't fire on it.
+on:
+  schedule:
+    - cron: '30 21 * * 0,6'
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: market-brief-pipeline   # same group as nightly/on-demand: never two writers on the db
+  cancel-in-progress: false
+jobs:
+  crypto:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with: { node-version: '22' }
+      - run: npm install
+      - name: Run tests
+        id: tests
+        run: npm test
+      - name: Run crypto watchlist + paper trades (crypto only)
+        id: crypto
+        run: npm run crypto-brief
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
+          FINNHUB_KEY: ${{ secrets.FINNHUB_KEY }}
+          CRYPTO_ONLY_CLOSE: 'true'
+      - name: Log this run
+        if: always()
+        run: node src/logRun.js crypto-weekend
+        env:
+          STEPS_JSON: ${{ toJSON(steps) }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_EVENT: ${{ github.event_name }}
+      - name: Export public dashboard data
+        if: always()
+        run: npm run export-site
+        env:
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
+      - name: Commit crypto brief + dashboard data
+        if: always()
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/ docs/data.json
+          git commit -m "Weekend crypto: $(date +'%Y-%m-%d')" || echo "No changes"
+          git pull --rebase || true
+          git push

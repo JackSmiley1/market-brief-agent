@@ -51,3 +51,23 @@ export function positionPathSymbol(symbol) {
 export function tradingHalted(env = process.env) {
   return String(env.TRADING_HALTED ?? "").trim().toLowerCase() === "true";
 }
+
+// True when Alpaca rejected a short because the stock can't be borrowed
+// (added 2026-10-12, after ORCL on 2026-10-08: code 42210000, "asset
+// \"ORCL\" cannot be sold short"). That's the broker declining the trade,
+// not a pipeline failure, so the caller logs it as skipped rather than
+// recording an entry_failed row. `data` is Alpaca's error body.
+export function isUnshortableRejection(data) {
+  if (!data || typeof data !== "object") return false;
+  return /cannot be sold short|not shortable|not easy to borrow/i.test(String(data.message ?? ""));
+}
+
+// Which positions a closing pass may touch (added 2026-10-12 for the
+// weekend crypto run). Weekdays: every source (null = no filter). On a
+// CRYPTO_ONLY_CLOSE run (Sat/Sun), only crypto rows, so a weekend run can
+// never queue a stock close.
+export function closeSourcesFor(env = process.env) {
+  return String(env.CRYPTO_ONLY_CLOSE ?? "").trim().toLowerCase() === "true"
+    ? ["nightly_crypto", "crypto_ondemand"]
+    : null;
+}

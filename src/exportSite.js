@@ -605,6 +605,8 @@ try {
 // dashboard so results can be read against what changed when. Add to it in
 // the same commit as any future change.
 const changeLog = [
+  { date: "2026-10-12", kind: "Schedule", text: "Crypto now trades seven days a week. A weekend run on Saturday and Sunday means each crypto position is held about one day, instead of Friday's picks sitting until Monday. Same agent, prompt and $500 sizing; stocks are untouched." },
+  { date: "2026-10-12", kind: "Fix", text: "When Alpaca refuses to let a stock be shorted (as with ORCL on Oct 8), the bot now records it as skipped instead of as a failed order. The Oct 8 ORCL row stays in the record as it happened." },
   { date: "2026-10-01", kind: "Fix", text: "Fixed a second crypto data bug: the agent was judging each coin on the current, barely started daily bar (about an hour of trading). It now uses the last completed day." },
   { date: "2026-10-01", kind: "Fix", text: "Fixed a data bug: the nightly crypto agent had only been receiving prices for XRP (one of its 10 coins), so it never found a trade. It now sees all 10. Crypto results before this date reflect the bug." },
   { date: "2026-10-01", kind: "Experiment", text: "Started a separate long-horizon track: Claude forecasts company fundamentals, code ranks them, and a virtual top-5 portfolio is tracked against SPY. It places no orders and doesn't touch the nightly strategy." },

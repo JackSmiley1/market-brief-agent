@@ -175,3 +175,8 @@ With the first fix in, the October 1 crypto run saw all 10 coins, and its own br
 ## Bottom line
 
 This is a working, automated, self-grading, self-reflecting research pipeline with a public dashboard on top of it. Price-checked, its directional calls are not yet distinguishable from a coin flip (52.7%), and it hasn't beaten simply holding SPY. The one result that has cleared the project's own statistical bar is that shorts underperform, even after removing the market's move. It is not yet net profitable (-0.41% blended across 97 trades), has not been tested in a real down market, and remains entirely simulated. The honest next milestone is the same as last time: more volume, plus now an actual decision on what to do about the short-side result now that it's real rather than suspected.
+
+## 2026-10-12: ORCL short rejection; crypto seven days a week
+
+- Oct 8: Alpaca rejected the ORCL short ("asset \"ORCL\" cannot be sold short", code 42210000). Broker declined to lend it after ORCL's -5.6% day; not a pipeline bug. The row stays as entry_failed in the record. From now on that specific rejection is logged as skipped_unshortable (no row, not counted as a failed order), the same way an exposure-cap skip is. Any other order error is still recorded as a failure.
+- Crypto now also runs Saturday and Sunday (.github/workflows/weekend-crypto.yml), crypto only. Reason: Friday's crypto picks were held about 3 days, every other pick about 1 day. Same prompt, model, coins and $500 sizing. Weekend runs are logged as 'crypto-weekend' and don't count toward the 20 clean weekday runs. Expected cost: about 8-9 extra Claude calls a month.
