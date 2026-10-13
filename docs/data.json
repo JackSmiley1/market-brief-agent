@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-10-10T01:11:55.766Z",
+  "generatedAt": "2026-10-13T02:43:03.422Z",
   "minSampleSize": 20,
   "overview": {
-    "closedTrades": 138,
-    "avgReturnPct": -0.351,
-    "totalPnl": -380.84,
-    "totalNotional": 110875,
-    "winRatePct": 50,
-    "directionalHitRatePct": 51.9,
-    "directionalResolvedN": 135,
+    "closedTrades": 141,
+    "avgReturnPct": -0.329,
+    "totalPnl": -352.75,
+    "totalNotional": 113375,
+    "winRatePct": 50.4,
+    "directionalHitRatePct": 51.4,
+    "directionalResolvedN": 140,
     "directionalCi95": [
-      43.4,
-      60.3
+      43.1,
+      59.7
     ],
-    "claudeSelfGradePct": 60.3,
-    "claudeSelfGradeN": 179,
+    "claudeSelfGradePct": 59.2,
+    "claudeSelfGradeN": 184,
     "maxDrawdownUsd": 417.33,
     "bestTrade": {
       "ticker": "ORCL",
@@ -27,8 +27,8 @@
       "pnlPct": -15.59
     },
     "currentStreak": {
-      "type": "loss",
-      "count": 4
+      "type": "win",
+      "count": 1
     }
   },
   "equityCurve": [
@@ -1273,27 +1273,54 @@
       "tradePnlPct": -1.4,
       "cumulativePnl": -380.84,
       "spyCumulativePnl": 29.53
+    },
+    {
+      "date": "2026-10-12",
+      "ticker": "CVX",
+      "direction": "long",
+      "tradePnl": 19.38,
+      "tradePnlPct": 1.94,
+      "cumulativePnl": -361.46,
+      "spyCumulativePnl": 32.76
+    },
+    {
+      "date": "2026-10-12",
+      "ticker": "HD",
+      "direction": "long",
+      "tradePnl": -7.95,
+      "tradePnlPct": -1.59,
+      "cumulativePnl": -369.41,
+      "spyCumulativePnl": 34.38
+    },
+    {
+      "date": "2026-10-12",
+      "ticker": "XOM",
+      "direction": "long",
+      "tradePnl": 16.66,
+      "tradePnlPct": 1.67,
+      "cumulativePnl": -352.75,
+      "spyCumulativePnl": 37.61
     }
   ],
   "benchmark": {
     "symbol": "SPY",
-    "n": 138,
+    "n": 141,
     "excluded": 0,
-    "strategyPnl": -380.84,
-    "spySameDollarsPnl": 29.53,
-    "strategyAvgPct": -0.351,
-    "spyAvgPct": 0.053,
-    "marketAdjustedAvgPct": -0.355,
+    "strategyPnl": -352.75,
+    "spySameDollarsPnl": 37.61,
+    "strategyAvgPct": -0.329,
+    "spyAvgPct": 0.058,
+    "marketAdjustedAvgPct": -0.34,
     "marketAdjustedCi95": [
-      -0.749,
-      0.038
+      -0.728,
+      0.047
     ],
     "long": {
-      "n": 70,
-      "mean": -0.165,
+      "n": 73,
+      "mean": -0.144,
       "ci95": [
-        -0.664,
-        0.333
+        -0.628,
+        0.34
       ]
     },
     "short": {
@@ -1306,8 +1333,8 @@
     },
     "buyAndHold": {
       "from": "2026-08-18",
-      "to": "2026-10-09",
-      "pct": 1.51
+      "to": "2026-10-12",
+      "pct": 1.45
     }
   },
   "honesty": {
@@ -1363,10 +1390,10 @@
       },
       {
         "week": "2026-10-05",
-        "n": 17,
-        "priceCheckedPct": 52.9,
-        "selfGradePct": 17.6,
-        "selfGradeN": 17
+        "n": 22,
+        "priceCheckedPct": 50,
+        "selfGradePct": 18.2,
+        "selfGradeN": 22
       }
     ],
     "byConfidence": [
@@ -1379,30 +1406,30 @@
       },
       {
         "confidence": "medium",
-        "n": 80,
-        "priceCheckedPct": 53.8,
-        "avgTradePct": -0.09,
-        "tradeN": 77
+        "n": 83,
+        "priceCheckedPct": 54.2,
+        "avgTradePct": -0.04,
+        "tradeN": 79
       },
       {
         "confidence": "low",
-        "n": 30,
-        "priceCheckedPct": 46.7,
-        "avgTradePct": -1.05,
-        "tradeN": 29
+        "n": 32,
+        "priceCheckedPct": 43.8,
+        "avgTradePct": -1.07,
+        "tradeN": 30
       }
     ],
     "verdicts": {
-      "playedOutN": 77,
+      "playedOutN": 78,
       "playedOutButWrongN": 31,
-      "missedN": 26,
+      "missedN": 29,
       "missedButRightN": 2
     }
   },
   "launchReadiness": {
     "requiredCleanRuns": 20,
-    "cleanStreak": 8,
-    "loggedRuns": 8,
+    "cleanStreak": 9,
+    "loggedRuns": 9,
     "countingSince": "2026-10-01",
     "killSwitchOn": false,
     "items": [
@@ -1428,7 +1455,7 @@
         "key": "reliability",
         "label": "20 consecutive clean nightly runs",
         "status": "in_progress",
-        "detail": "8 of 20 so far (counting since 2026-10-01)."
+        "detail": "9 of 20 so far (counting since 2026-10-01)."
       },
       {
         "key": "account",
@@ -1956,6 +1983,16 @@
   },
   "changeLog": [
     {
+      "date": "2026-10-12",
+      "kind": "Schedule",
+      "text": "Crypto now trades seven days a week. A weekend run on Saturday and Sunday means each crypto position is held about one day, instead of Friday's picks sitting until Monday. Same agent, prompt and $500 sizing; stocks are untouched."
+    },
+    {
+      "date": "2026-10-12",
+      "kind": "Fix",
+      "text": "When Alpaca refuses to let a stock be shorted (as with ORCL on Oct 8), the bot now records it as skipped instead of as a failed order. The Oct 8 ORCL row stays in the record as it happened."
+    },
+    {
       "date": "2026-10-01",
       "kind": "Fix",
       "text": "Fixed a second crypto data bug: the agent was judging each coin on the current, barely started daily bar (about an hour of trading). It now uses the last completed day."
@@ -2025,11 +2062,11 @@
     "direction": [
       {
         "label": "long",
-        "n": 70,
-        "totalPnl": -103.85,
-        "totalNotional": 66000,
-        "avgReturnPct": -0.109,
-        "winRatePct": 52.9,
+        "n": 73,
+        "totalPnl": -75.76,
+        "totalNotional": 68500,
+        "avgReturnPct": -0.077,
+        "winRatePct": 53.4,
         "meetsMinN": true
       },
       {
@@ -2054,20 +2091,20 @@
       },
       {
         "label": "medium",
-        "n": 77,
-        "totalPnl": 0.53,
-        "totalNotional": 61250,
-        "avgReturnPct": -0.086,
-        "winRatePct": 48.1,
+        "n": 79,
+        "totalPnl": 36.57,
+        "totalNotional": 63250,
+        "avgReturnPct": -0.038,
+        "winRatePct": 49.4,
         "meetsMinN": true
       },
       {
         "label": "low",
-        "n": 29,
-        "totalPnl": -259.1,
-        "totalNotional": 18125,
-        "avgReturnPct": -1.053,
-        "winRatePct": 55.2,
+        "n": 30,
+        "totalPnl": -267.05,
+        "totalNotional": 18625,
+        "avgReturnPct": -1.071,
+        "winRatePct": 53.3,
         "meetsMinN": true
       }
     ],
@@ -2083,11 +2120,11 @@
       },
       {
         "label": "no_event_risk",
-        "n": 62,
-        "totalPnl": -180.89,
-        "totalNotional": 41000,
-        "avgReturnPct": -0.434,
-        "winRatePct": 43.5,
+        "n": 65,
+        "totalPnl": -152.8,
+        "totalNotional": 43500,
+        "avgReturnPct": -0.383,
+        "winRatePct": 44.6,
         "meetsMinN": true
       }
     ],
@@ -2168,21 +2205,21 @@
       "meetsMinN": false
     },
     {
+      "label": "CVX",
+      "n": 4,
+      "totalPnl": 3.16,
+      "totalNotional": 3250,
+      "avgReturnPct": 0.16,
+      "winRatePct": 75,
+      "meetsMinN": false
+    },
+    {
       "label": "AAPL",
       "n": 4,
       "totalPnl": 0.86,
       "totalNotional": 3500,
       "avgReturnPct": 0.125,
       "winRatePct": 75,
-      "meetsMinN": false
-    },
-    {
-      "label": "HD",
-      "n": 5,
-      "totalPnl": -10.13,
-      "totalNotional": 4000,
-      "avgReturnPct": -0.1,
-      "winRatePct": 60,
       "meetsMinN": false
     },
     {
@@ -2204,6 +2241,15 @@
       "meetsMinN": false
     },
     {
+      "label": "XOM",
+      "n": 10,
+      "totalPnl": -10.91,
+      "totalNotional": 9000,
+      "avgReturnPct": -0.259,
+      "winRatePct": 50,
+      "meetsMinN": false
+    },
+    {
       "label": "ORCL",
       "n": 13,
       "totalPnl": -3.04,
@@ -2213,30 +2259,21 @@
       "meetsMinN": false
     },
     {
+      "label": "HD",
+      "n": 6,
+      "totalPnl": -18.08,
+      "totalNotional": 4500,
+      "avgReturnPct": -0.348,
+      "winRatePct": 50,
+      "meetsMinN": false
+    },
+    {
       "label": "GS",
       "n": 5,
       "totalPnl": -19.62,
       "totalNotional": 3750,
       "avgReturnPct": -0.428,
       "winRatePct": 40,
-      "meetsMinN": false
-    },
-    {
-      "label": "CVX",
-      "n": 3,
-      "totalPnl": -16.22,
-      "totalNotional": 2250,
-      "avgReturnPct": -0.433,
-      "winRatePct": 66.7,
-      "meetsMinN": false
-    },
-    {
-      "label": "XOM",
-      "n": 9,
-      "totalPnl": -27.57,
-      "totalNotional": 8000,
-      "avgReturnPct": -0.473,
-      "winRatePct": 44.4,
       "meetsMinN": false
     },
     {
@@ -2330,12 +2367,31 @@
     }
   },
   "portfolioRisk": {
-    "currentOpenPositions": 12,
-    "currentDeployedUsd": 5875,
+    "currentOpenPositions": 9,
+    "currentDeployedUsd": 4375,
     "maxConcurrentPositions": 22,
     "maxTotalNotionalUsd": 20000
   },
   "recentBriefs": [
+    {
+      "date": "2026-10-12",
+      "topWinner": "META",
+      "winnerPct": 3.43,
+      "topLoser": "INTC",
+      "loserPct": -3.23,
+      "watchlistTickers": [
+        "META",
+        "CRM",
+        "XOM",
+        "WMT",
+        "CVX",
+        "INTC",
+        "ORCL",
+        "AMD",
+        "NVDA",
+        "TSLA"
+      ]
+    },
     {
       "date": "2026-10-09",
       "topWinner": "ORCL",
@@ -2582,71 +2638,52 @@
         "AMZN",
         "IWM"
       ]
-    },
-    {
-      "date": "2026-09-22",
-      "topWinner": "HD",
-      "winnerPct": 2.75,
-      "topLoser": "JPM",
-      "loserPct": -3.44,
-      "watchlistTickers": [
-        "HD",
-        "WMT",
-        "INTC",
-        "AMD",
-        "TSLA",
-        "JPM",
-        "BAC",
-        "V",
-        "MA",
-        "BA"
-      ]
     }
   ],
   "dailyMovers": {
-    "asOfDate": "2026-10-09",
+    "asOfDate": "2026-10-12",
     "gainers": [
       {
-        "ticker": "ORCL",
-        "pctChange": 4.36
+        "ticker": "META",
+        "pctChange": 3.43
       },
       {
-        "ticker": "AMZN",
-        "pctChange": 3.27
+        "ticker": "CRM",
+        "pctChange": 1.99
       },
       {
-        "ticker": "V",
-        "pctChange": 2.77
+        "ticker": "XOM",
+        "pctChange": 1.87
       },
       {
-        "ticker": "MA",
-        "pctChange": 2.51
+        "ticker": "WMT",
+        "pctChange": 1.56
       },
       {
-        "ticker": "MSFT",
-        "pctChange": 2.39
+        "ticker": "CVX",
+        "pctChange": 1.43
       }
     ],
     "losers": [
       {
         "ticker": "INTC",
-        "pctChange": -2.28
+        "pctChange": -3.23
+      },
+      {
+        "ticker": "ORCL",
+        "pctChange": -2.87
       },
       {
         "ticker": "AMD",
-        "pctChange": -2.09
+        "pctChange": -2.23
       },
       {
-        "ticker": "NFLX",
-        "pctChange": -1.79
+        "ticker": "NVDA",
+        "pctChange": -1.26
       },
       {
-        "ticker": "HD",
-        "pctChange": -1.6
-      },
-      {
-        "ticker": "AAPL",
-        "pctChange": -1.16
+        "ticker": "TSLA",
+        "pctChange": -1.21
       }
     ]
   },
@@ -2658,10 +2695,10 @@
       "entryPrice": 769.73,
       "entryFilledAt": "2026-10-05T13:30:00.80379Z",
       "qty": 0.032465929,
-      "marketValue": 25.28,
-      "unrealizedPnl": 0.28,
-      "unrealizedPnlPct": 1.1,
-      "valueAsOf": "2026-10-09"
+      "marketValue": 25.26,
+      "unrealizedPnl": 0.26,
+      "unrealizedPnlPct": 1.038,
+      "valueAsOf": "2026-10-12"
     },
     {
       "ticker": "VXUS",
@@ -2670,10 +2707,10 @@
       "entryPrice": 85.79,
       "entryFilledAt": "2026-09-28T13:30:01.018279Z",
       "qty": 1.165520456,
-      "marketValue": 98.84,
-      "unrealizedPnl": -1.16,
-      "unrealizedPnlPct": -1.164,
-      "valueAsOf": "2026-10-09"
+      "marketValue": 98.39,
+      "unrealizedPnl": -1.61,
+      "unrealizedPnlPct": -1.607,
+      "valueAsOf": "2026-10-12"
     }
   ],
   "fundSold": [],
@@ -2738,6 +2775,12 @@
       "totalMarketValue": 124.12,
       "totalCostBasis": 125,
       "unrealizedPnl": -0.88
+    },
+    {
+      "date": "2026-10-12",
+      "totalMarketValue": 123.65,
+      "totalCostBasis": 125,
+      "unrealizedPnl": -1.35
     }
   ],
   "cryptoHoldings": [],
@@ -2777,6 +2820,24 @@
       "tradePnl": -21.61,
       "tradePnlPct": -4.42,
       "cumulativePnl": -40.22
+    },
+    {
+      "date": "2026-10-13",
+      "ticker": "BTC/USD",
+      "direction": "long",
+      "source": "nightly_crypto",
+      "tradePnl": 0.88,
+      "tradePnlPct": 0.18,
+      "cumulativePnl": -39.34
+    },
+    {
+      "date": "2026-10-13",
+      "ticker": "ADA/USD",
+      "direction": "long",
+      "source": "nightly_crypto",
+      "tradePnl": -25.02,
+      "tradePnlPct": -5.09,
+      "cumulativePnl": -64.36
     }
   ],
   "recentRequests": [
@@ -2791,50 +2852,50 @@
     }
   ],
   "cryptoNightlyOverview": {
-    "closedTrades": 4,
-    "avgReturnPct": -2.055,
-    "totalPnl": -40.22,
-    "winRatePct": 0,
+    "closedTrades": 6,
+    "avgReturnPct": -2.188,
+    "totalPnl": -64.36,
+    "winRatePct": 16.7,
     "meetsMinN": false
   },
   "fundSnapshots": {
-    "asOfDate": "2026-10-09",
+    "asOfDate": "2026-10-12",
     "items": [
       {
         "ticker": "DIA",
         "label": "Dow Jones Industrial Average (DIA)",
-        "close": 516.05,
-        "pctChange": 0.88
+        "close": 517.86,
+        "pctChange": 0.35
       },
       {
         "ticker": "IWM",
         "label": "Russell 2000 (IWM)",
-        "close": 278.91,
-        "pctChange": 0.51
+        "close": 277.87,
+        "pctChange": -0.37
       },
       {
         "ticker": "QQQ",
         "label": "Nasdaq-100 (QQQ)",
-        "close": 751.26,
-        "pctChange": 0.5
+        "close": 746,
+        "pctChange": -0.7
       },
       {
         "ticker": "SPY",
         "label": "S&P 500 (SPY)",
-        "close": 778.51,
-        "pctChange": 0.6
+        "close": 778.03,
+        "pctChange": -0.06
       },
       {
         "ticker": "VOO",
         "label": "Vanguard S&P 500 ETF (VOO)",
-        "close": 715.58,
-        "pctChange": 0.61
+        "close": 715.315,
+        "pctChange": -0.04
       },
       {
         "ticker": "VTI",
         "label": "Vanguard Total Stock Market ETF (VTI)",
-        "close": 381.9,
-        "pctChange": 0.63
+        "close": 381.59,
+        "pctChange": -0.08
       }
     ]
   },
@@ -2859,6 +2920,22 @@
     }
   ],
   "onDemand": [
+    {
+      "date": "2026-10-09",
+      "ticker": "ADA/USD",
+      "direction": "long",
+      "pnl": -25.02,
+      "pnlPct": -5.09,
+      "source": "nightly_crypto"
+    },
+    {
+      "date": "2026-10-09",
+      "ticker": "BTC/USD",
+      "direction": "long",
+      "pnl": 0.88,
+      "pnlPct": 0.18,
+      "source": "nightly_crypto"
+    },
     {
       "date": "2026-10-06",
       "ticker": "AVAX/USD",
@@ -2892,22 +2969,5 @@
       "source": "nightly_crypto"
     }
   ],
-  "onDemandPending": [
-    {
-      "date": "2026-10-09",
-      "ticker": "BTC/USD",
-      "direction": "long",
-      "status": "entry_pending",
-      "notional": 500,
-      "source": "nightly_crypto"
-    },
-    {
-      "date": "2026-10-09",
-      "ticker": "ADA/USD",
-      "direction": "long",
-      "status": "entry_pending",
-      "notional": 500,
-      "source": "nightly_crypto"
-    }
-  ]
+  "onDemandPending": []
 }
