@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-10-15T00:04:09.809Z",
+  "generatedAt": "2026-10-15T23:48:00.291Z",
   "minSampleSize": 20,
   "overview": {
-    "closedTrades": 148,
-    "avgReturnPct": -0.251,
-    "totalPnl": -298.46,
-    "totalNotional": 117625,
-    "winRatePct": 51.4,
-    "directionalHitRatePct": 51.7,
-    "directionalResolvedN": 145,
+    "closedTrades": 151,
+    "avgReturnPct": -0.347,
+    "totalPnl": -373.51,
+    "totalNotional": 119125,
+    "winRatePct": 50.3,
+    "directionalHitRatePct": 53,
+    "directionalResolvedN": 149,
     "directionalCi95": [
-      43.6,
-      59.9
+      45,
+      61
     ],
-    "claudeSelfGradePct": 59.4,
-    "claudeSelfGradeN": 192,
+    "claudeSelfGradePct": 59.9,
+    "claudeSelfGradeN": 197,
     "maxDrawdownUsd": 417.33,
     "bestTrade": {
       "ticker": "ORCL",
@@ -27,8 +27,8 @@
       "pnlPct": -15.59
     },
     "currentStreak": {
-      "type": "win",
-      "count": 2
+      "type": "loss",
+      "count": 3
     }
   },
   "equityCurve": [
@@ -1363,41 +1363,68 @@
       "tradePnlPct": 1.06,
       "cumulativePnl": -298.46,
       "spyCumulativePnl": 27.37
+    },
+    {
+      "date": "2026-10-15",
+      "ticker": "ORCL",
+      "direction": "long",
+      "tradePnl": -35.78,
+      "tradePnlPct": -7.16,
+      "cumulativePnl": -334.24,
+      "spyCumulativePnl": 21.78
+    },
+    {
+      "date": "2026-10-15",
+      "ticker": "JNJ",
+      "direction": "short",
+      "tradePnl": -24.72,
+      "tradePnlPct": -4.95,
+      "cumulativePnl": -358.96,
+      "spyCumulativePnl": 16.19
+    },
+    {
+      "date": "2026-10-15",
+      "ticker": "BAC",
+      "direction": "short",
+      "tradePnl": -14.55,
+      "tradePnlPct": -3.24,
+      "cumulativePnl": -373.51,
+      "spyCumulativePnl": 10.6
     }
   ],
   "benchmark": {
     "symbol": "SPY",
-    "n": 148,
+    "n": 151,
     "excluded": 0,
-    "strategyPnl": -298.46,
-    "spySameDollarsPnl": 27.37,
-    "strategyAvgPct": -0.251,
-    "spyAvgPct": 0.045,
-    "marketAdjustedAvgPct": -0.256,
+    "strategyPnl": -373.51,
+    "spySameDollarsPnl": 10.6,
+    "strategyAvgPct": -0.347,
+    "spyAvgPct": 0.022,
+    "marketAdjustedAvgPct": -0.36,
     "marketAdjustedCi95": [
-      -0.638,
-      0.127
+      -0.753,
+      0.034
     ],
     "long": {
-      "n": 78,
-      "mean": -0.015,
+      "n": 79,
+      "mean": -0.091,
       "ci95": [
-        -0.497,
-        0.468
+        -0.591,
+        0.408
       ]
     },
     "short": {
-      "n": 70,
-      "mean": -0.524,
+      "n": 72,
+      "mean": -0.654,
       "ci95": [
-        -1.126,
-        0.078
+        -1.267,
+        -0.041
       ]
     },
     "buyAndHold": {
       "from": "2026-08-18",
-      "to": "2026-10-14",
-      "pct": 0.36
+      "to": "2026-10-15",
+      "pct": 0.63
     }
   },
   "honesty": {
@@ -1460,10 +1487,10 @@
       },
       {
         "week": "2026-10-12",
-        "n": 5,
-        "priceCheckedPct": 60,
-        "selfGradePct": 80,
-        "selfGradeN": 5
+        "n": 9,
+        "priceCheckedPct": 77.8,
+        "selfGradePct": 88.9,
+        "selfGradeN": 9
       }
     ],
     "byConfidence": [
@@ -1476,21 +1503,21 @@
       },
       {
         "confidence": "medium",
-        "n": 87,
-        "priceCheckedPct": 55.2,
-        "avgTradePct": 0.05,
-        "tradeN": 84
+        "n": 90,
+        "priceCheckedPct": 56.7,
+        "avgTradePct": -0.05,
+        "tradeN": 86
       },
       {
         "confidence": "low",
-        "n": 33,
-        "priceCheckedPct": 42.4,
-        "avgTradePct": -0.93,
-        "tradeN": 32
+        "n": 34,
+        "priceCheckedPct": 44.1,
+        "avgTradePct": -1.12,
+        "tradeN": 33
       }
     ],
     "verdicts": {
-      "playedOutN": 82,
+      "playedOutN": 86,
       "playedOutButWrongN": 32,
       "missedN": 30,
       "missedButRightN": 2
@@ -1498,8 +1525,8 @@
   },
   "launchReadiness": {
     "requiredCleanRuns": 20,
-    "cleanStreak": 11,
-    "loggedRuns": 11,
+    "cleanStreak": 12,
+    "loggedRuns": 12,
     "countingSince": "2026-10-01",
     "killSwitchOn": false,
     "items": [
@@ -1525,7 +1552,7 @@
         "key": "reliability",
         "label": "20 consecutive clean nightly runs",
         "status": "in_progress",
-        "detail": "11 of 20 so far (counting since 2026-10-01)."
+        "detail": "12 of 20 so far (counting since 2026-10-01)."
       },
       {
         "key": "account",
@@ -2140,20 +2167,20 @@
     "direction": [
       {
         "label": "long",
-        "n": 78,
-        "totalPnl": -27.28,
-        "totalNotional": 71750,
-        "avgReturnPct": 0.033,
-        "winRatePct": 55.1,
+        "n": 79,
+        "totalPnl": -63.06,
+        "totalNotional": 72250,
+        "avgReturnPct": -0.058,
+        "winRatePct": 54.4,
         "meetsMinN": true
       },
       {
         "label": "short",
-        "n": 70,
-        "totalPnl": -271.18,
-        "totalNotional": 45875,
-        "avgReturnPct": -0.566,
-        "winRatePct": 47.1,
+        "n": 72,
+        "totalPnl": -310.45,
+        "totalNotional": 46875,
+        "avgReturnPct": -0.664,
+        "winRatePct": 45.8,
         "meetsMinN": true
       }
     ],
@@ -2169,20 +2196,20 @@
       },
       {
         "label": "medium",
-        "n": 84,
-        "totalPnl": 89.94,
-        "totalNotional": 66750,
-        "avgReturnPct": 0.046,
-        "winRatePct": 51.2,
+        "n": 86,
+        "totalPnl": 50.67,
+        "totalNotional": 67750,
+        "avgReturnPct": -0.05,
+        "winRatePct": 50,
         "meetsMinN": true
       },
       {
         "label": "low",
-        "n": 32,
-        "totalPnl": -266.13,
-        "totalNotional": 19375,
-        "avgReturnPct": -0.927,
-        "winRatePct": 53.1,
+        "n": 33,
+        "totalPnl": -301.91,
+        "totalNotional": 19875,
+        "avgReturnPct": -1.115,
+        "winRatePct": 51.5,
         "meetsMinN": true
       }
     ],
@@ -2198,31 +2225,31 @@
       },
       {
         "label": "no_event_risk",
-        "n": 70,
-        "totalPnl": -119.72,
-        "totalNotional": 47000,
-        "avgReturnPct": -0.315,
-        "winRatePct": 45.7,
+        "n": 73,
+        "totalPnl": -194.77,
+        "totalNotional": 48500,
+        "avgReturnPct": -0.513,
+        "winRatePct": 43.8,
         "meetsMinN": true
       }
     ],
     "peerCatalystShorts": [
       {
         "label": "peer_catalyst",
-        "n": 9,
-        "totalPnl": 24.51,
-        "totalNotional": 3750,
-        "avgReturnPct": 0.808,
-        "winRatePct": 77.8,
+        "n": 10,
+        "totalPnl": -0.21,
+        "totalNotional": 4250,
+        "avgReturnPct": 0.232,
+        "winRatePct": 70,
         "meetsMinN": false
       },
       {
         "label": "isolated_unconfirmed",
-        "n": 9,
-        "totalPnl": -14.38,
-        "totalNotional": 2375,
-        "avgReturnPct": -0.483,
-        "winRatePct": 44.4,
+        "n": 10,
+        "totalPnl": -28.93,
+        "totalNotional": 2875,
+        "avgReturnPct": -0.759,
+        "winRatePct": 40,
         "meetsMinN": false
       }
     ]
@@ -2310,15 +2337,6 @@
       "meetsMinN": false
     },
     {
-      "label": "JNJ",
-      "n": 4,
-      "totalPnl": -2.47,
-      "totalNotional": 2500,
-      "avgReturnPct": -0.197,
-      "winRatePct": 50,
-      "meetsMinN": false
-    },
-    {
       "label": "AAPL",
       "n": 5,
       "totalPnl": -4.86,
@@ -2346,15 +2364,6 @@
       "meetsMinN": false
     },
     {
-      "label": "ORCL",
-      "n": 14,
-      "totalPnl": -13.6,
-      "totalNotional": 10500,
-      "avgReturnPct": -0.432,
-      "winRatePct": 50,
-      "meetsMinN": false
-    },
-    {
       "label": "CAT",
       "n": 5,
       "totalPnl": -31.64,
@@ -2368,15 +2377,6 @@
       "n": 3,
       "totalPnl": -22.65,
       "totalNotional": 2125,
-      "avgReturnPct": -0.663,
-      "winRatePct": 33.3,
-      "meetsMinN": false
-    },
-    {
-      "label": "BAC",
-      "n": 3,
-      "totalPnl": -21.84,
-      "totalNotional": 2500,
       "avgReturnPct": -0.663,
       "winRatePct": 33.3,
       "meetsMinN": false
@@ -2409,12 +2409,39 @@
       "meetsMinN": false
     },
     {
+      "label": "ORCL",
+      "n": 15,
+      "totalPnl": -49.38,
+      "totalNotional": 11000,
+      "avgReturnPct": -0.881,
+      "winRatePct": 46.7,
+      "meetsMinN": false
+    },
+    {
+      "label": "JNJ",
+      "n": 5,
+      "totalPnl": -27.19,
+      "totalNotional": 3000,
+      "avgReturnPct": -1.148,
+      "winRatePct": 40,
+      "meetsMinN": false
+    },
+    {
       "label": "CRM",
       "n": 7,
       "totalPnl": -85.8,
       "totalNotional": 5750,
       "avgReturnPct": -1.306,
       "winRatePct": 71.4,
+      "meetsMinN": false
+    },
+    {
+      "label": "BAC",
+      "n": 4,
+      "totalPnl": -36.39,
+      "totalNotional": 3000,
+      "avgReturnPct": -1.308,
+      "winRatePct": 25,
       "meetsMinN": false
     },
     {
@@ -2445,12 +2472,31 @@
     }
   },
   "portfolioRisk": {
-    "currentOpenPositions": 9,
-    "currentDeployedUsd": 4250,
+    "currentOpenPositions": 10,
+    "currentDeployedUsd": 5500,
     "maxConcurrentPositions": 22,
     "maxTotalNotionalUsd": 20000
   },
   "recentBriefs": [
+    {
+      "date": "2026-10-15",
+      "topWinner": "CRM",
+      "winnerPct": 4.52,
+      "topLoser": "INTC",
+      "loserPct": -2.84,
+      "watchlistTickers": [
+        "CRM",
+        "HD",
+        "ORCL",
+        "NFLX",
+        "UNH",
+        "INTC",
+        "NVDA",
+        "CAT",
+        "AMD",
+        "TSLA"
+      ]
+    },
     {
       "date": "2026-10-14",
       "topWinner": "UNH",
@@ -2697,71 +2743,52 @@
         "TSLA",
         "AMD"
       ]
-    },
-    {
-      "date": "2026-09-25",
-      "topWinner": "MSFT",
-      "winnerPct": 3.73,
-      "topLoser": "INTC",
-      "loserPct": -3.42,
-      "watchlistTickers": [
-        "MSFT",
-        "COST",
-        "CAT",
-        "AAPL",
-        "JPM",
-        "INTC",
-        "META",
-        "CRM",
-        "ORCL",
-        "TSLA"
-      ]
     }
   ],
   "dailyMovers": {
-    "asOfDate": "2026-10-14",
+    "asOfDate": "2026-10-15",
     "gainers": [
       {
+        "ticker": "CRM",
+        "pctChange": 4.52
+      },
+      {
+        "ticker": "HD",
+        "pctChange": 4.33
+      },
+      {
+        "ticker": "ORCL",
+        "pctChange": 2.99
+      },
+      {
+        "ticker": "NFLX",
+        "pctChange": 2.88
+      },
+      {
         "ticker": "UNH",
-        "pctChange": 4.8
-      },
-      {
-        "ticker": "WMT",
-        "pctChange": 3.48
-      },
-      {
-        "ticker": "PFE",
-        "pctChange": 3
-      },
-      {
-        "ticker": "COST",
-        "pctChange": 2.92
-      },
-      {
-        "ticker": "JNJ",
-        "pctChange": 2.15
+        "pctChange": 2.77
       }
     ],
     "losers": [
       {
-        "ticker": "ORCL",
-        "pctChange": -8.87
+        "ticker": "INTC",
+        "pctChange": -2.84
+      },
+      {
+        "ticker": "NVDA",
+        "pctChange": -1.88
+      },
+      {
+        "ticker": "CAT",
+        "pctChange": -1.7
       },
       {
         "ticker": "AMD",
-        "pctChange": -5.7
+        "pctChange": -1.54
       },
       {
-        "ticker": "BAC",
-        "pctChange": -4.71
-      },
-      {
-        "ticker": "INTC",
-        "pctChange": -4.61
-      },
-      {
-        "ticker": "META",
-        "pctChange": -3.18
+        "ticker": "TSLA",
+        "pctChange": -1.36
       }
     ]
   },
@@ -2773,10 +2800,10 @@
       "entryPrice": 769.73,
       "entryFilledAt": "2026-10-05T13:30:00.80379Z",
       "qty": 0.032465929,
-      "marketValue": 24.99,
-      "unrealizedPnl": -0.01,
-      "unrealizedPnlPct": -0.05,
-      "valueAsOf": "2026-10-14"
+      "marketValue": 25.06,
+      "unrealizedPnl": 0.06,
+      "unrealizedPnlPct": 0.225,
+      "valueAsOf": "2026-10-15"
     },
     {
       "ticker": "VXUS",
@@ -2785,10 +2812,10 @@
       "entryPrice": 85.79,
       "entryFilledAt": "2026-09-28T13:30:01.018279Z",
       "qty": 1.165520456,
-      "marketValue": 97.42,
-      "unrealizedPnl": -2.58,
-      "unrealizedPnlPct": -2.58,
-      "valueAsOf": "2026-10-14"
+      "marketValue": 97.71,
+      "unrealizedPnl": -2.29,
+      "unrealizedPnlPct": -2.294,
+      "valueAsOf": "2026-10-15"
     }
   ],
   "fundSold": [],
@@ -2871,6 +2898,12 @@
       "totalMarketValue": 122.41,
       "totalCostBasis": 125,
       "unrealizedPnl": -2.59
+    },
+    {
+      "date": "2026-10-15",
+      "totalMarketValue": 122.77,
+      "totalCostBasis": 125,
+      "unrealizedPnl": -2.23
     }
   ],
   "cryptoHoldings": [],
@@ -2967,43 +3000,43 @@
     "meetsMinN": false
   },
   "fundSnapshots": {
-    "asOfDate": "2026-10-14",
+    "asOfDate": "2026-10-15",
     "items": [
       {
         "ticker": "DIA",
         "label": "Dow Jones Industrial Average (DIA)",
-        "close": 515.65,
-        "pctChange": -0.08
+        "close": 521.15,
+        "pctChange": 1.07
       },
       {
         "ticker": "IWM",
         "label": "Russell 2000 (IWM)",
-        "close": 271.395,
-        "pctChange": -1.91
+        "close": 275.02,
+        "pctChange": 1.34
       },
       {
         "ticker": "QQQ",
         "label": "Nasdaq-100 (QQQ)",
-        "close": 728.985,
-        "pctChange": -1.97
+        "close": 728.19,
+        "pctChange": -0.11
       },
       {
         "ticker": "SPY",
         "label": "S&P 500 (SPY)",
-        "close": 769.65,
-        "pctChange": -1.08
+        "close": 771.77,
+        "pctChange": 0.28
       },
       {
         "ticker": "VOO",
         "label": "Vanguard S&P 500 ETF (VOO)",
-        "close": 707.44,
-        "pctChange": -1.07
+        "close": 709.37,
+        "pctChange": 0.27
       },
       {
         "ticker": "VTI",
         "label": "Vanguard Total Stock Market ETF (VTI)",
-        "close": 376.91,
-        "pctChange": -1.17
+        "close": 378.415,
+        "pctChange": 0.4
       }
     ]
   },
