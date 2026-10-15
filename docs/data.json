@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-15T00:03:44.072Z",
+  "generatedAt": "2026-10-15T00:03:58.893Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 148,
@@ -1548,23 +1548,30 @@
     ],
     "mirror": [
       {
-        "date": "2026-10-13",
-        "ticker": "JNJ",
+        "date": "2026-10-14",
+        "ticker": "INTC",
         "notional": null,
         "status": "skipped_short",
         "note": "Long-only account: shorts need a $2,000 margin account."
       },
       {
-        "date": "2026-10-13",
-        "ticker": "BAC",
+        "date": "2026-10-14",
+        "ticker": "AMD",
         "notional": null,
         "status": "skipped_short",
         "note": "Long-only account: shorts need a $2,000 margin account."
       },
       {
-        "date": "2026-10-13",
-        "ticker": "ORCL",
-        "notional": 30,
+        "date": "2026-10-14",
+        "ticker": "WMT",
+        "notional": 15,
+        "status": "would_buy",
+        "note": "DRY RUN: nothing was sent to any broker."
+      },
+      {
+        "date": "2026-10-14",
+        "ticker": "UNH",
+        "notional": 15,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       }
