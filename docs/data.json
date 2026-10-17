@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-16T23:49:51.643Z",
+  "generatedAt": "2026-10-17T23:14:43.115Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 155,
@@ -2525,8 +2525,8 @@
     }
   },
   "portfolioRisk": {
-    "currentOpenPositions": 13,
-    "currentDeployedUsd": 7000,
+    "currentOpenPositions": 14,
+    "currentDeployedUsd": 7500,
     "maxConcurrentPositions": 22,
     "maxTotalNotionalUsd": 20000
   },
@@ -3187,8 +3187,8 @@
   ],
   "onDemandPending": [
     {
-      "date": "2026-10-16",
-      "ticker": "LTC/USD",
+      "date": "2026-10-17",
+      "ticker": "DOT/USD",
       "direction": "long",
       "status": "entry_pending",
       "notional": 500,
@@ -3196,9 +3196,17 @@
     },
     {
       "date": "2026-10-16",
+      "ticker": "LTC/USD",
+      "direction": "long",
+      "status": "exit_pending",
+      "notional": 500,
+      "source": "nightly_crypto"
+    },
+    {
+      "date": "2026-10-16",
       "ticker": "ETH/USD",
       "direction": "long",
-      "status": "entry_pending",
+      "status": "exit_pending",
       "notional": 500,
       "source": "nightly_crypto"
     }
