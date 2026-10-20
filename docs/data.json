@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-20T00:35:23.799Z",
+  "generatedAt": "2026-10-20T00:35:45.403Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 159,
@@ -1647,37 +1647,30 @@
     ],
     "mirror": [
       {
-        "date": "2026-10-16",
-        "ticker": "ORCL",
-        "notional": null,
-        "status": "skipped_short",
-        "note": "Long-only account: shorts need a $2,000 margin account."
-      },
-      {
-        "date": "2026-10-16",
-        "ticker": "AMD",
-        "notional": null,
-        "status": "skipped_short",
-        "note": "Long-only account: shorts need a $2,000 margin account."
-      },
-      {
-        "date": "2026-10-16",
-        "ticker": "XOM",
-        "notional": 10,
+        "date": "2026-10-19",
+        "ticker": "TSLA",
+        "notional": 7.5,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       },
       {
-        "date": "2026-10-16",
-        "ticker": "JNJ",
-        "notional": 10,
+        "date": "2026-10-19",
+        "ticker": "NVDA",
+        "notional": 7.5,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       },
       {
-        "date": "2026-10-16",
-        "ticker": "CVX",
-        "notional": 10,
+        "date": "2026-10-19",
+        "ticker": "INTC",
+        "notional": 7.5,
+        "status": "would_buy",
+        "note": "DRY RUN: nothing was sent to any broker."
+      },
+      {
+        "date": "2026-10-19",
+        "ticker": "AMZN",
+        "notional": 7.5,
         "status": "would_buy",
         "note": "DRY RUN: nothing was sent to any broker."
       }
