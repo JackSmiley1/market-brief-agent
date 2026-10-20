@@ -22,7 +22,9 @@
     "sell": "node src/sellPosition.js",
     "benchmark": "node src/fetchBenchmark.js",
     "check-assets": "node src/checkAssets.js",
-    "test": "node --test"
+    "test": "node --test",
+    "wind-down": "node src/windDown.js",
+    "daily-mark": "node src/dailyMark.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

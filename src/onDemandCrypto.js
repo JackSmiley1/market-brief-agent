@@ -3,7 +3,7 @@ import { fetchCryptoMarketData } from "./fetchCryptoMarketData.js";
 import { fetchCryptoNews } from "./fetchNews.js";
 import { generateCryptoOnDemandCall } from "./generateBrief.js";
 import { openNewPositions, reconcileEntries, reconcileExits } from "./paperTrade.js";
-import { CRYPTO_ONDEMAND_LIMITS } from "./config.js";
+import { CRYPTO_ONDEMAND_LIMITS, DAILY_STRATEGY_ENDED, dailyStrategyStopped } from "./config.js";
 import { logInvestRequest } from "./saveBrief.js";
 
 // On-demand crypto analysis — the Crypto tab's counterpart to
@@ -73,6 +73,10 @@ function todayISO() {
 }
 
 async function run() {
+  if (dailyStrategyStopped()) {
+    console.log(`The daily strategy was ended on ${DAILY_STRATEGY_ENDED} (see src/config.js). Nothing analyzed, nothing ordered, no Claude call made.`);
+    return;
+  }
   const args = process.argv.slice(2);
   const rawSymbol = args[0];
   const amount = Number(args[1]);

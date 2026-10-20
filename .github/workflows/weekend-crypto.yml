@@ -8,8 +8,7 @@ name: Weekend Crypto
 # 20-clean-weekday-runs launch gate. Its name differs from "Nightly Market
 # Brief", so live-mirror and long-horizon (workflow_run) don't fire on it.
 on:
-  schedule:
-    - cron: '30 21 * * 0,6'
+  # Schedule removed 2026-10-20 with the daily strategy (see status-memo.md).
   workflow_dispatch: {}
 permissions:
   contents: write

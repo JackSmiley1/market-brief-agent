@@ -15,7 +15,7 @@ import {
 } from "./saveBrief.js";
 import { runPaperTradingCycle } from "./paperTrade.js";
 import { db } from "./db.js";
-import { FUND_WATCHLIST } from "./config.js";
+import { FUND_WATCHLIST, DAILY_STRATEGY_ENDED, dailyStrategyStopped } from "./config.js";
 
 function todayISO() {
   // toISOString() reports UTC, which has already rolled to the next
@@ -25,6 +25,10 @@ function todayISO() {
 }
 
 async function run() {
+  if (dailyStrategyStopped()) {
+    console.log(`The daily strategy was ended on ${DAILY_STRATEGY_ENDED} (see src/config.js). Nothing analyzed, nothing ordered, no Claude call made.`);
+    return;
+  }
   const date = todayISO();
   console.log(`Running brief for ${date}...`);
 

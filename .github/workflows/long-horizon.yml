@@ -8,15 +8,14 @@ name: Long-Horizon Track
 #
 #   - Quarterly (15th of Feb/May/Aug/Nov, after earnings season): re-forecast
 #     and rebalance.
-#   - After each Nightly Market Brief: mark the portfolio to that day's prices.
+#   - Every weekday after the close: mark the portfolio to that day's prices,
+#     and record fund prices/holding values (src/dailyMark.js, no Claude).
 #   - Manually from the Actions tab: choose forecast or mark.
 
 on:
   schedule:
-    - cron: '7 14 15 2,5,8,11 *'
-  workflow_run:
-    workflows: ["Nightly Market Brief"]
-    types: [completed]
+    - cron: '7 14 15 2,5,8,11 *'   # quarterly forecast + rebalance
+    - cron: '45 22 * * 1-5'        # weekday price marks (added 2026-10-20; was triggered by the nightly run)
   workflow_dispatch:
     inputs:
       mode:
@@ -46,7 +45,7 @@ jobs:
       - name: Decide mode
         id: mode
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then echo "mode=forecast" >> "$GITHUB_OUTPUT";
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ github.event.schedule }}" = "7 14 15 2,5,8,11 *" ]; then echo "mode=forecast" >> "$GITHUB_OUTPUT";
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT";
           else echo "mode=mark" >> "$GITHUB_OUTPUT"; fi
       - name: Quarterly forecasts + rebalance (no orders)
@@ -60,6 +59,13 @@ jobs:
         env:
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      - name: Fund prices and holding values (no Claude)
+        run: node src/dailyMark.js
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
+        continue-on-error: true
       - name: Export public dashboard data
         run: npm run export-site
         env:

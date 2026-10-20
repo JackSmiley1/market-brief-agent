@@ -605,6 +605,7 @@ try {
 // dashboard so results can be read against what changed when. Add to it in
 // the same commit as any future change.
 const changeLog = [
+  { date: "2026-10-20", kind: "Decision", text: "Ended the daily strategy (nightly stock and crypto picks, and the on-demand buttons). Over 159 stock trades it lost $452 while the same dollars in SPY made $13, and its per-trade result versus SPY was below zero with 95% confidence. The September rule change did not fix it, and crypto won 1 of 11. Open trades were closed and the full record stays on this page. The long-horizon track and fund holdings continue." },
   { date: "2026-10-12", kind: "Schedule", text: "Crypto now trades seven days a week. A weekend run on Saturday and Sunday means each crypto position is held about one day, instead of Friday's picks sitting until Monday. Same agent, prompt and $500 sizing; stocks are untouched." },
   { date: "2026-10-12", kind: "Fix", text: "When Alpaca refuses to let a stock be shorted (as with ORCL on Oct 8), the bot now records it as skipped instead of as a failed order. The Oct 8 ORCL row stays in the record as it happened." },
   { date: "2026-10-01", kind: "Fix", text: "Fixed a second crypto data bug: the agent was judging each coin on the current, barely started daily bar (about an hour of trading). It now uses the last completed day." },

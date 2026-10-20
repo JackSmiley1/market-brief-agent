@@ -340,21 +340,17 @@
 <div id="view-dashboard" class="view active">
   <div class="hero">
     <h1>Great Lakes Investments</h1>
-    <p class="tag">An autonomous research pipeline: nightly Claude-driven market analysis, evidence-based simulated position sizing, and statistical guardrails against tuning on noise. Graded against reality every night.</p>
-    <div class="badge-row">
-      <span class="badge">Runs <b>nightly</b>, autonomously</span>
-      <span class="badge">Sizing derived from <b id="badge-n">···</b> real trades</span>
-      <span class="badge">Guardrail: <b>n ≥ 20</b> before any rule changes</span>
-    </div>
+    <p class="tag">Claude analyzes the market every night, places simulated trades, and is graded against real prices.</p>
+    <span id="badge-n" hidden></span>
   </div>
 
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>Research project, Phase 1. All trades shown are simulated on Alpaca's <strong>paper trading</strong> API. Zero real capital, no live orders, no real users. Numbers below are reported as-is, including when they're negative or statistically inconclusive.</span>
+    <span><strong>The daily strategy ended on Oct 20, 2026</strong> after underperforming SPY (see "What Changed, and When"). The full record stays below. Paper trading only, no real money.</span>
   </div>
 
   <main class="ws">
-    <section class="c-7" id="invest">
+    <section class="c-7" id="invest" style="display:none">
       <div class="section-head"><h2>Simulate an Investment</h2></div>
       <div class="invest-card">
         <div class="invest-row">
@@ -365,13 +361,13 @@
           <input class="invest-input" id="invest-amount" type="number" placeholder="Amount (optional, $25-$10,000)" min="25" max="10000" step="1" style="max-width:220px;" />
           <button class="btn btn-primary" id="invest-btn">Simulate Investment</button>
         </div>
-        <div class="invest-hint">Runs a real Claude-generated analysis and, if a setup clears the bar, opens a <strong>simulated</strong> paper position. Leave the amount blank to use the same evidence-based sizing as the nightly system, or set one ($25-$10,000) to use that exact amount instead for this trade only. Never real capital. Confirmation required.</div>
+        <div class="invest-hint">Claude analyzes it and opens a simulated position only if the setup clears the bar. Leave the amount blank for standard sizing. PIN required.</div>
         <div id="invest-status" class="status-msg"></div>
       </div>
     </section>
-    <section class="c-5" id="requests-stock-section">
+    <section class="c-12" id="requests-stock-section">
       <div class="section-head"><h2>Your Stock Invest Requests</h2></div>
-      <p class="section-sub">Every request from the form above and what came of it, including the ones Claude passed on. A pass is a real outcome, not a failure: it means nothing cleared the bar for an entry.</p>
+      <p class="section-sub">Every request and its outcome. A pass means nothing cleared the bar.</p>
       <div class="brief-list" id="requests-stock-list"><div class="loading">No requests yet.</div></div>
     </section>
     <section class="c-12" id="overview-section">
@@ -380,7 +376,7 @@
     </section>
     <section class="c-3">
       <div class="section-head"><h2>Top 5 Stock Movers</h2></div>
-      <p class="section-sub" id="movers-asof">From the most recent trading session's watchlist scan (real price data, not a trade signal by itself).</p>
+      <p class="section-sub" id="movers-asof">Last session, from the watchlist scan.</p>
       <div class="bucket-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
         <div>
           <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Gainers</h3>
@@ -405,12 +401,12 @@
     </section>
     <section class="c-6" id="benchmark-section">
       <div class="section-head"><h2>Versus Just Holding SPY</h2></div>
-      <p class="section-sub">Every closed nightly trade compared with SPY over the exact same window (entry open to exit open). "Same dollars in SPY" is the index alternative. "Market-adjusted" removes the market's own move from each trade, signed by direction, so it isolates stock-picking skill from market direction.</p>
+      <p class="section-sub">Each trade vs. SPY over the same window. Market-adjusted removes the market's own move.</p>
       <div class="stat-grid" id="benchmark-stats"><div class="loading">Loading…</div></div>
     </section>
     <section class="c-6" id="readiness-section">
       <div class="section-head"><h2>Road to a $30 Live Test</h2></div>
-      <p class="section-sub">What has to be true before any real money goes in, even $30. This first step tests the plumbing with real fills, not whether the strategy works. Everything here is still paper; nothing is live.</p>
+      <p class="section-sub">Checklist before even $30 of real money. Nothing here is live.</p>
       <div class="bucket-group">
         <div class="ready-progress"><div class="ready-bar"><div class="ready-fill" id="ready-fill" style="width:0%"></div></div><div class="ready-count" id="ready-count">Loading…</div></div>
         <div class="brief-list" id="ready-list" style="margin-top:12px;"></div>
@@ -422,7 +418,7 @@
     </section>
     <section class="c-12" id="honesty-section">
       <div class="section-head"><h2>Is Claude Honest About Its Own Calls?</h2></div>
-      <p class="section-sub">Claude grades each of its calls the next day. This checks those grades against what the price actually did, and whether its confidence ratings mean anything. It measures the AI itself, separately from profit or loss.</p>
+      <p class="section-sub">Claude's grade of its own calls vs. what prices actually did.</p>
       <div class="stat-grid" id="honesty-stats"><div class="loading">Loading…</div></div>
       <div class="chart-wrap" style="margin-top:14px;"><div style="position:relative; height:300px;"><canvas id="honestyChart"></canvas></div></div>
       <div class="bucket-grid" style="margin-top:14px;"><div class="bucket-group"><h3>Does confidence mean anything?</h3><table id="honesty-conf"><thead><tr><th>Claude's confidence</th><th>Calls</th><th>Direction right</th><th>Avg trade return</th></tr></thead><tbody></tbody></table></div></div>
@@ -434,17 +430,17 @@
     </section>
     <section class="c-8" id="changes-section">
       <div class="section-head"><h2>What Changed, and When</h2></div>
-      <p class="section-sub">Every change to the strategy or how it's measured, dated, so the results above can be read against what was changed and when. Losses stay on the record; changes are logged rather than hidden.</p>
+      <p class="section-sub">Every change, dated, so results can be read against it.</p>
       <div class="brief-list" id="change-list"><div class="loading">Loading…</div></div>
     </section>
     <section class="c-12">
       <div class="section-head"><h2>Performance by Sizing Lever</h2></div>
-      <p class="section-sub">Click any column header to sort. Small-sample buckets are flagged, not hidden.</p>
+      <p class="section-sub">Click a header to sort. Small samples are flagged.</p>
       <div class="bucket-grid" id="bucket-container"><div class="loading">Loading…</div></div>
     </section>
     <section class="c-6">
       <div class="section-head"><h2>Performance by Ticker</h2></div>
-      <p class="section-sub">n ≥ 3 only: one or two trades on a name isn't a pattern yet.</p>
+      <p class="section-sub">Tickers with 3+ trades.</p>
       <div class="bucket-grid" id="ticker-container"><div class="loading">Loading…</div></div>
     </section>
     <section class="c-6">
@@ -454,19 +450,19 @@
     <section class="c-12">
       <div class="section-head"><h2>Methodology</h2></div>
       <div class="methodology">
-        <p>Every nightly pick gets a self-rated confidence level and an event-risk flag from Claude's own read of the setup. Position size is cut for low confidence, scheduled-event risk, and short positions, not by assumption, but because each one was shown to correlate with worse real outcomes in this system's own trade history.</p>
+        <p>Each pick gets a confidence level and an event-risk flag from Claude. Size is cut for low confidence, event risk and shorts, because each lined up with worse results in this system's own history.</p>
         <p id="methodology-detail" class="loading">Loading…</p>
-        <p>Before any comparison above is treated as a reason to change those sizing rules, it has to clear a minimum sample size (<span id="min-n-inline">20</span> closed trades on both sides of the comparison). Buckets below that line are labeled <span class="flag">small sample</span> and are directional only. This is a deliberate guardrail against tuning the strategy on noise.</p>
+        <p>No sizing rule changes until both sides of a comparison have at least <span id="min-n-inline">20</span> closed trades. Smaller groups are labeled <span class="flag">small sample</span>.</p>
       </div>
     </section>
     <section class="c-12" id="lessons-section" style="display:none;">
       <div class="section-head"><h2>Lessons Learned</h2></div>
-      <p class="section-sub">A separate, qualitative process (distinct from the sizing rules above) that periodically reviews batches of the system's own losing trades and writes down honest, falsifiable patterns, fed into future briefs as advisory context, not a hard rule. Only runs on a large-enough new batch of losses, and is explicitly allowed to conclude "no clear pattern."</p>
+      <p class="section-sub">Patterns Claude writes down after reviewing its losing trades. Advisory only, never a trading rule.</p>
       <div class="lesson-list" id="lesson-list"></div>
     </section>
     <section class="c-12" id="on-demand-section" style="display:none;">
       <div class="section-head"><h2>On-Demand Trades</h2></div>
-      <p class="section-sub">User-prompted, ad hoc trades: analyzed and (if flagged) opened on request rather than by the fixed nightly watchlist. Excluded from the sizing-lever evidence above on purpose, since they're a different, uncontrolled selection process.</p>
+      <p class="section-sub">Trades requested from the form. Kept out of the sizing evidence.</p>
       <div class="brief-list" id="on-demand-list"></div>
     </section>
   </main>
@@ -476,11 +472,11 @@
 <div id="view-mutual-funds" class="view">
   <div class="hero">
     <h1>Mutual Funds</h1>
-    <p class="tag">Broad market and index fund investing, alongside the individual-ticker picks the nightly pipeline already makes.</p>
+    <p class="tag">Buy-and-hold index funds, separate from the nightly picks.</p>
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>Both "Invest" controls below open real simulated (paper account) long positions — a static, buy-and-hold allocation, not analyzed or sized by Claude, at either the fixed $300-each basket or whatever ticker/amount you enter ($5-$10,000). Not literal mutual fund share classes, and never real capital. Broader access (actual fund share classes, other brokers' funds) still requires becoming, or partnering with, a licensed broker-dealer — see the full <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for what that involves.</span>
+    <span>Simulated buy-and-hold positions, not picked or sized by Claude. ETFs, not mutual fund share classes. No real money.</span>
   </div>
   <main class="ws">
     <section class="c-6" id="fund-invest">
@@ -490,7 +486,7 @@
           <span class="prefix" style="padding:12px 0;">SPY, VOO, VTI, QQQ, DIA — $300 each, equal-weight, long only</span>
           <button class="btn btn-primary" id="fund-invest-btn">Invest in Top 5 Funds</button>
         </div>
-        <div class="invest-hint">One-time buy-and-hold allocation — not sized or picked by Claude, just a static basket. Safe to click more than once: anything already invested is skipped, never bought twice. Confirmation required.</div>
+        <div class="invest-hint">Already-held funds are skipped, never bought twice. PIN required.</div>
         <div id="fund-invest-status" class="status-msg"></div>
       </div>
     </section>
@@ -502,18 +498,18 @@
           <input class="invest-input" id="fund-custom-amount" type="number" placeholder="Amount ($5-$10,000)" min="5" max="10000" step="1" style="max-width:180px;" />
           <button class="btn btn-primary" id="fund-custom-btn">Invest</button>
         </div>
-        <div class="invest-hint">Buy-and-hold, long only — same static, Claude-free logic as the fixed five above, just for any ticker and amount you choose ($5-$10,000). Shows up in "Current Fund Holdings" below once filled. Confirmation required.</div>
+        <div class="invest-hint">Any ticker, $5–$10,000. PIN required.</div>
         <div id="fund-custom-status" class="status-msg"></div>
       </div>
     </section>
     <section class="c-6" id="requests-fund-section">
       <div class="section-head"><h2>Your Fund Invest Requests</h2></div>
-      <p class="section-sub">Every request from the form above and what came of it, including the ones Claude passed on. A pass is a real outcome, not a failure: it means nothing cleared the bar for an entry.</p>
+      <p class="section-sub">Every request and its outcome. A pass means nothing cleared the bar.</p>
       <div class="brief-list" id="requests-fund-list"><div class="loading">No requests yet.</div></div>
     </section>
     <section class="c-6">
       <div class="section-head"><h2>Current Fund Holdings</h2></div>
-      <p class="section-sub">"Sell" closes a position in the paper account at market (simulated, never real money) and books the realized gain or loss below. Sells placed outside market hours fill at the next open. Confirmation required.</p>
+      <p class="section-sub">Sell closes at market; after hours it fills at the next open. PIN required.</p>
       <div class="brief-list" id="fund-holdings-list"><div class="loading">Not invested yet.</div></div>
       <div id="fund-sell-status" class="status-msg"></div>
     </section>
@@ -524,36 +520,15 @@
     </section>
     <section class="c-7">
       <div class="section-head"><h2>Fund Holdings Value Over Time</h2></div>
-      <p class="section-sub">Total market value vs. cost basis across every held fund position (fixed 5-fund allocation + any custom-ticker buys), snapshotted nightly. Buy-and-hold positions are never closed, so this tracks value over time rather than a per-trade P&amp;L curve.</p>
+      <p class="section-sub">Market value vs. cost basis, updated nightly.</p>
       <div class="chart-wrap"><canvas id="fundValueChart" height="90"></canvas></div>
     </section>
     <section class="c-5">
       <div class="section-head">
         <h2>Live Index &amp; Fund Performance</h2>
       </div>
-      <p class="section-sub" id="fund-asof">Real daily closes, fetched by the same nightly pipeline as everything else on this site — not traded or sized, just recorded. ETF proxies, not literal mutual fund share classes (Vanguard's VFIAX/VTSAX aren't quotable through this data feed) — VOO/VTI are Vanguard's own ETF equivalents of the same underlying index.</p>
+      <p class="section-sub" id="fund-asof">Daily closes. VOO and VTI are Vanguard's ETF versions of its index funds.</p>
       <div class="stat-grid" id="fund-stats"><div class="loading">Loading…</div></div>
-    </section>
-    <section class="c-12">
-      <div class="section-head"><h2>What This Would Add</h2></div>
-      <div class="bucket-grid">
-        <div class="preview-card">
-          <div class="icon-badge">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6"/><path d="M8 2v6l4 2"/></svg>
-          </div>
-          <span class="preview-pill">Preview</span>
-          <h3 style="margin-top:12px;">Real-Capital Fund Investing</h3>
-          <p>Buying, holding, and selling funds already works above, in the paper account. Doing it with real money, and with actual mutual fund share classes rather than ETF proxies, is a later phase: personal capital first, and only a licensed or partnered structure beyond that.</p>
-        </div>
-        <div class="preview-card">
-          <div class="icon-badge">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6.5"/><path d="M2 8h12M8 1.5c2 2 2 11 0 13M8 1.5c-2 2-2 11 0 13" /></svg>
-          </div>
-          <span class="preview-pill">Preview</span>
-          <h3 style="margin-top:12px;">International Markets</h3>
-          <p>Access to London and Asian exchanges alongside US markets, each requiring its own separate foreign regulatory authorization first.</p>
-        </div>
-      </div>
     </section>
   </main>
 </div>
@@ -562,14 +537,14 @@
 <div id="view-crypto" class="view">
   <div class="hero">
     <h1>Crypto</h1>
-    <p class="tag">Live market data for context, plus a real (simulated, paper-account) Claude-analyzed entry in any Alpaca-supported crypto pair you choose.</p>
+    <p class="tag">Nightly automated crypto picks, plus on-demand analysis of any coin.</p>
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>Prices below are real, live market data (via CoinGecko). The form below runs a real Claude analysis and, if it clears the bar, opens a real simulated (paper account) <strong>long-only</strong> position at the amount you choose — Alpaca's crypto product doesn't support margin or short selling, so a short call is never possible here. Never real capital. See the <a href="https://github.com/JackSmiley1/market-brief-agent/blob/main/roadmap.md" target="_blank" style="color:inherit; text-decoration:underline;">roadmap</a> for what full crypto analysis/trading would require.</span>
+    <span>Long-only (no shorting on Alpaca crypto). Paper trading only: no real money. Live prices from CoinGecko.</span>
   </div>
   <main class="ws">
-    <section class="c-6" id="crypto-invest">
+    <section class="c-6" id="crypto-invest" style="display:none">
       <div class="section-head"><h2>Invest in a Coin</h2></div>
       <div class="invest-card">
         <div class="invest-row">
@@ -577,28 +552,28 @@
           <input class="invest-input" id="crypto-invest-amount" type="number" placeholder="Amount ($25-$10,000)" min="25" max="10000" step="1" style="max-width:180px;" />
           <button class="btn btn-primary" id="crypto-invest-btn">Invest</button>
         </div>
-        <div class="invest-hint">Runs a real Claude-generated analysis (long-only) and, if a setup clears the bar, opens a <strong>simulated</strong> paper position at your chosen amount — same one-session hold as the stock on-demand bar, not a permanent allocation. Never real capital. Confirmation required.</div>
+        <div class="invest-hint">Claude analyzes it and opens a simulated position only if the setup clears the bar. Held one day. PIN required.</div>
         <div id="crypto-invest-status" class="status-msg"></div>
       </div>
     </section>
-    <section class="c-6" id="requests-crypto-section">
+    <section class="c-12" id="requests-crypto-section">
       <div class="section-head"><h2>Your Crypto Invest Requests</h2></div>
-      <p class="section-sub">Every request from the form above and what came of it, including the ones Claude passed on. A pass is a real outcome, not a failure: it means nothing cleared the bar for an entry.</p>
+      <p class="section-sub">Every request and its outcome. A pass means nothing cleared the bar.</p>
       <div class="brief-list" id="requests-crypto-list"><div class="loading">No requests yet.</div></div>
     </section>
     <section class="c-5" id="crypto-nightly-section">
       <div class="section-head"><h2>Nightly Automated Track Record</h2></div>
-      <p class="section-sub" id="crypto-nightly-asof">Runs automatically every night against a fixed watchlist (BTC, ETH, SOL, XRP, ADA, DOGE, AVAX, LINK, LTC, DOT) — same cadence as the stock pipeline, long-only, flat $500 per pick (not sized by the stock evidence-based formula, which doesn't transfer to a different asset class). Its own separate evidence pool, not blended with stock stats.</p>
+      <p class="section-sub" id="crypto-nightly-asof">Every night, 10 coins, long-only, $500 per pick. Tracked separately from stocks.</p>
       <div class="stat-grid" id="crypto-nightly-stats"><div class="loading">Loading…</div></div>
     </section>
     <section class="c-7">
       <div class="section-head"><h2>Simulated Crypto Equity Curve</h2></div>
-      <p class="section-sub">Cumulative P&amp;L across every closed crypto trade — both automated nightly picks and anything invested from the form above.</p>
+      <p class="section-sub">Cumulative P&amp;L, nightly and on-demand trades combined.</p>
       <div class="chart-wrap"><canvas id="cryptoEquityChart" height="90"></canvas></div>
     </section>
     <section class="c-12" id="crypto-ondemand-section">
       <div class="section-head"><h2>Recent Crypto Trades</h2></div>
-      <p class="section-sub">Both automated nightly picks and anything triggered from the "Invest in a Coin" form above, together.</p>
+      <p class="section-sub">Nightly and on-demand trades.</p>
       <div class="brief-list" id="crypto-ondemand-list"><div class="loading">No crypto trades yet.</div></div>
     </section>
     <section class="c-6">
@@ -607,7 +582,7 @@
     </section>
     <section class="c-6">
       <div class="section-head"><h2>Top 5 Movers (24h)</h2></div>
-      <p class="section-sub">Ranked by 24-hour percent change across the top 100 coins by market cap.</p>
+      <p class="section-sub">Top 100 coins by market cap, 24h change.</p>
       <div class="bucket-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
         <div>
           <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Gainers</h3>
@@ -626,11 +601,11 @@
 <div id="view-long-horizon" class="view">
   <div class="hero">
     <h1>Long-Horizon</h1>
-    <p class="tag">A separate experiment: Claude forecasts each company's business years ahead, and code turns those forecasts into a ranking.</p>
+    <p class="tag">Claude forecasts each business five years out; code ranks them. Top 5 held.</p>
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>A virtual paper portfolio. No orders are placed, and it never affects the nightly strategy. Not investment advice.</span>
+    <span>Virtual portfolio: no orders placed. Not investment advice.</span>
   </div>
   <main class="ws">
     <section class="c-5">
@@ -658,11 +633,11 @@
 <div id="view-about" class="view">
   <div class="hero">
     <h1>About</h1>
-    <p class="tag">What Great Lakes Investments is, how it works, and what it is not.</p>
+    <p class="tag">What this is and how it works.</p>
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>Everything on this site is simulated, using a paper-trading account with no real money. Nothing here is investment advice or a recommendation to buy or sell anything.</span>
+    <span>Simulated with paper trading. Not investment advice.</span>
   </div>
   <main class="ws">
     <section class="c-6">
@@ -1171,7 +1146,7 @@ async function main() {
         ${ring(posPct, ringColor(posPct), 'Open positions', risk.currentOpenPositions + ' / ' + risk.maxConcurrentPositions)}
         ${ring(notionalPct, ringColor(notionalPct), 'Deployed notional', '$' + risk.currentDeployedUsd.toLocaleString() + ' / $' + risk.maxTotalNotionalUsd.toLocaleString())}
       </div>
-      <p style="color:var(--muted-dim); font-size:11px; margin:8px 0 0;">Hard caps enforced at order time (see PORTFOLIO_LIMITS in config.js). New positions are skipped, not queued, once either limit is reached. Counts all currently open/unsettled positions regardless of source.</p>
+      <p style="color:var(--muted-dim); font-size:11px; margin:8px 0 0;">Hard caps. New positions are skipped once either is hit.</p>
     `;
   }
 
@@ -1631,8 +1606,7 @@ function renderHonesty(h, o) {
   }
   const note = document.getElementById('honesty-note');
   if (note) {
-    note.textContent = "Claude's grade is shown as-is and never used for sizing or trading decisions; the price check is what counts. " +
-      "Grading uses the next day's close-to-close move, so it can disagree with a trade's own result, which runs open to open.";
+    note.textContent = "Claude's grade is never used for trading; the price check is what counts.";
   }
 }
 
@@ -1893,7 +1867,7 @@ function renderStockMovers(dailyMovers) {
   const gainers = (dailyMovers && dailyMovers.gainers) || [];
   const losers = (dailyMovers && dailyMovers.losers) || [];
   if (asOfEl && dailyMovers && dailyMovers.asOfDate) {
-    asOfEl.textContent = 'From ' + dailyMovers.asOfDate + '’s watchlist scan (real price data, not a trade signal by itself).';
+    asOfEl.textContent = 'Session of ' + dailyMovers.asOfDate + ', from the watchlist scan.';
   }
   const fmtPct = (n) => n === null || n === undefined ? 'n/a' : (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
   const rowHtml = (m) => {

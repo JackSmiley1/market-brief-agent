@@ -180,3 +180,29 @@ This is a working, automated, self-grading, self-reflecting research pipeline wi
 
 - Oct 8: Alpaca rejected the ORCL short ("asset \"ORCL\" cannot be sold short", code 42210000). Broker declined to lend it after ORCL's -5.6% day; not a pipeline bug. The row stays as entry_failed in the record. From now on that specific rejection is logged as skipped_unshortable (no row, not counted as a failed order), the same way an exposure-cap skip is. Any other order error is still recorded as a failure.
 - Crypto now also runs Saturday and Sunday (.github/workflows/weekend-crypto.yml), crypto only. Reason: Friday's crypto picks were held about 3 days, every other pick about 1 day. Same prompt, model, coins and $500 sizing. Weekend runs are logged as 'crypto-weekend' and don't count toward the 20 clean weekday runs. Expected cost: about 8-9 extra Claude calls a month.
+
+## 2026-10-20: Daily strategy ended
+
+**Decision (Jack, 2026-10-20):** end the daily Claude strategy and keep the long-horizon track.
+
+The evidence, from the Oct 19 run:
+- 159 closed stock trades, -$452.21 simulated. The same dollars in SPY over the same windows: +$13.41.
+- Per trade vs SPY (market-adjusted): -0.41%, 95% range -0.78% to -0.03%. That range sits entirely below zero, so the strategy underperformed holding SPY, not just failed to beat it.
+- The Sep 29 rule change (shorts need a specific catalyst): 52 trades, -0.21% per trade vs SPY (range -0.81% to +0.40%). No sign that it fixed anything.
+- Shorts were the worst: -0.66% per trade vs SPY (range -1.25% to -0.07%). Low-confidence calls averaged -1.14% per trade.
+- Price-checked hit rate 51.3%, about a coin flip. Claude still graded itself higher than the prices did.
+- Nightly crypto: 11 trades, 1 win, -$108.10.
+
+This ends the test before the ~110-trade checkpoint. That was set to detect an edge. With the full record now significantly below SPY and the post-change trades centered below zero, more trades were very unlikely to change the conclusion, and every night cost real API spend.
+
+**What changed:**
+- `DAILY_STRATEGY_ENDED` in `src/config.js`. While it's set, the nightly brief, the nightly and weekend crypto runs, and the on-demand stock and crypto buttons all exit before any Claude call or order. To resume deliberately, set `RESUME_DAILY_STRATEGY=true` for a run.
+- The schedules were removed from `nightly-brief.yml` and `weekend-crypto.yml`. Manual runs still work but hit the guard.
+- New `Wind Down` workflow (`src/windDown.js`, no Claude) closes every open strategy position. Fund holdings are never touched.
+- The long-horizon workflow now runs every weekday on its own and also runs `src/dailyMark.js` (fund prices and holding values, no Claude). Those used to ride along with the nightly run.
+- On the dashboard, the stock and crypto analysis forms are hidden, a dated notice was added, and a Decision entry went into the change log. The full record is unchanged.
+- The live-mirror workflow stops on its own, because it was triggered by the nightly run. The $30 live-test plan is moot for this strategy.
+
+**What continues:** the long-horizon track (about 30 short Claude calls once a quarter), the buy-and-hold fund positions, and the public dashboard.
+
+**Takeaway:** a frontier model reading daily prices and news did not produce an edge on next-day moves, after honest measurement against SPY. That's consistent with the FutureSearch finding that short-term moves are close to unpredictable, which is why the long-horizon track exists.

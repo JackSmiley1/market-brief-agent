@@ -10,7 +10,7 @@ import {
   saveBriefMarkdown,
 } from "./saveBrief.js";
 import { reconcileEntries, reconcileExits, closeMaturePositions, openNewPositions } from "./paperTrade.js";
-import { CRYPTO_WATCHLIST, CRYPTO_PAPER_TRADE_BASE_NOTIONAL } from "./config.js";
+import { CRYPTO_WATCHLIST, CRYPTO_PAPER_TRADE_BASE_NOTIONAL, DAILY_STRATEGY_ENDED, dailyStrategyStopped } from "./config.js";
 import { closeSourcesFor } from "./orders.js";
 
 // Nightly automated crypto trading — the automatic counterpart to
@@ -50,6 +50,10 @@ function todayISO() {
 }
 
 async function run() {
+  if (dailyStrategyStopped()) {
+    console.log(`The daily strategy was ended on ${DAILY_STRATEGY_ENDED} (see src/config.js). Nothing analyzed, nothing ordered, no Claude call made.`);
+    return;
+  }
   const date = todayISO();
   console.log(`Running nightly crypto watchlist for ${date}...`);
 

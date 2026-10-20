@@ -1,0 +1,47 @@
+name: Wind Down
+
+# One-time close-out of the daily strategy (added 2026-10-20). Run manually
+# from the Actions tab during market hours. No Claude calls. Closes every
+# open stock/crypto strategy position; buy-and-hold fund positions are never
+# touched. Safe to run again: it only acts on what's still open.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: market-brief-pipeline
+  cancel-in-progress: false
+
+jobs:
+  wind-down:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with: { ref: main }
+      - uses: actions/setup-node@v6
+        with: { node-version: '22' }
+      - run: npm install
+      - run: npm test
+      - name: Close every open strategy position
+        run: node src/windDown.js
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
+      - name: Export public dashboard data
+        if: always()
+        run: npm run export-site
+        env:
+          TRADING_HALTED: ${{ vars.TRADING_HALTED }}
+      - name: Commit result back to repo
+        if: always()
+        run: |
+          git config user.name "brief-bot"
+          git config user.email "actions@github.com"
+          git add logs/ docs/data.json
+          git commit -m "Wind down ($(date +'%Y-%m-%d %H:%M'))" || echo "No changes"
+          git pull --rebase || true
+          git push

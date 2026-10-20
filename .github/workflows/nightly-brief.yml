@@ -1,11 +1,8 @@
 name: Nightly Market Brief
 on:
-  schedule:
-    # 21:30 UTC = 5:30pm ET during EDT, 4:30pm ET during EST: after the
-    # 4pm close year-round, so no manual change is needed when DST flips.
-    # (The old '30 20' would have fired at 3:30pm ET, before the close,
-    # from Nov 1.) Same ET calendar date either way.
-    - cron: '30 21 * * 1-5'
+  # Schedule removed 2026-10-20: the daily strategy ended (see status-memo.md).
+  # Manual runs are still possible, but src/index.js exits without calling
+  # Claude while DAILY_STRATEGY_ENDED is set in src/config.js.
   workflow_dispatch: {}
 permissions:
   contents: write   # GITHUB_TOKEN defaults to read-only; the commit-back step needs write access

@@ -70,3 +70,10 @@ test("unrecognized/undefined inputs default to full size (fail open to the base 
   const notional = computeNotional({ confidence: undefined, eventRisk: undefined, direction: undefined });
   assert.equal(notional, PAPER_TRADE_BASE_NOTIONAL);
 });
+
+import { dailyStrategyStopped } from "../src/config.js";
+
+test("daily strategy stays stopped unless a run explicitly resumes it", () => {
+  assert.equal(dailyStrategyStopped({}), true);
+  assert.equal(dailyStrategyStopped({ RESUME_DAILY_STRATEGY: "true" }), false);
+});

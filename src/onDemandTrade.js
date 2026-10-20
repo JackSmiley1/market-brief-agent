@@ -4,7 +4,7 @@ import { fetchCompanyNews } from "./fetchNews.js";
 import { generateOnDemandCall } from "./generateBrief.js";
 import { openNewPositions, reconcileEntries, reconcileExits } from "./paperTrade.js";
 import { logInvestRequest } from "./saveBrief.js";
-import { STOCK_ONDEMAND_LIMITS } from "./config.js";
+import { STOCK_ONDEMAND_LIMITS, DAILY_STRATEGY_ENDED, dailyStrategyStopped } from "./config.js";
 
 // On-demand / prompted analysis — the counterpart to the nightly fixed-
 // watchlist pipeline (index.js). Lets you ask about a specific ticker or
@@ -70,6 +70,10 @@ function daysAgoISO(n) {
 }
 
 async function run() {
+  if (dailyStrategyStopped()) {
+    console.log(`The daily strategy was ended on ${DAILY_STRATEGY_ENDED} (see src/config.js). Nothing analyzed, nothing ordered, no Claude call made.`);
+    return;
+  }
   const args = process.argv.slice(2);
   const analyzeOnly = args.includes("--analyze-only");
   const amountArg = args.find((a) => a.startsWith("--amount="));

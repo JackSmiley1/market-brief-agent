@@ -216,3 +216,16 @@ export const LIVE_MIRROR = {
   budgetUsd: 30,
   minOrderUsd: 1, // Alpaca's minimum notional for a fractional order
 };
+
+// The daily Claude strategy (nightly stock picks, nightly/weekend crypto picks,
+// and the on-demand stock/crypto buttons) was ENDED on this date, after it
+// underperformed SPY with a 95% range entirely below zero over 159 trades
+// (see status-memo.md, 2026-10-20). While this is set, those scripts exit
+// immediately without calling Claude or placing orders. To resume on purpose,
+// set the RESUME_DAILY_STRATEGY=true env var for a run, or set this to null.
+// The long-horizon track, fund holdings and the dashboard are unaffected.
+export const DAILY_STRATEGY_ENDED = "2026-10-20";
+
+export function dailyStrategyStopped(env = process.env) {
+  return DAILY_STRATEGY_ENDED !== null && String(env.RESUME_DAILY_STRATEGY ?? "").toLowerCase() !== "true";
+}
