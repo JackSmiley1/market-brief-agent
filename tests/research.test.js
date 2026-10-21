@@ -96,3 +96,28 @@ test("a figure that appears nowhere in the data or news is flagged with its sent
 test("a report with no figures says so instead of claiming verification", () => {
   assert.equal(verifyReport({ headline: "Quiet day.", drivers: [] }, QUOTE, {}).status, "no-figures");
 });
+
+import { reportSession, reportKey } from "../worker/research/researchMath.js";
+
+test("a midday stock lookup gets an hourly intraday report", () => {
+  const now = new Date("2026-10-21T15:12:00Z"); // 11:12 AM ET, Wednesday
+  const s = reportSession("stock", "2026-10-21", now);
+  assert.equal(s.phase, "intraday");
+  assert.equal(reportKey("stock", "AMZN", s), "rep:2026-10-21:stock:AMZN:i11");
+  assert.notEqual(reportKey("stock", "AMZN", reportSession("stock", "2026-10-21", new Date("2026-10-21T16:05:00Z"))), reportKey("stock", "AMZN", s));
+});
+
+test("after 4:20 PM ET, and the next morning before the open, it's the same closing report", () => {
+  const evening = reportSession("stock", "2026-10-21", new Date("2026-10-21T21:00:00Z"));
+  const nextMorning = reportSession("stock", "2026-10-21", new Date("2026-10-22T12:00:00Z")); // 8 AM ET, prices still Oct 21
+  assert.equal(evening.phase, "closing");
+  assert.equal(reportKey("fund", "VOO", evening), reportKey("fund", "VOO", nextMorning));
+  assert.equal(reportSession("stock", "2026-10-21", new Date("2026-10-21T20:10:00Z")).phase, "intraday"); // 4:10 PM ET: delayed feed hasn't reached the close
+});
+
+test("weekends are closing reports for Friday's session; crypto is hourly", () => {
+  assert.equal(reportSession("stock", "2026-10-23", new Date("2026-10-24T16:00:00Z")).phase, "closing");
+  const c = reportSession("crypto", "2026-10-24", new Date("2026-10-24T16:30:00Z"));
+  assert.equal(c.phase, "crypto");
+  assert.equal(reportKey("crypto", "BTC/USD", c), "rep:2026-10-24:crypto:BTC/USD:h16");
+});

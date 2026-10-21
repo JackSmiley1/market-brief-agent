@@ -228,3 +228,39 @@ export function verifyReport(report, quote, news) {
     method: "Every percentage, dollar amount, percentage-point figure and multiple in the text was compared with the computed data and the news it was given.",
   };
 }
+
+// ---------- Report sessions (added 2026-10-21) ----------
+// Decides which cached report a lookup should share, so a report written
+// at 10 AM isn't served as "today" at 3 PM:
+//   intraday: US market open (9:30 AM to 4:20 PM ET on a weekday whose
+//             session has started). One report per symbol per clock hour.
+//             The 20 extra minutes cover the free feed's 15-minute delay,
+//             so the closing report includes the real close.
+//   closing:  market closed. One report per symbol per completed session,
+//             reused until the next session opens.
+//   crypto:   trades 24/7. One report per symbol per UTC hour.
+function etParts(now) {
+  const f = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false, year: "numeric", month: "2-digit", day: "2-digit" });
+  const p = Object.fromEntries(f.formatToParts(now).map((x) => [x.type, x.value]));
+  return { date: `${p.year}-${p.month}-${p.day}`, weekday: p.weekday, minutes: (Number(p.hour) % 24) * 60 + Number(p.minute) };
+}
+
+export function reportSession(type, asOf, now = new Date()) {
+  if (type === "crypto") {
+    const hour = now.toISOString().slice(0, 13);
+    return { phase: "crypto", sessionDate: hour.slice(0, 10), bucket: `h${hour.slice(11, 13)}`, ttl: 3 * 3600,
+      pricesAsOf: now.toISOString() };
+  }
+  const et = etParts(now);
+  const weekday = !["Sat", "Sun"].includes(et.weekday);
+  const open = weekday && asOf === et.date && et.minutes >= 9 * 60 + 30 && et.minutes < 16 * 60 + 20;
+  if (open) {
+    return { phase: "intraday", sessionDate: et.date, bucket: `i${String(Math.floor(et.minutes / 60)).padStart(2, "0")}`, ttl: 3 * 3600,
+      pricesAsOf: new Date(now.getTime() - 16 * 60000).toISOString() };
+  }
+  return { phase: "closing", sessionDate: asOf, bucket: "close", ttl: 4 * 24 * 3600, pricesAsOf: null };
+}
+
+export function reportKey(type, symbol, session) {
+  return `rep:${session.sessionDate}:${type}:${symbol}:${session.bucket}`;
+}

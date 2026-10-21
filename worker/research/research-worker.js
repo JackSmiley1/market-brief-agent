@@ -20,14 +20,13 @@
 // ALPACA_SECRET_KEY, FINNHUB_KEY. KV namespace binding: RESEARCH.
 // Nothing here can place an order: it only reads market data.
 
-import { periodReturns, riskStats, relativeReturns, SECTOR_ETF, resolveCrypto, MUTUAL_TO_ETF, fundHint, verifyReport } from "./researchMath.js";
+import { periodReturns, riskStats, relativeReturns, SECTOR_ETF, resolveCrypto, MUTUAL_TO_ETF, fundHint, verifyReport, reportSession, reportKey } from "./researchMath.js";
 
 const ALLOWED_ORIGINS = ["https://jacksmiley1.github.io", "http://localhost:8000", "http://localhost:8765"];
 const MODEL = "claude-sonnet-5";
 const REPORTS_PER_IP_PER_DAY = 5;
 const REPORTS_PER_DAY = 60;
 const QUOTE_TTL = 15 * 60;            // seconds a quote stays cached
-const REPORT_TTL = 3 * 24 * 3600;     // reports are keyed by date; kept a few days for /recent
 const ALPACA_DATA = "https://data.alpaca.markets";
 const FINNHUB = "https://finnhub.io/api/v1";
 const TYPES = new Set(["stock", "fund", "crypto"]);
@@ -196,7 +195,10 @@ async function getQuote(env, type, q) {
   const cached = await env.RESEARCH.get(key, "json");
   if (cached) return cached;
   const quote = await buildQuote(env, type, q);
-  if (!quote.error) await env.RESEARCH.put(key, JSON.stringify(quote), { expirationTtl: QUOTE_TTL });
+  if (!quote.error) {
+    quote.pricesAsOf = new Date(Date.now() - (type === "crypto" ? 0 : 16 * 60000)).toISOString();
+    await env.RESEARCH.put(key, JSON.stringify(quote), { expirationTtl: QUOTE_TTL });
+  }
   return quote;
 }
 
@@ -275,7 +277,13 @@ function extractReport(j) {
   return null;
 }
 
-async function writeReport(env, quote) {
+function sessionNote(session, quote) {
+  if (session.phase === "intraday") return `The US market is OPEN right now. The latest session (${quote.returns?.asOf}) is incomplete: prices are as of about ${new Date(session.pricesAsOf).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" })} ET. Describe today's move as "so far today", not as a finished day.`;
+  if (session.phase === "crypto") return `Crypto trades around the clock. The latest daily bar is the current UTC day so far (prices as of ${session.pricesAsOf.slice(11, 16)} UTC); describe it as "so far today".`;
+  return `The US market is closed. The latest session (${quote.returns?.asOf}) is complete; describe it as a finished day.`;
+}
+
+async function writeReport(env, quote, session) {
   const news = await newsFor(env, quote);
   const body = {
     model: MODEL,
@@ -285,7 +293,7 @@ async function writeReport(env, quote) {
     tool_choice: { type: "tool", name: "write_report" },
     messages: [{
       role: "user",
-      content: `DATA (computed from daily prices; percentages are total returns with dividends and splits adjusted for stocks/ETFs):\n${JSON.stringify(numbersForPrompt(quote))}\n\nNEWS about this security (last 10 days, newest first):\n${JSON.stringify(news.company)}\n\nBROADER MARKET NEWS (latest):\n${JSON.stringify(news.market)}\n\nToday's date (US Eastern): ${etDate()}. Security type: ${quote.type}. Record the breakdown with the write_report tool.`,
+      content: `DATA (computed from daily prices; percentages are total returns with dividends and splits adjusted for stocks/ETFs):\n${JSON.stringify(numbersForPrompt(quote))}\n\nNEWS about this security (last 10 days, newest first):\n${JSON.stringify(news.company)}\n\nBROADER MARKET NEWS (latest):\n${JSON.stringify(news.market)}\n\nToday's date (US Eastern): ${etDate()}. Security type: ${quote.type}. ${sessionNote(session, quote)} Record the breakdown with the write_report tool.`,
     }],
   };
   let lastErr = null;
@@ -314,7 +322,8 @@ async function handleReport(req, env, type, q) {
   const quote = await getQuote(env, type, q);
   if (quote.error) return json(req, { error: quote.error }, 404);
   const day = etDate();
-  const key = `rep:${day}:${type}:${quote.symbol}`;
+  const session = reportSession(type, quote.returns?.asOf);
+  const key = reportKey(type, quote.symbol, session);
   const cached = await env.RESEARCH.get(key, "json");
   if (cached) return json(req, { ...cached, cached: true });
 
@@ -328,16 +337,18 @@ async function handleReport(req, env, type, q) {
     return json(req, { error: "The site's daily report budget is used up. Reports already written today are still free to view; new ones resume tomorrow." }, 429);
   }
 
-  const { report, news, model, usage } = await writeReport(env, quote);
+  const { report, news, model, usage } = await writeReport(env, quote, session);
   const verification = verifyReport(report, quote, news);
   const record = {
-    type, symbol: quote.symbol, name: quote.name, date: day, generatedAt: new Date().toISOString(), model,
+    type, symbol: quote.symbol, name: quote.name, date: session.sessionDate, generatedAt: new Date().toISOString(), model,
     report, verification, numbersAsOf: quote.returns?.asOf ?? null, newsCount: news.company.length,
+    session: { phase: session.phase, pricesAsOf: quote.pricesAsOf || session.pricesAsOf, sessionDate: session.sessionDate },
+    snapshot: { last: quote.returns?.last ?? null, d1: quote.returns?.d1?.pct ?? null },
     sources: news.company.map((n) => ({ date: n.date, source: n.source, headline: n.headline })),
   };
   await env.RESEARCH.put(key, JSON.stringify(record), {
-    expirationTtl: REPORT_TTL,
-    metadata: { type, symbol: quote.symbol, name: quote.name, headline: String(report.headline || "").slice(0, 200), generatedAt: record.generatedAt,
+    expirationTtl: session.ttl,
+    metadata: { type, symbol: quote.symbol, name: quote.name, headline: String(report.headline || "").slice(0, 200), generatedAt: record.generatedAt, phase: session.phase,
       check: verification.status, checked: verification.checked, matched: verification.matched },
   });
   await Promise.all([bump(env, ipKey, 2 * 86400), bump(env, allKey, 2 * 86400)]);
@@ -345,7 +356,7 @@ async function handleReport(req, env, type, q) {
 }
 
 async function handleRecent(req, env) {
-  const days = [etDate(), etDate(new Date(Date.now() - 86400000))];
+  const days = [...new Set([etDate(), etDate(new Date(Date.now() - 86400000)), new Date().toISOString().slice(0, 10)])];
   const items = [];
   for (const d of days) {
     const l = await env.RESEARCH.list({ prefix: `rep:${d}:` });
@@ -372,8 +383,9 @@ export default {
         if (!TYPES.has(type) || !q || q.length > 40) return json(req, { error: "Enter a ticker, fund or coin." }, 400);
         const quote = await getQuote(env, type, q);
         if (quote.error) return json(req, quote, 404);
-        const reportCached = !!(await env.RESEARCH.get(`rep:${etDate()}:${type}:${quote.symbol}`));
-        return json(req, { ...quote, reportCached });
+        const session = reportSession(type, quote.returns?.asOf);
+        const reportCached = !!(await env.RESEARCH.get(reportKey(type, quote.symbol, session)));
+        return json(req, { ...quote, reportCached, session: { phase: session.phase } });
       }
       if (req.method === "POST" && url.pathname === "/report") {
         let p; try { p = await req.json(); } catch { return json(req, { error: "Invalid request." }, 400); }

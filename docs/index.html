@@ -2285,6 +2285,28 @@ function rsChart(type, q, range) {
   });
 }
 
+// When a report's prices are from, in plain words (see reportSession in researchMath.js).
+function rsSessionLabel(rec) {
+  const s = rec.session;
+  if (!s) return '<span class="req-outcome pass">Written ' + escapeHtml(rec.date || '') + '</span>';
+  const t = s.pricesAsOf ? new Date(s.pricesAsOf) : null;
+  if (s.phase === 'intraday') return '<span class="req-outcome warn" title="Written while the market was open; refreshed hourly">Intraday · market open · prices as of ' +
+    escapeHtml(t ? t.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }) + ' ET' : '') + '</span>';
+  if (s.phase === 'crypto') return '<span class="req-outcome warn" title="Crypto trades 24/7; refreshed hourly">Crypto · prices as of ' +
+    escapeHtml(t ? t.toISOString().slice(11, 16) + ' UTC' : '') + '</span>';
+  return '<span class="req-outcome ok" title="Written after the close; covers the full session">Closing · full session of ' + escapeHtml(s.sessionDate) + '</span>';
+}
+// Warns when the live table has moved away from the prices the report used.
+function rsDrift(rec, quote) {
+  const snap = rec.snapshot, now = quote && quote.returns;
+  if (!snap || snap.last == null || !now || now.last == null) return '';
+  const moved = Math.abs(now.last / snap.last - 1) * 100;
+  if (moved < 0.5) return '';
+  const d = (x) => x == null ? 'n/a' : (x >= 0 ? '+' : '') + Number(x).toFixed(2) + '%';
+  return '<div class="status-msg err show" style="border-left-color:var(--amber);">Prices have moved since this was written: ' +
+    rsPrice(snap.last) + ' (' + d(snap.d1) + ' on the day) then, ' + rsPrice(now.last) + ' (' + d(now.d1 && now.d1.pct) + ') now. The table above is current; the text reflects the earlier prices.</div>';
+}
+
 // Accuracy check badge (see verifyReport in worker/research/researchMath.js).
 function rsCheckBadge(v) {
   if (!v) return '<span class="req-outcome pass" title="Written before the accuracy check existed">Figures: not checked</span>';
@@ -2299,7 +2321,7 @@ function rsCheckDetail(v) {
     v.unmatched.map((u) => '<li><strong>' + escapeHtml(u.figure) + '</strong> in "…' + escapeHtml(u.context) + '…"</li>').join('') + '</ul>';
 }
 
-function rsReport(rec) {
+function rsReport(rec, quote) {
   const r = rec.report || {};
   const para = (h, t) => t ? '<h3>' + h + '</h3><p>' + escapeHtml(t) + '</p>' : '';
   const list = (h, a) => Array.isArray(a) && a.length ? '<h3>' + h + '</h3><ul>' + a.map((x) => '<li>' + escapeHtml(x) + '</li>').join('') + '</ul>' : '';
@@ -2307,7 +2329,8 @@ function rsReport(rec) {
   const when = rec.generatedAt ? new Date(rec.generatedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
   const src = (rec.sources || []).length ? '<h3>News it drew on</h3><ul class="rs-sources">' + rec.sources.map((n) => '<li>' + escapeHtml(n.date) + ' · ' + escapeHtml(n.source) + ': ' + escapeHtml(n.headline) + '</li>').join('') + '</ul>' : '<h3>News it drew on</h3><p class="movers">No company-specific headlines in the last 10 days.</p>';
   return '<div class="rs-report">' +
-    '<div class="rs-headline">' + escapeHtml(r.headline || '') + '</div>' +
+    rsDrift(rec, quote) +
+    '<div class="rs-headline">' + escapeHtml(r.headline || '') + '</div>' + rsSessionLabel(rec) + ' ' +
     '<span class="req-outcome ' + ev + '">Evidence: ' + escapeHtml(r.evidence || 'n/a') + '</span> ' + rsCheckBadge(rec.verification) +
     para('Latest session', r.today) + para('Recent trend (10 and 30 days)', r.recentTrend) + para('Long run (YTD, 1 and 5 years)', r.longRun) +
     para('Versus the market', r.vsMarket) + list('Drivers', r.drivers) + para('Market backdrop', r.marketBackdrop) +
@@ -2338,8 +2361,12 @@ async function rsLookup(type, q) {
     '</div></div><div class="rs-chart"><canvas id="rs-chart-' + type + '"></canvas></div></div></div>' +
     rsStats(quote) +
     '<div class="rs-ai"><div class="rs-ai-bar"><button type="button" class="btn ' + (quote.reportCached ? 'btn-ghost' : 'btn-primary') + ' rs-write">' +
-    (quote.reportCached ? "View today's AI breakdown" : 'Write the AI breakdown') + '</button><span class="hint">' +
-    (quote.reportCached ? 'Already written today; opens instantly.' : 'Takes about 20–40 seconds. Explains why it moved, using recent news.') + '</span></div><div class="rs-ai-out"></div></div>';
+    (quote.reportCached ? 'View the latest AI breakdown' : 'Write the AI breakdown') + '</button><span class="hint">' +
+    (quote.reportCached ? 'Already written for this ' + (quote.session && quote.session.phase === 'closing' ? 'session' : 'hour') + '; opens instantly.'
+      : 'Takes about 20–40 seconds. Explains why it moved, using recent news.') +
+    (quote.session && quote.session.phase === 'intraday' ? ' The market is open, so breakdowns refresh hourly and a full-day one is written after the close.' : '') +
+    (quote.session && quote.session.phase === 'crypto' ? ' Crypto trades 24/7, so breakdowns refresh hourly.' : '') +
+    '</span></div><div class="rs-ai-out"></div></div>';
   rsChart(type, quote, '1Y');
   out.querySelectorAll('.range-toggle .range-btn').forEach((b) => b.addEventListener('click', () => {
     out.querySelectorAll('.range-toggle .range-btn').forEach((x) => x.classList.toggle('active', x === b));
@@ -2351,7 +2378,7 @@ async function rsLookup(type, q) {
     aiOut.innerHTML = '<div class="loading"><span class="rs-spin"></span>Reading the news and writing the breakdown…</div>';
     try {
       const rec = await rsFetch('/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, q: quote.symbol }) });
-      aiOut.innerHTML = rsReport(rec);
+      aiOut.innerHTML = rsReport(rec, quote);
       btn.style.display = 'none';
       out.querySelector('.rs-ai-bar .hint').textContent = '';
       rsLoadRecent();
@@ -2376,11 +2403,12 @@ async function rsLoadRecent() {
       (100 * tally.matched / tally.figures).toFixed(1) + '%); ' + tally.fullyVerified + ' of ' + tally.reports + ' reports fully verified.' : '';
   });
   lists.forEach((el) => {
-    const t = el.dataset.type, mine = items.filter((i) => i.type === t);
+    const t = el.dataset.type, seenSym = new Set();
+    const mine = items.filter((i) => i.type === t && !seenSym.has(i.symbol) && seenSym.add(i.symbol));
     el.innerHTML = mine.length ? mine.map((i) =>
       '<div class="brief-row req-row" data-sym="' + escapeHtml(i.symbol) + '"><div class="req-head"><span>' + escapeHtml(i.symbol) + ' ' +
       (i.check === 'verified' ? '<span class="pos" title="All figures matched the data">✓</span>' : i.check === 'unmatched' ? '<span style="color:var(--amber)" title="Some figures couldn\'t be matched">⚠</span>' : '') +
-      '</span><span class="movers">' + escapeHtml(i.date) + '</span></div>' +
+      '</span><span class="movers">' + escapeHtml(i.date) + (i.phase ? ' · ' + ({ intraday: 'intraday', closing: 'closing', crypto: 'hourly' }[i.phase] || '') : '') + '</span></div>' +
       '<span class="hl">' + escapeHtml(i.headline || '') + '</span></div>').join('') : '<div class="loading">None yet. Look something up to write the first one.</div>';
     el.querySelectorAll('.brief-row').forEach((row) => row.addEventListener('click', () => {
       const form = document.querySelector('.rs-form[data-type="' + t + '"]');
