@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-21T00:54:20.904Z",
+  "generatedAt": "2026-10-21T14:17:03.647Z",
   "minSampleSize": 20,
   "overview": {
-    "closedTrades": 164,
-    "avgReturnPct": -0.348,
-    "totalPnl": -409.98,
-    "totalNotional": 127625,
-    "winRatePct": 50,
+    "closedTrades": 168,
+    "avgReturnPct": -0.308,
+    "totalPnl": -394.74,
+    "totalNotional": 130375,
+    "winRatePct": 50.6,
     "directionalHitRatePct": 51.3,
     "directionalResolvedN": 158,
     "directionalCi95": [
@@ -27,8 +27,8 @@
       "pnlPct": -15.59
     },
     "currentStreak": {
-      "type": "win",
-      "count": 5
+      "type": "loss",
+      "count": 1
     }
   },
   "equityCurve": [
@@ -1507,12 +1507,48 @@
       "tradePnlPct": 0.8,
       "cumulativePnl": -409.98,
       "spyCumulativePnl": 6.72
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "TSLA",
+      "direction": "long",
+      "tradePnl": 10.67,
+      "tradePnlPct": 4.27,
+      "cumulativePnl": -399.31,
+      "spyCumulativePnl": null
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "INTC",
+      "direction": "long",
+      "tradePnl": 12.07,
+      "tradePnlPct": 1.21,
+      "cumulativePnl": -387.24,
+      "spyCumulativePnl": null
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "NVDA",
+      "direction": "long",
+      "tradePnl": 5.46,
+      "tradePnlPct": 1.09,
+      "cumulativePnl": -381.78,
+      "spyCumulativePnl": null
+    },
+    {
+      "date": "2026-10-21",
+      "ticker": "AMZN",
+      "direction": "long",
+      "tradePnl": -12.96,
+      "tradePnlPct": -1.3,
+      "cumulativePnl": -394.74,
+      "spyCumulativePnl": null
     }
   ],
   "benchmark": {
     "symbol": "SPY",
     "n": 164,
-    "excluded": 0,
+    "excluded": 4,
     "strategyPnl": -409.98,
     "spySameDollarsPnl": 6.72,
     "strategyAvgPct": -0.348,
@@ -2226,6 +2262,11 @@
   "changeLog": [
     {
       "date": "2026-10-20",
+      "kind": "Direction",
+      "text": "The site became a research tool. Stocks, Funds and Crypto each have a lookup that shows performance over 1 day, 10 days, 30 days, year to date, 1 year and 5 years against the market and sector, plus an AI breakdown of why it moved. The paper-trading experiment moved, unedited, to the Track Record tab."
+    },
+    {
+      "date": "2026-10-20",
       "kind": "Decision",
       "text": "Ended the daily strategy (nightly stock and crypto picks, and the on-demand buttons). Over 159 stock trades it lost $452 while the same dollars in SPY made $13, and its per-trade result versus SPY was below zero with 95% confidence. The September rule change did not fix it, and crypto won 1 of 11. Open trades were closed and the full record stays on this page. The long-horizon track and fund holdings continue."
     },
@@ -2309,11 +2350,11 @@
     "direction": [
       {
         "label": "long",
-        "n": 87,
-        "totalPnl": -109.12,
-        "totalNotional": 79000,
-        "avgReturnPct": -0.119,
-        "winRatePct": 54,
+        "n": 91,
+        "totalPnl": -93.88,
+        "totalNotional": 81750,
+        "avgReturnPct": -0.056,
+        "winRatePct": 54.9,
         "meetsMinN": true
       },
       {
@@ -2338,40 +2379,40 @@
       },
       {
         "label": "medium",
-        "n": 96,
-        "totalPnl": 3.87,
-        "totalNotional": 75750,
-        "avgReturnPct": -0.092,
+        "n": 98,
+        "totalPnl": 2.98,
+        "totalNotional": 77750,
+        "avgReturnPct": -0.091,
         "winRatePct": 50,
         "meetsMinN": true
       },
       {
         "label": "low",
-        "n": 36,
-        "totalPnl": -291.58,
-        "totalNotional": 20375,
-        "avgReturnPct": -1.027,
-        "winRatePct": 50,
+        "n": 38,
+        "totalPnl": -275.45,
+        "totalNotional": 21125,
+        "avgReturnPct": -0.832,
+        "winRatePct": 52.6,
         "meetsMinN": true
       }
     ],
     "eventRisk": [
       {
         "label": "event_risk",
-        "n": 15,
-        "totalPnl": 51.92,
-        "totalNotional": 4625,
-        "avgReturnPct": 0.651,
-        "winRatePct": 66.7,
+        "n": 16,
+        "totalPnl": 62.59,
+        "totalNotional": 4875,
+        "avgReturnPct": 0.877,
+        "winRatePct": 68.8,
         "meetsMinN": false
       },
       {
         "label": "no_event_risk",
-        "n": 82,
-        "totalPnl": -245.41,
-        "totalNotional": 56000,
-        "avgReturnPct": -0.521,
-        "winRatePct": 43.9,
+        "n": 85,
+        "totalPnl": -240.84,
+        "totalNotional": 58500,
+        "avgReturnPct": -0.49,
+        "winRatePct": 44.7,
         "meetsMinN": true
       }
     ],
@@ -2407,6 +2448,15 @@
       "meetsMinN": false
     },
     {
+      "label": "TSLA",
+      "n": 6,
+      "totalPnl": 25.83,
+      "totalNotional": 4000,
+      "avgReturnPct": 1.095,
+      "winRatePct": 66.7,
+      "meetsMinN": false
+    },
+    {
       "label": "AMD",
       "n": 12,
       "totalPnl": 124.44,
@@ -2416,21 +2466,12 @@
       "meetsMinN": false
     },
     {
-      "label": "TSLA",
-      "n": 5,
-      "totalPnl": 15.16,
-      "totalNotional": 3750,
-      "avgReturnPct": 0.46,
-      "winRatePct": 60,
-      "meetsMinN": false
-    },
-    {
       "label": "NVDA",
-      "n": 10,
-      "totalPnl": 45.65,
-      "totalNotional": 9000,
-      "avgReturnPct": 0.46,
-      "winRatePct": 40,
+      "n": 11,
+      "totalPnl": 51.11,
+      "totalNotional": 9500,
+      "avgReturnPct": 0.517,
+      "winRatePct": 45.5,
       "meetsMinN": false
     },
     {
@@ -2506,6 +2547,15 @@
       "meetsMinN": false
     },
     {
+      "label": "AMZN",
+      "n": 3,
+      "totalPnl": -8.22,
+      "totalNotional": 2500,
+      "avgReturnPct": -0.453,
+      "winRatePct": 33.3,
+      "meetsMinN": false
+    },
+    {
       "label": "CAT",
       "n": 5,
       "totalPnl": -31.64,
@@ -2521,6 +2571,15 @@
       "totalNotional": 2125,
       "avgReturnPct": -0.663,
       "winRatePct": 33.3,
+      "meetsMinN": false
+    },
+    {
+      "label": "INTC",
+      "n": 14,
+      "totalPnl": -91.87,
+      "totalNotional": 9875,
+      "avgReturnPct": -0.683,
+      "winRatePct": 42.9,
       "meetsMinN": false
     },
     {
@@ -2548,15 +2607,6 @@
       "totalNotional": 4000,
       "avgReturnPct": -0.823,
       "winRatePct": 50,
-      "meetsMinN": false
-    },
-    {
-      "label": "INTC",
-      "n": 13,
-      "totalPnl": -103.94,
-      "totalNotional": 8875,
-      "avgReturnPct": -0.828,
-      "winRatePct": 38.5,
       "meetsMinN": false
     },
     {
@@ -2614,8 +2664,8 @@
     }
   },
   "portfolioRisk": {
-    "currentOpenPositions": 6,
-    "currentDeployedUsd": 2875,
+    "currentOpenPositions": 2,
+    "currentDeployedUsd": 125,
     "maxConcurrentPositions": 22,
     "maxTotalNotionalUsd": 20000
   },
