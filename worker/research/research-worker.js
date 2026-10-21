@@ -20,7 +20,7 @@
 // ALPACA_SECRET_KEY, FINNHUB_KEY. KV namespace binding: RESEARCH.
 // Nothing here can place an order: it only reads market data.
 
-import { periodReturns, riskStats, relativeReturns, SECTOR_ETF, resolveCrypto } from "./researchMath.js";
+import { periodReturns, riskStats, relativeReturns, SECTOR_ETF, resolveCrypto, MUTUAL_TO_ETF, fundHint } from "./researchMath.js";
 
 const ALLOWED_ORIGINS = ["https://jacksmiley1.github.io", "http://localhost:8000", "http://localhost:8765"];
 const MODEL = "claude-sonnet-5";
@@ -136,14 +136,28 @@ async function buildQuote(env, type, q) {
     };
   }
 
-  const raw = String(q || "").trim();
+  let raw = String(q || "").trim();
+  let redirectNote = null;
+  if (type === "fund") {
+    const family = fundHint(raw);
+    if (family) return { error: `${raw} is a fund family, not a single fund. Try one of its ETFs: ${family.join(", ")}.` };
+    const up = raw.toUpperCase();
+    if (up in MUTUAL_TO_ETF) {
+      if (!MUTUAL_TO_ETF[up]) return { error: `${up} is a mutual fund share class, and this data source only covers ETFs. It has no close ETF twin.` };
+      redirectNote = `${up} is a mutual fund share class, which this data source doesn't cover. Showing ${MUTUAL_TO_ETF[up]}, an ETF that tracks the same index.`;
+      raw = MUTUAL_TO_ETF[up];
+    }
+  }
   let symbol = tickerShaped(raw);
   let mainBars = symbol ? await stockBars(env, symbol).catch(() => ({ bars: [] })) : { bars: [] };
   if (mainBars.bars.length < 2) {
     const found = await searchTicker(env, raw);
     if (found && found !== symbol) { symbol = found; mainBars = await stockBars(env, symbol).catch(() => ({ bars: [] })); }
   }
-  if (!symbol) return { error: "Couldn't find that ticker or company. Try the ticker symbol, e.g. AAPL." };
+  if (!symbol) return { error: type === "fund" ? "Couldn't find that fund. Try an ETF ticker, e.g. VOO, VTI or QQQ." : "Couldn't find that ticker or company. Try the ticker symbol, e.g. AAPL." };
+  if (type === "fund" && /^[A-Z]{4}X$/.test(symbol) && mainBars.bars.length < 2) {
+    return { error: `${symbol} looks like a mutual fund share class, which this data source doesn't cover. Try the matching ETF (for example VOO instead of VFIAX).` };
+  }
   const [main, spy, profile, metric] = await Promise.all([
     Promise.resolve(mainBars),
     stockBars(env, "SPY"),
@@ -173,7 +187,7 @@ async function buildQuote(env, type, q) {
       revenueGrowthTTMPct: m.revenueGrowthTTMYoy ?? null, netMarginTTMPct: m.netProfitMarginTTM ?? null,
     } : null,
     series: main.bars.map((b) => [b.t, b.c]),
-    note: type === "fund" ? "ETF prices. Mutual fund share classes (like VFIAX) aren't covered by this data source." : null,
+    note: redirectNote || (type === "fund" ? "ETF prices. Mutual fund share classes (like VFIAX) aren't covered by this data source." : null),
   };
 }
 
@@ -218,7 +232,7 @@ Rules:
 - No buy, sell or hold recommendation, no price targets, no personal advice.
 - Plain English, short sentences. A finance professor should find it rigorous; a first-year student should find it readable.
 
-Respond with ONLY a JSON object, no markdown fences, with exactly these keys:
+Fill in every field of the write_report tool:
 {
   "headline": "one sentence: the single most important takeaway",
   "today": "2-4 sentences: what happened in the latest session and the most likely reason",
@@ -233,28 +247,61 @@ Respond with ONLY a JSON object, no markdown fences, with exactly these keys:
   "bottomLine": "2-3 sentences summarizing, explicitly not a recommendation"
 }`;
 
+const LIST = { type: "array", items: { type: "string" }, maxItems: 5 };
+const REPORT_TOOL = {
+  name: "write_report",
+  description: "Record the finished research breakdown.",
+  input_schema: {
+    type: "object",
+    properties: {
+      headline: { type: "string" }, today: { type: "string" }, recentTrend: { type: "string" },
+      longRun: { type: "string" }, vsMarket: { type: "string" }, drivers: LIST, marketBackdrop: { type: "string" },
+      risks: LIST, watch: LIST,
+      evidence: { type: "string", enum: ["clear catalyst", "partial explanation", "no clear catalyst"] },
+      bottomLine: { type: "string" },
+    },
+    required: ["headline", "today", "recentTrend", "longRun", "vsMarket", "drivers", "marketBackdrop", "risks", "watch", "evidence", "bottomLine"],
+  },
+};
+
+// Pulls the report out of Claude's reply: the structured tool call when
+// present, otherwise the first {...} block in plain text.
+function extractReport(j) {
+  const tool = (j.content || []).find((c) => c.type === "tool_use" && c.name === "write_report");
+  if (tool && tool.input && tool.input.headline) return tool.input;
+  const text = (j.content || []).map((c) => c.text || "").join("");
+  const a = text.indexOf("{"), b = text.lastIndexOf("}");
+  if (a >= 0 && b > a) { try { return JSON.parse(text.slice(a, b + 1)); } catch (_) { /* fall through */ } }
+  return null;
+}
+
 async function writeReport(env, quote) {
   const news = await newsFor(env, quote);
   const body = {
     model: MODEL,
-    max_tokens: 2000,
+    max_tokens: 4000,
     system: SYSTEM,
+    tools: [REPORT_TOOL],
+    tool_choice: { type: "tool", name: "write_report" },
     messages: [{
       role: "user",
-      content: `DATA (computed from daily prices; percentages are total returns with dividends and splits adjusted for stocks/ETFs):\n${JSON.stringify(numbersForPrompt(quote))}\n\nNEWS about this security (last 10 days, newest first):\n${JSON.stringify(news.company)}\n\nBROADER MARKET NEWS (latest):\n${JSON.stringify(news.market)}\n\nToday's date (US Eastern): ${etDate()}. Security type: ${quote.type}.`,
+      content: `DATA (computed from daily prices; percentages are total returns with dividends and splits adjusted for stocks/ETFs):\n${JSON.stringify(numbersForPrompt(quote))}\n\nNEWS about this security (last 10 days, newest first):\n${JSON.stringify(news.company)}\n\nBROADER MARKET NEWS (latest):\n${JSON.stringify(news.market)}\n\nToday's date (US Eastern): ${etDate()}. Security type: ${quote.type}. Record the breakdown with the write_report tool.`,
     }],
   };
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!r.ok) throw new Error(`Anthropic ${r.status}: ${(await r.text()).slice(0, 200)}`);
-  const j = await r.json();
-  const text = (j.content || []).map((c) => c.text || "").join("").trim().replace(/^```(?:json)?\s*|\s*```$/g, "");
-  let report;
-  try { report = JSON.parse(text); } catch { throw new Error("The analysis came back in an unexpected format. Try again."); }
-  return { report, news, model: MODEL, usage: j.usage || null };
+  let lastErr = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) { lastErr = new Error(`Anthropic ${r.status}: ${(await r.text()).slice(0, 200)}`); continue; }
+    const j = await r.json();
+    const report = extractReport(j);
+    if (report) return { report, news, model: MODEL, usage: j.usage || null };
+    lastErr = new Error(j.stop_reason === "max_tokens" ? "The analysis ran too long and was cut off." : "The analysis came back in an unexpected format.");
+  }
+  throw lastErr;
 }
 
 async function bump(env, key, ttl) {

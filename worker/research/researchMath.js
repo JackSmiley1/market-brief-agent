@@ -122,3 +122,29 @@ export function resolveCrypto(input) {
   const base = CRYPTO_NAMES[key] || raw.toUpperCase().replace(/\/?USDT?$|\/USD$/, "").replace(/[^A-Z0-9]/g, "");
   return base ? `${base}/USD` : null;
 }
+
+// Fund families people type on the Funds tab -> their main ETFs.
+export const FUND_FAMILIES = {
+  vanguard: ["VOO (S&P 500)", "VTI (total US market)", "VXUS (international)", "BND (US bonds)", "VUG (growth)"],
+  fidelity: ["FBND (bonds)", "FTEC (tech)", "FSKAX is a mutual fund: try ITOT or VTI for the total US market"],
+  schwab: ["SCHB (total US market)", "SCHX (large caps)", "SCHD (dividends)", "SCHF (international)"],
+  ishares: ["IVV (S&P 500)", "ITOT (total US market)", "IEFA (international)", "AGG (US bonds)"],
+  blackrock: ["IVV (S&P 500)", "ITOT (total US market)", "IEFA (international)", "AGG (US bonds)"],
+  spdr: ["SPY (S&P 500)", "DIA (Dow)", "XLK (tech)", "GLD (gold)"],
+  invesco: ["QQQ (Nasdaq-100)", "RSP (equal-weight S&P 500)"],
+  statestreet: ["SPY (S&P 500)", "DIA (Dow)", "GLD (gold)"],
+};
+
+// Popular mutual fund share classes -> an ETF tracking the same index.
+// Alpaca has no mutual fund prices, so these are redirected, with a note.
+export const MUTUAL_TO_ETF = {
+  VFIAX: "VOO", VFINX: "VOO", VTSAX: "VTI", VTSMX: "VTI", VTIAX: "VXUS", VBTLX: "BND", VBMFX: "BND",
+  VIGAX: "VUG", VVIAX: "VTV", VIMAX: "VO", VSMAX: "VB", VGSLX: "VNQ", VTABX: "BNDX", VWIAX: null,
+  FXAIX: "IVV", FSKAX: "ITOT", FTIHX: "IXUS", FXNAX: "AGG", FZROX: "ITOT", FZILX: "IXUS",
+  SWPPX: "IVV", SWTSX: "SCHB", SWISX: "SCHF", SWAGX: "SCHZ",
+};
+
+export function fundHint(input) {
+  const key = String(input || "").toLowerCase().replace(/[^a-z]/g, "").replace(/(funds?|etfs?|investments?|group)$/, "");
+  return FUND_FAMILIES[key] || null;
+}

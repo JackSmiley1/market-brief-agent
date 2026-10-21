@@ -52,3 +52,17 @@ test("crypto names resolve to Alpaca pairs", () => {
   assert.equal(resolveCrypto("ETH/USD"), "ETH/USD");
   assert.equal(resolveCrypto("dogeusdt"), "DOGE/USD");
 });
+
+import { fundHint, MUTUAL_TO_ETF } from "../worker/research/researchMath.js";
+
+test("fund families get ETF suggestions instead of an error", () => {
+  assert.ok(fundHint("vanguard").some((s) => s.startsWith("VOO")));
+  assert.ok(fundHint("Vanguard funds"));
+  assert.equal(fundHint("VOO"), null);
+});
+
+test("popular mutual fund share classes map to an ETF on the same index", () => {
+  assert.equal(MUTUAL_TO_ETF.VFIAX, "VOO");
+  assert.equal(MUTUAL_TO_ETF.VTSAX, "VTI");
+  assert.equal(MUTUAL_TO_ETF.FXAIX, "IVV");
+});
