@@ -206,3 +206,30 @@ This ends the test before the ~110-trade checkpoint. That was set to detect an e
 **What continues:** the long-horizon track (about 30 short Claude calls once a quarter), the buy-and-hold fund positions, and the public dashboard.
 
 **Takeaway:** a frontier model reading daily prices and news did not produce an edge on next-day moves, after honest measurement against SPY. That's consistent with the FutureSearch finding that short-term moves are close to unpredictable, which is why the long-horizon track exists.
+
+## 2026-10-20 (evening): New direction, from paper trading to a research tool
+
+**Decision (Jack):** turn the site into a stock, ETF and crypto research tool. Keep the UI and the Long-Horizon tab.
+
+**What's built:**
+- **Research panels on Stocks, Funds and Crypto.** Type a ticker, company name, ETF or coin to see:
+  - returns over 1 day, 10 days, 30 days, YTD, 1 year and 5 years
+  - how those compare with SPY (Bitcoin for crypto) and with the stock's sector ETF
+  - a price chart
+  - volatility, max drawdown, the 52-week range and volume versus average
+  - for stocks: P/E, beta, market cap, dividend yield, revenue growth and margin
+- **"Write the AI breakdown" button.** Claude explains:
+  - the latest session
+  - the 10 and 30 day trend
+  - the long run
+  - how it compares with the market
+  - news drivers (cited by date and source)
+  - the market backdrop
+  - risks and what to watch
+
+  Every report carries an evidence label: clear catalyst, partial explanation, or no clear catalyst. It never gives a recommendation.
+- **A new Cloudflare Worker (`worker/research/`)** holds the API keys and does the lookups. Cost controls: one cached report per symbol per day, 5 new reports per visitor per day, 60 site-wide. Price lookups use no Claude.
+- **Track Record tab.** The whole paper-trading experiment moved there, unedited, with an intro whose numbers update from the data. Fund buy-and-hold positions are listed there too.
+- **Design decisions (Jack, 2026-10-20):** public with limits; full-depth reports; old record kept as a case study; ETFs only for funds (mutual fund share classes like VFIAX aren't in Alpaca's data, and the site says so).
+
+**Note on the record:** after the decision, five more trades settled. The final per-trade 95% range versus SPY is about -0.72% to +0.02%, which just touches zero. At the moment of the decision (159 trades) it was entirely below zero. The Track Record intro states it that way. The four Oct 19 positions (AMZN, INTC, NVDA, TSLA) were still open as of this note, because the Wind Down workflow hadn't been run yet.

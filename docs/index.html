@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Great Lakes Investments | Live Dashboard</title>
+<title>Great Lakes Investments | AI Market Research</title>
 <meta name="description" content="An autonomous research pipeline: nightly Claude-driven market analysis, evidence-based simulated position sizing, and statistical guardrails against tuning on noise. Graded against reality every night. All trades simulated, zero real capital." />
 
 <!-- Inline SVG favicon (no separate asset file to host/track): white
@@ -309,6 +309,37 @@
     .tab-nav a .key { display: none; }
     .hero-card .value { font-size: 20px; }
   }
+  /* ---- Research panels ---- */
+  .rs-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 8px 0 6px; }
+  .rs-head .sym { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--accent); }
+  .rs-head .nm { font-size: 13px; color: var(--text); font-weight: 700; }
+  .rs-head .px { font-family: var(--mono); font-size: 18px; margin-left: auto; }
+  .rs-meta { color: var(--muted-dim); font-size: 10.5px; font-family: var(--mono); margin-bottom: 6px; }
+  .rs-grid > div, .rs-out, .research { min-width: 0; }
+  .rs-out .bucket-group { overflow-x: auto; }
+  .rs-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 8px; align-items: start; }
+  @media (max-width: 900px) { .rs-grid { grid-template-columns: 1fr; } }
+  .rs-chart { position: relative; height: 230px; }
+  .rs-chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .rs-chart-head .lbl { color: var(--muted-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .rs-table td.pos, .rs-table td.neg { font-weight: 500; }
+  .rs-stats { margin-top: 8px; }
+  .rs-ai { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; }
+  .rs-ai-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .rs-ai-bar .hint { color: var(--muted-dim); font-size: 11px; }
+  .rs-report h3 { margin: 10px 0 3px; font-size: 10.5px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.07em; }
+  .rs-report p { margin: 0 0 4px; color: var(--text); font-size: 12.5px; line-height: 1.55; max-width: 980px; }
+  .rs-report ul { margin: 0 0 4px; padding-left: 18px; color: var(--text); font-size: 12px; line-height: 1.5; }
+  .rs-report .rs-headline { font-size: 14px; font-weight: 700; color: var(--text); margin: 8px 0 4px; line-height: 1.4; }
+  .rs-report .rs-foot { color: var(--muted-dim); font-size: 10.5px; margin-top: 8px; font-family: var(--mono); }
+  .rs-report .rs-sources li { color: var(--muted); font-size: 11px; }
+  .rs-spin { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: rsspin 0.8s linear infinite; vertical-align: -1px; margin-right: 6px; }
+  @keyframes rsspin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .rs-spin { animation: none; } }
+  .rs-recent .brief-row { cursor: pointer; }
+  .rs-recent .brief-row .hl { display: block; color: var(--muted); font-family: var(--sans); font-size: 11px; margin-top: 2px; white-space: normal; }
+  .group-head { background: none; border: none; padding: 0; }
+  .group-head .section-head { background: none; border-bottom: 1px solid var(--accent); padding-left: 0; margin: 6px 0 0; }
 </style>
 </head>
 <body>
@@ -317,11 +348,12 @@
   <div class="shell">
     <div class="brand"><span class="mark" aria-hidden="true"><span></span><span></span><span></span></span> Great Lakes Investments</div>
     <nav class="tab-nav" aria-label="Workspaces">
-      <a href="#" class="tab-link active" data-view="dashboard"><span class="key">1</span>Dashboard</a>
-      <a href="#mutual-funds" class="tab-link" data-view="mutual-funds"><span class="key">2</span>Mutual Funds</a>
+      <a href="#" class="tab-link active" data-view="dashboard"><span class="key">1</span>Stocks</a>
+      <a href="#mutual-funds" class="tab-link" data-view="mutual-funds"><span class="key">2</span>Funds</a>
       <a href="#crypto" class="tab-link" data-view="crypto"><span class="key">3</span>Crypto</a>
       <a href="#long-horizon" class="tab-link" data-view="long-horizon"><span class="key">4</span>Long-Horizon</a>
-      <a href="#about" class="tab-link" data-view="about"><span class="key">5</span>About</a>
+      <a href="#track-record" class="tab-link" data-view="track-record"><span class="key">5</span>Track Record</a>
+      <a href="#about" class="tab-link" data-view="about"><span class="key">6</span>About</a>
     </nav>
     <div class="cmd-wrap" role="search">
       <label for="cmd-input">GO&gt;</label>
@@ -339,131 +371,31 @@
 <div class="shell">
 <div id="view-dashboard" class="view active">
   <div class="hero">
-    <h1>Great Lakes Investments</h1>
-    <p class="tag">Claude analyzes the market every night, places simulated trades, and is graded against real prices.</p>
+    <h1>Stock Research</h1>
+    <p class="tag">Look up any US stock: performance over every horizon, how it compares with the market and its sector, and an AI breakdown of why it moved.</p>
     <span id="badge-n" hidden></span>
   </div>
 
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span><strong>The daily strategy ended on Oct 20, 2026</strong> after underperforming SPY (see "What Changed, and When"). The full record stays below. Paper trading only, no real money.</span>
+    <span>AI-assisted research for education. Numbers come from market data; the written analysis is generated by Claude and can be wrong. Not investment advice.</span>
   </div>
 
   <main class="ws">
-    <section class="c-7" id="invest" style="display:none">
-      <div class="section-head"><h2>Simulate an Investment</h2></div>
-      <div class="invest-card">
+    <section class="c-8 research" data-type="stock">
+      <div class="section-head"><h2>Research a Stock</h2></div>
+      <form class="rs-form" data-type="stock" autocomplete="off">
         <div class="invest-row">
-          <div class="invest-input-wrap">
-            <span class="prefix">Invest in:</span>
-            <input id="invest-input" type="text" placeholder="a company or index, e.g. Apple, NVDA, or QQQ" maxlength="40" />
-          </div>
-          <input class="invest-input" id="invest-amount" type="number" placeholder="Amount (optional, $25-$10,000)" min="25" max="10000" step="1" style="max-width:220px;" />
-          <button class="btn btn-primary" id="invest-btn">Simulate Investment</button>
+          <input class="invest-input rs-input" type="text" maxlength="40" placeholder="Ticker or company, e.g. AAPL or Nvidia" aria-label="Ticker or company, e.g. AAPL or Nvidia" />
+          <button class="btn btn-primary rs-go" type="submit">Look up</button>
         </div>
-        <div class="invest-hint">Claude analyzes it and opens a simulated position only if the setup clears the bar. Leave the amount blank for standard sizing. PIN required.</div>
-        <div id="invest-status" class="status-msg"></div>
-      </div>
-    </section>
-    <section class="c-12" id="requests-stock-section">
-      <div class="section-head"><h2>Your Stock Invest Requests</h2></div>
-      <p class="section-sub">Every request and its outcome. A pass means nothing cleared the bar.</p>
-      <div class="brief-list" id="requests-stock-list"><div class="loading">No requests yet.</div></div>
-    </section>
-    <section class="c-12" id="overview-section">
-      <div class="section-head"><h2>Overview</h2></div>
-      <div class="stat-grid" id="overview-stats"><div class="loading">Loading…</div></div>
-    </section>
-    <section class="c-3">
-      <div class="section-head"><h2>Top 5 Stock Movers</h2></div>
-      <p class="section-sub" id="movers-asof">Last session, from the watchlist scan.</p>
-      <div class="bucket-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-        <div>
-          <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Gainers</h3>
-          <div id="stock-gainers"><div class="loading">Loading…</div></div>
-        </div>
-        <div>
-          <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Losers</h3>
-          <div id="stock-losers"><div class="loading">Loading…</div></div>
-        </div>
-      </div>
-    </section>
-    <section class="c-9">
-      <div class="section-head">
-        <h2>Simulated Equity Curve</h2>
-        <div class="range-toggle" id="range-toggle">
-          <button class="range-btn" data-range="10">Last 10</button>
-          <button class="range-btn" data-range="30">Last 30</button>
-          <button class="range-btn active" data-range="all">All</button>
-        </div>
-      </div>
-      <div class="chart-wrap"><canvas id="equityChart" height="90"></canvas></div>
-    </section>
-    <section class="c-6" id="benchmark-section">
-      <div class="section-head"><h2>Versus Just Holding SPY</h2></div>
-      <p class="section-sub">Each trade vs. SPY over the same window. Market-adjusted removes the market's own move.</p>
-      <div class="stat-grid" id="benchmark-stats"><div class="loading">Loading…</div></div>
-    </section>
-    <section class="c-6" id="readiness-section">
-      <div class="section-head"><h2>Road to a $30 Live Test</h2></div>
-      <p class="section-sub">Checklist before even $30 of real money. Nothing here is live.</p>
-      <div class="bucket-group">
-        <div class="ready-progress"><div class="ready-bar"><div class="ready-fill" id="ready-fill" style="width:0%"></div></div><div class="ready-count" id="ready-count">Loading…</div></div>
-        <div class="brief-list" id="ready-list" style="margin-top:12px;"></div>
-      </div>
-      <div class="bucket-group" style="margin-top:14px;">
-        <h3>Last night's $30 dry run (nothing sent to any broker)</h3>
-        <div class="brief-list" id="ready-mirror"><div class="loading">No dry run yet. It runs automatically after each nightly run.</div></div>
-      </div>
-    </section>
-    <section class="c-12" id="honesty-section">
-      <div class="section-head"><h2>Is Claude Honest About Its Own Calls?</h2></div>
-      <p class="section-sub">Claude's grade of its own calls vs. what prices actually did.</p>
-      <div class="stat-grid" id="honesty-stats"><div class="loading">Loading…</div></div>
-      <div class="chart-wrap" style="margin-top:14px;"><div style="position:relative; height:300px;"><canvas id="honestyChart"></canvas></div></div>
-      <div class="bucket-grid" style="margin-top:14px;"><div class="bucket-group"><h3>Does confidence mean anything?</h3><table id="honesty-conf"><thead><tr><th>Claude's confidence</th><th>Calls</th><th>Direction right</th><th>Avg trade return</th></tr></thead><tbody></tbody></table></div></div>
-      <p class="section-sub" id="honesty-note" style="margin-top:12px;"></p>
+      </form>
+      <div class="rs-out" id="rs-out-stock"><div class="loading">Performance over 1 day, 10 days, 30 days, year to date, 1 year and 5 years, compared with the market, plus an AI breakdown of why it moved.</div></div>
     </section>
     <section class="c-4">
-      <div class="section-head"><h2>Live Portfolio Risk</h2></div>
-      <div class="chart-wrap" id="risk-wrap"><div class="loading">Loading…</div></div>
-    </section>
-    <section class="c-8" id="changes-section">
-      <div class="section-head"><h2>What Changed, and When</h2></div>
-      <p class="section-sub">Every change, dated, so results can be read against it.</p>
-      <div class="brief-list" id="change-list"><div class="loading">Loading…</div></div>
-    </section>
-    <section class="c-12">
-      <div class="section-head"><h2>Performance by Sizing Lever</h2></div>
-      <p class="section-sub">Click a header to sort. Small samples are flagged.</p>
-      <div class="bucket-grid" id="bucket-container"><div class="loading">Loading…</div></div>
-    </section>
-    <section class="c-6">
-      <div class="section-head"><h2>Performance by Ticker</h2></div>
-      <p class="section-sub">Tickers with 3+ trades.</p>
-      <div class="bucket-grid" id="ticker-container"><div class="loading">Loading…</div></div>
-    </section>
-    <section class="c-6">
-      <div class="section-head"><h2>Recent Briefs</h2></div>
-      <div class="brief-list" id="brief-list"><div class="loading">Loading…</div></div>
-    </section>
-    <section class="c-12">
-      <div class="section-head"><h2>Methodology</h2></div>
-      <div class="methodology">
-        <p>Each pick gets a confidence level and an event-risk flag from Claude. Size is cut for low confidence, event risk and shorts, because each lined up with worse results in this system's own history.</p>
-        <p id="methodology-detail" class="loading">Loading…</p>
-        <p>No sizing rule changes until both sides of a comparison have at least <span id="min-n-inline">20</span> closed trades. Smaller groups are labeled <span class="flag">small sample</span>.</p>
-      </div>
-    </section>
-    <section class="c-12" id="lessons-section" style="display:none;">
-      <div class="section-head"><h2>Lessons Learned</h2></div>
-      <p class="section-sub">Patterns Claude writes down after reviewing its losing trades. Advisory only, never a trading rule.</p>
-      <div class="lesson-list" id="lesson-list"></div>
-    </section>
-    <section class="c-12" id="on-demand-section" style="display:none;">
-      <div class="section-head"><h2>On-Demand Trades</h2></div>
-      <p class="section-sub">Trades requested from the form. Kept out of the sizing evidence.</p>
-      <div class="brief-list" id="on-demand-list"></div>
+      <div class="section-head"><h2>Recent Research</h2></div>
+      <p class="section-sub">Breakdowns written today and yesterday. Click one to open it.</p>
+      <div class="brief-list rs-recent" data-type="stock"><div class="loading">None yet today.</div></div>
     </section>
   </main>
 </div>
@@ -471,57 +403,28 @@
 
 <div id="view-mutual-funds" class="view">
   <div class="hero">
-    <h1>Mutual Funds</h1>
-    <p class="tag">Buy-and-hold index funds, separate from the nightly picks.</p>
+    <h1>Fund Research</h1>
+    <p class="tag">Look up any US-listed ETF, including the ETF versions of the big index funds (VOO, VTI, VXUS).</p>
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>Simulated buy-and-hold positions, not picked or sized by Claude. ETFs, not mutual fund share classes. No real money.</span>
+    <span>ETFs only: mutual fund share classes like VFIAX aren't covered by this data source. Not investment advice.</span>
   </div>
   <main class="ws">
-    <section class="c-6" id="fund-invest">
-      <div class="section-head"><h2>Invest in Top 5 Funds</h2></div>
-      <div class="invest-card">
+    <section class="c-8 research" data-type="fund">
+      <div class="section-head"><h2>Research a Fund (ETF)</h2></div>
+      <form class="rs-form" data-type="fund" autocomplete="off">
         <div class="invest-row">
-          <span class="prefix" style="padding:12px 0;">SPY, VOO, VTI, QQQ, DIA — $300 each, equal-weight, long only</span>
-          <button class="btn btn-primary" id="fund-invest-btn">Invest in Top 5 Funds</button>
+          <input class="invest-input rs-input" type="text" maxlength="40" placeholder="ETF ticker, e.g. VOO, VTI, QQQ, VXUS" aria-label="ETF ticker, e.g. VOO, VTI, QQQ, VXUS" />
+          <button class="btn btn-primary rs-go" type="submit">Look up</button>
         </div>
-        <div class="invest-hint">Already-held funds are skipped, never bought twice. PIN required.</div>
-        <div id="fund-invest-status" class="status-msg"></div>
-      </div>
+      </form>
+      <div class="rs-out" id="rs-out-fund"><div class="loading">Performance over 1 day, 10 days, 30 days, year to date, 1 year and 5 years, compared with the market, plus an AI breakdown of why it moved.</div></div>
     </section>
-    <section class="c-6" id="fund-custom-invest">
-      <div class="section-head"><h2>Invest in Another Fund</h2></div>
-      <div class="invest-card">
-        <div class="invest-row">
-          <input class="invest-input" id="fund-custom-ticker" type="text" placeholder="Ticker (e.g. VXUS)" maxlength="10" autocomplete="off" />
-          <input class="invest-input" id="fund-custom-amount" type="number" placeholder="Amount ($5-$10,000)" min="5" max="10000" step="1" style="max-width:180px;" />
-          <button class="btn btn-primary" id="fund-custom-btn">Invest</button>
-        </div>
-        <div class="invest-hint">Any ticker, $5–$10,000. PIN required.</div>
-        <div id="fund-custom-status" class="status-msg"></div>
-      </div>
-    </section>
-    <section class="c-6" id="requests-fund-section">
-      <div class="section-head"><h2>Your Fund Invest Requests</h2></div>
-      <p class="section-sub">Every request and its outcome. A pass means nothing cleared the bar.</p>
-      <div class="brief-list" id="requests-fund-list"><div class="loading">No requests yet.</div></div>
-    </section>
-    <section class="c-6">
-      <div class="section-head"><h2>Current Fund Holdings</h2></div>
-      <p class="section-sub">Sell closes at market; after hours it fills at the next open. PIN required.</p>
-      <div class="brief-list" id="fund-holdings-list"><div class="loading">Not invested yet.</div></div>
-      <div id="fund-sell-status" class="status-msg"></div>
-    </section>
-    <section class="c-12" id="fund-sold-section" style="display:none;">
-      <div class="section-head"><h2>Sold Positions</h2></div>
-      <p class="section-sub" id="fund-realized-total"></p>
-      <div class="brief-list" id="fund-sold-list"></div>
-    </section>
-    <section class="c-7">
-      <div class="section-head"><h2>Fund Holdings Value Over Time</h2></div>
-      <p class="section-sub">Market value vs. cost basis, updated nightly.</p>
-      <div class="chart-wrap"><canvas id="fundValueChart" height="90"></canvas></div>
+    <section class="c-4">
+      <div class="section-head"><h2>Recent Research</h2></div>
+      <p class="section-sub">Breakdowns written today and yesterday. Click one to open it.</p>
+      <div class="brief-list rs-recent" data-type="fund"><div class="loading">None yet today.</div></div>
     </section>
     <section class="c-5">
       <div class="section-head">
@@ -536,45 +439,28 @@
 
 <div id="view-crypto" class="view">
   <div class="hero">
-    <h1>Crypto</h1>
-    <p class="tag">Nightly automated crypto picks, plus on-demand analysis of any coin.</p>
+    <h1>Crypto Research</h1>
+    <p class="tag">Look up a major coin: performance over every horizon, compared with Bitcoin, with an AI breakdown of the move.</p>
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>Long-only (no shorting on Alpaca crypto). Paper trading only: no real money. Live prices from CoinGecko.</span>
+    <span>Covers the roughly 20 major coins on Alpaca. Crypto trades around the clock, so "today" means the current UTC day so far. Not investment advice.</span>
   </div>
   <main class="ws">
-    <section class="c-6" id="crypto-invest" style="display:none">
-      <div class="section-head"><h2>Invest in a Coin</h2></div>
-      <div class="invest-card">
+    <section class="c-8 research" data-type="crypto">
+      <div class="section-head"><h2>Research a Coin</h2></div>
+      <form class="rs-form" data-type="crypto" autocomplete="off">
         <div class="invest-row">
-          <input class="invest-input" id="crypto-invest-symbol" type="text" placeholder="Coin or symbol (e.g. bitcoin, SOL, DOGE/USD)" maxlength="40" autocomplete="off" />
-          <input class="invest-input" id="crypto-invest-amount" type="number" placeholder="Amount ($25-$10,000)" min="25" max="10000" step="1" style="max-width:180px;" />
-          <button class="btn btn-primary" id="crypto-invest-btn">Invest</button>
+          <input class="invest-input rs-input" type="text" maxlength="40" placeholder="Coin or symbol, e.g. bitcoin, ETH, SOL" aria-label="Coin or symbol, e.g. bitcoin, ETH, SOL" />
+          <button class="btn btn-primary rs-go" type="submit">Look up</button>
         </div>
-        <div class="invest-hint">Claude analyzes it and opens a simulated position only if the setup clears the bar. Held one day. PIN required.</div>
-        <div id="crypto-invest-status" class="status-msg"></div>
-      </div>
+      </form>
+      <div class="rs-out" id="rs-out-crypto"><div class="loading">Performance over 1 day, 10 days, 30 days, year to date, 1 year and 5 years, compared with the market, plus an AI breakdown of why it moved.</div></div>
     </section>
-    <section class="c-12" id="requests-crypto-section">
-      <div class="section-head"><h2>Your Crypto Invest Requests</h2></div>
-      <p class="section-sub">Every request and its outcome. A pass means nothing cleared the bar.</p>
-      <div class="brief-list" id="requests-crypto-list"><div class="loading">No requests yet.</div></div>
-    </section>
-    <section class="c-5" id="crypto-nightly-section">
-      <div class="section-head"><h2>Nightly Automated Track Record</h2></div>
-      <p class="section-sub" id="crypto-nightly-asof">Every night, 10 coins, long-only, $500 per pick. Tracked separately from stocks.</p>
-      <div class="stat-grid" id="crypto-nightly-stats"><div class="loading">Loading…</div></div>
-    </section>
-    <section class="c-7">
-      <div class="section-head"><h2>Simulated Crypto Equity Curve</h2></div>
-      <p class="section-sub">Cumulative P&amp;L, nightly and on-demand trades combined.</p>
-      <div class="chart-wrap"><canvas id="cryptoEquityChart" height="90"></canvas></div>
-    </section>
-    <section class="c-12" id="crypto-ondemand-section">
-      <div class="section-head"><h2>Recent Crypto Trades</h2></div>
-      <p class="section-sub">Nightly and on-demand trades.</p>
-      <div class="brief-list" id="crypto-ondemand-list"><div class="loading">No crypto trades yet.</div></div>
+    <section class="c-4">
+      <div class="section-head"><h2>Recent Research</h2></div>
+      <p class="section-sub">Breakdowns written today and yesterday. Click one to open it.</p>
+      <div class="brief-list rs-recent" data-type="crypto"><div class="loading">None yet today.</div></div>
     </section>
     <section class="c-6">
       <div class="section-head"><h2>Live Market Data</h2></div>
@@ -630,52 +516,267 @@
 </div>
 <!-- /view-long-horizon -->
 
-<div id="view-about" class="view">
+<div id="view-track-record" class="view">
   <div class="hero">
-    <h1>About</h1>
-    <p class="tag">What this is and how it works.</p>
+    <h1>Track Record</h1>
+    <p class="tag">The paper-trading experiment that came before the research tools, kept in full as a case study.</p>
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
-    <span>Simulated with paper trading. Not investment advice.</span>
+    <span>All trades were simulated on a paper-trading account. No real money. The daily strategy ended Oct 20, 2026.</span>
+  </div>
+  <main class="ws">
+    <section class="c-12">
+      <div class="section-head"><h2>What Was Tested</h2></div>
+      <div class="methodology">
+        <p>From Aug 18 to Oct 20, 2026, Claude made daily market calls on a fixed watchlist and placed simulated trades on them (Alpaca paper account, no real money), graded every night against real prices and against simply holding SPY.</p>
+        <p><strong>Result:</strong> over <span id="tr-n">…</span> closed stock trades it lost <span id="tr-pnl">…</span>, while the same dollars in SPY made <span id="tr-spy">…</span>. On the day it was stopped (159 trades), its per-trade return versus SPY was below zero with 95% confidence, and a mid-test rule change hadn't fixed it. Claude also graded its own calls more generously than prices did (<span id="tr-self">…</span> vs <span id="tr-hit">…</span> price-checked). The daily strategy ended on Oct 20, 2026; the complete record is below, unedited.</p>
+        <p><strong>What came out of it:</strong> daily price moves look close to unpredictable from prices and news, which is why the project now focuses on research and on the longer-horizon experiment.</p>
+      </div>
+    </section>
+    <section class="c-12 group-head"><div class="section-head"><h2>Stocks: daily strategy</h2></div></section>
+    <section class="c-12" id="overview-section">
+      <div class="section-head"><h2>Overview</h2></div>
+      <div class="stat-grid" id="overview-stats"><div class="loading">Loading…</div></div>
+    </section>
+    <section class="c-8">
+      <div class="section-head">
+        <h2>Simulated Equity Curve</h2>
+        <div class="range-toggle" id="range-toggle">
+          <button class="range-btn" data-range="10">Last 10</button>
+          <button class="range-btn" data-range="30">Last 30</button>
+          <button class="range-btn active" data-range="all">All</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="equityChart" height="90"></canvas></div>
+    </section>
+    <section class="c-4" id="benchmark-section">
+      <div class="section-head"><h2>Versus Just Holding SPY</h2></div>
+      <p class="section-sub">Each trade vs. SPY over the same window. Market-adjusted removes the market's own move.</p>
+      <div class="stat-grid" id="benchmark-stats"><div class="loading">Loading…</div></div>
+    </section>
+    <section class="c-12" id="honesty-section">
+      <div class="section-head"><h2>Is Claude Honest About Its Own Calls?</h2></div>
+      <p class="section-sub">Claude's grade of its own calls vs. what prices actually did.</p>
+      <div class="stat-grid" id="honesty-stats"><div class="loading">Loading…</div></div>
+      <div class="chart-wrap" style="margin-top:14px;"><div style="position:relative; height:300px;"><canvas id="honestyChart"></canvas></div></div>
+      <div class="bucket-grid" style="margin-top:14px;"><div class="bucket-group"><h3>Does confidence mean anything?</h3><table id="honesty-conf"><thead><tr><th>Claude's confidence</th><th>Calls</th><th>Direction right</th><th>Avg trade return</th></tr></thead><tbody></tbody></table></div></div>
+      <p class="section-sub" id="honesty-note" style="margin-top:12px;"></p>
+    </section>
+    <section class="c-8" id="changes-section">
+      <div class="section-head"><h2>What Changed, and When</h2></div>
+      <p class="section-sub">Every change, dated, so results can be read against it.</p>
+      <div class="brief-list" id="change-list"><div class="loading">Loading…</div></div>
+    </section>
+    <section class="c-6">
+      <div class="section-head"><h2>Performance by Sizing Lever</h2></div>
+      <p class="section-sub">Click a header to sort. Small samples are flagged.</p>
+      <div class="bucket-grid" id="bucket-container"><div class="loading">Loading…</div></div>
+    </section>
+    <section class="c-6">
+      <div class="section-head"><h2>Performance by Ticker</h2></div>
+      <p class="section-sub">Tickers with 3+ trades.</p>
+      <div class="bucket-grid" id="ticker-container"><div class="loading">Loading…</div></div>
+    </section>
+    <section class="c-6">
+      <div class="section-head"><h2>Recent Briefs</h2></div>
+      <div class="brief-list" id="brief-list"><div class="loading">Loading…</div></div>
+    </section>
+    <section class="c-6">
+      <div class="section-head"><h2>Methodology</h2></div>
+      <div class="methodology">
+        <p>Each pick gets a confidence level and an event-risk flag from Claude. Size is cut for low confidence, event risk and shorts, because each lined up with worse results in this system's own history.</p>
+        <p id="methodology-detail" class="loading">Loading…</p>
+        <p>No sizing rule changes until both sides of a comparison have at least <span id="min-n-inline">20</span> closed trades. Smaller groups are labeled <span class="flag">small sample</span>.</p>
+      </div>
+    </section>
+    <section class="c-12" id="lessons-section" style="display:none;">
+      <div class="section-head"><h2>Lessons Learned</h2></div>
+      <p class="section-sub">Patterns Claude writes down after reviewing its losing trades. Advisory only, never a trading rule.</p>
+      <div class="lesson-list" id="lesson-list"></div>
+    </section>
+    <section class="c-12" id="on-demand-section" style="display:none;">
+      <div class="section-head"><h2>On-Demand Trades</h2></div>
+      <p class="section-sub">Trades requested from the form. Kept out of the sizing evidence.</p>
+      <div class="brief-list" id="on-demand-list"></div>
+    </section>
+    <section class="c-12" id="requests-stock-section">
+      <div class="section-head"><h2>Your Stock Invest Requests</h2></div>
+      <p class="section-sub">Every request and its outcome. A pass means nothing cleared the bar.</p>
+      <div class="brief-list" id="requests-stock-list"><div class="loading">No requests yet.</div></div>
+    </section>
+    <section style="display:none" class="c-12" id="readiness-section">
+      <div class="section-head"><h2>Road to a $30 Live Test</h2></div>
+      <p class="section-sub">Checklist before even $30 of real money. Nothing here is live.</p>
+      <div class="bucket-group">
+        <div class="ready-progress"><div class="ready-bar"><div class="ready-fill" id="ready-fill" style="width:0%"></div></div><div class="ready-count" id="ready-count">Loading…</div></div>
+        <div class="brief-list" id="ready-list" style="margin-top:12px;"></div>
+      </div>
+      <div class="bucket-group" style="margin-top:14px;">
+        <h3>Last night's $30 dry run (nothing sent to any broker)</h3>
+        <div class="brief-list" id="ready-mirror"><div class="loading">No dry run yet. It runs automatically after each nightly run.</div></div>
+      </div>
+    </section>
+    <section style="display:none" class="c-12">
+      <div class="section-head"><h2>Live Portfolio Risk</h2></div>
+      <div class="chart-wrap" id="risk-wrap"><div class="loading">Loading…</div></div>
+    </section>
+    <section style="display:none" class="c-12">
+      <div class="section-head"><h2>Top 5 Stock Movers</h2></div>
+      <p class="section-sub" id="movers-asof">Last session, from the watchlist scan.</p>
+      <div class="bucket-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        <div>
+          <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Gainers</h3>
+          <div id="stock-gainers"><div class="loading">Loading…</div></div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);">Losers</h3>
+          <div id="stock-losers"><div class="loading">Loading…</div></div>
+        </div>
+      </div>
+    </section>
+    <section class="c-12" id="invest" style="display:none">
+      <div class="section-head"><h2>Simulate an Investment</h2></div>
+      <div class="invest-card">
+        <div class="invest-row">
+          <div class="invest-input-wrap">
+            <span class="prefix">Invest in:</span>
+            <input id="invest-input" type="text" placeholder="a company or index, e.g. Apple, NVDA, or QQQ" maxlength="40" />
+          </div>
+          <input class="invest-input" id="invest-amount" type="number" placeholder="Amount (optional, $25-$10,000)" min="25" max="10000" step="1" style="max-width:220px;" />
+          <button class="btn btn-primary" id="invest-btn">Simulate Investment</button>
+        </div>
+        <div class="invest-hint">Claude analyzes it and opens a simulated position only if the setup clears the bar. Leave the amount blank for standard sizing. PIN required.</div>
+        <div id="invest-status" class="status-msg"></div>
+      </div>
+    </section>
+    <section class="c-12 group-head"><div class="section-head"><h2>Fund holdings (buy-and-hold, still held)</h2></div></section>
+    <section class="c-6">
+      <div class="section-head"><h2>Current Fund Holdings</h2></div>
+      <p class="section-sub">Sell closes at market; after hours it fills at the next open. PIN required.</p>
+      <div class="brief-list" id="fund-holdings-list"><div class="loading">Not invested yet.</div></div>
+      <div id="fund-sell-status" class="status-msg"></div>
+    </section>
+    <section class="c-12" id="fund-sold-section" style="display:none;">
+      <div class="section-head"><h2>Sold Positions</h2></div>
+      <p class="section-sub" id="fund-realized-total"></p>
+      <div class="brief-list" id="fund-sold-list"></div>
+    </section>
+    <section class="c-6">
+      <div class="section-head"><h2>Fund Holdings Value Over Time</h2></div>
+      <p class="section-sub">Market value vs. cost basis, updated nightly.</p>
+      <div class="chart-wrap"><canvas id="fundValueChart" height="90"></canvas></div>
+    </section>
+    <section class="c-12" id="requests-fund-section">
+      <div class="section-head"><h2>Your Fund Invest Requests</h2></div>
+      <p class="section-sub">Every request and its outcome. A pass means nothing cleared the bar.</p>
+      <div class="brief-list" id="requests-fund-list"><div class="loading">No requests yet.</div></div>
+    </section>
+    <section style="display:none" class="c-6" id="fund-invest">
+      <div class="section-head"><h2>Invest in Top 5 Funds</h2></div>
+      <div class="invest-card">
+        <div class="invest-row">
+          <span class="prefix" style="padding:12px 0;">SPY, VOO, VTI, QQQ, DIA — $300 each, equal-weight, long only</span>
+          <button class="btn btn-primary" id="fund-invest-btn">Invest in Top 5 Funds</button>
+        </div>
+        <div class="invest-hint">Already-held funds are skipped, never bought twice. PIN required.</div>
+        <div id="fund-invest-status" class="status-msg"></div>
+      </div>
+    </section>
+    <section style="display:none" class="c-6" id="fund-custom-invest">
+      <div class="section-head"><h2>Invest in Another Fund</h2></div>
+      <div class="invest-card">
+        <div class="invest-row">
+          <input class="invest-input" id="fund-custom-ticker" type="text" placeholder="Ticker (e.g. VXUS)" maxlength="10" autocomplete="off" />
+          <input class="invest-input" id="fund-custom-amount" type="number" placeholder="Amount ($5-$10,000)" min="5" max="10000" step="1" style="max-width:180px;" />
+          <button class="btn btn-primary" id="fund-custom-btn">Invest</button>
+        </div>
+        <div class="invest-hint">Any ticker, $5–$10,000. PIN required.</div>
+        <div id="fund-custom-status" class="status-msg"></div>
+      </div>
+    </section>
+    <section class="c-12 group-head"><div class="section-head"><h2>Crypto: nightly strategy</h2></div></section>
+    <section class="c-5" id="crypto-nightly-section">
+      <div class="section-head"><h2>Nightly Automated Track Record</h2></div>
+      <p class="section-sub" id="crypto-nightly-asof">Every night, 10 coins, long-only, $500 per pick. Tracked separately from stocks.</p>
+      <div class="stat-grid" id="crypto-nightly-stats"><div class="loading">Loading…</div></div>
+    </section>
+    <section class="c-7">
+      <div class="section-head"><h2>Simulated Crypto Equity Curve</h2></div>
+      <p class="section-sub">Cumulative P&amp;L, nightly and on-demand trades combined.</p>
+      <div class="chart-wrap"><canvas id="cryptoEquityChart" height="90"></canvas></div>
+    </section>
+    <section class="c-12" id="crypto-ondemand-section">
+      <div class="section-head"><h2>Recent Crypto Trades</h2></div>
+      <p class="section-sub">Nightly and on-demand trades.</p>
+      <div class="brief-list" id="crypto-ondemand-list"><div class="loading">No crypto trades yet.</div></div>
+    </section>
+    <section class="c-12" id="requests-crypto-section">
+      <div class="section-head"><h2>Your Crypto Invest Requests</h2></div>
+      <p class="section-sub">Every request and its outcome. A pass means nothing cleared the bar.</p>
+      <div class="brief-list" id="requests-crypto-list"><div class="loading">No requests yet.</div></div>
+    </section>
+    <section class="c-6" id="crypto-invest" style="display:none">
+      <div class="section-head"><h2>Invest in a Coin</h2></div>
+      <div class="invest-card">
+        <div class="invest-row">
+          <input class="invest-input" id="crypto-invest-symbol" type="text" placeholder="Coin or symbol (e.g. bitcoin, SOL, DOGE/USD)" maxlength="40" autocomplete="off" />
+          <input class="invest-input" id="crypto-invest-amount" type="number" placeholder="Amount ($25-$10,000)" min="25" max="10000" step="1" style="max-width:180px;" />
+          <button class="btn btn-primary" id="crypto-invest-btn">Invest</button>
+        </div>
+        <div class="invest-hint">Claude analyzes it and opens a simulated position only if the setup clears the bar. Held one day. PIN required.</div>
+        <div id="crypto-invest-status" class="status-msg"></div>
+      </div>
+    </section>
+  </main>
+</div>
+<!-- /view-track-record -->
+
+<div id="view-about" class="view">
+  <div class="hero">
+    <h1>About</h1>
+    <p class="tag">What Great Lakes Investments is, how it works, and what it isn't.</p>
+  </div>
+  <div class="disclaimer">
+    <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
+    <span>Educational research only. Not investment advice or a recommendation to buy or sell anything.</span>
   </div>
   <main class="ws">
     <section class="c-6">
       <div class="section-head"><h2>What it is</h2></div>
       <div class="methodology">
-        <p>Great Lakes Investments is an AI research system that studies the stock market every weekday, makes calls on what it expects to happen next, places simulated trades on those calls, and then grades itself against what actually happened.</p>
-        <p>It runs entirely on its own. Nobody picks the stocks or edits the results. The point is to find out, honestly and in public, whether an AI can make market calls that hold up, and to learn from it when it can't.</p>
+        <p>Great Lakes Investments is a student-built AI market research project. Type in a stock, ETF or major coin and it shows how it has performed over 1 day, 10 days, 30 days, year to date, 1 year and 5 years, how that compares with the market and its sector, and a written breakdown of why it moved.</p>
+        <p>It started as an automated paper-trading experiment. That experiment is finished and kept in full under Track Record, including the result: it didn't beat the market.</p>
       </div>
     </section>
     <section class="c-6">
-      <div class="section-head"><h2>How a day works</h2></div>
+      <div class="section-head"><h2>How a lookup works</h2></div>
       <div class="methodology">
-        <p><strong>1. After the market closes,</strong> the system pulls the day's prices and news for a fixed watchlist of large US stocks and index funds.</p>
-        <p><strong>2. Claude, an AI model made by Anthropic,</strong> writes a market brief and picks a few stocks to watch, each with a direction (up or down), a confidence level, and a flag for upcoming events like earnings. Short calls need a specific, stated reason.</p>
-        <p><strong>3. Simulated trades</strong> open at the next morning's open, sized by rules the system has earned from its own track record, and close one day later.</p>
-        <p><strong>4. The next evening,</strong> every call is graded against real prices, and the dashboard updates with the results, good or bad.</p>
-        <p>Alongside that, the system periodically reviews its losing trades and writes down lessons that feed into future briefs. Visitors can also request an AI analysis of any stock or coin, or simulate a buy-and-hold fund purchase, and every request is shown with its outcome, including the times the AI decided not to trade.</p>
+        <p><strong>1. Prices:</strong> up to five years of daily prices come from Alpaca's market data, adjusted for splits and dividends.</p>
+        <p><strong>2. Numbers:</strong> code, not AI, computes every return, the comparisons with SPY and the sector, volatility, drawdown and the 52-week range.</p>
+        <p><strong>3. News:</strong> the last ten days of company headlines and the latest market headlines come from Finnhub.</p>
+        <p><strong>4. Breakdown:</strong> Claude, an AI model made by Anthropic, reads those numbers and headlines and writes the explanation. It is told to use only the numbers it's given, to cite the news it relies on, and to say plainly when nothing in the news explains a move.</p>
       </div>
     </section>
     <section class="c-6">
       <div class="section-head"><h2>How it keeps itself honest</h2></div>
       <div class="methodology">
-        <p><strong>Prices decide, not the AI.</strong> Profit and loss come from real fill prices. When the system found that Claude was grading its own calls more generously than the prices supported, it started showing both numbers side by side.</p>
-        <p><strong>No rule changes on thin evidence.</strong> A sizing rule only changes after at least 20 closed trades on each side of a comparison, so it doesn't chase noise.</p>
-        <p><strong>Always compared with the simple alternative.</strong> Every trade is measured against just holding the S&amp;P 500 (SPY) over the same window.</p>
-        <p><strong>Losses stay visible.</strong> The results are shown as they are, including the fact that the system has not yet shown an edge.</p>
+        <p><strong>Numbers come from data, not the AI.</strong> The performance tables are calculated directly from prices. The written analysis can be wrong; the numbers it sits next to are not invented.</p>
+        <p><strong>"No clear catalyst" is an allowed answer.</strong> Every breakdown is labeled with how strong its explanation is.</p>
+        <p><strong>No recommendations.</strong> It explains what happened. It never says buy, sell or hold.</p>
+        <p><strong>The failed experiment stays public.</strong> The Track Record tab shows the paper-trading loss and how Claude graded itself more generously than prices did.</p>
       </div>
     </section>
     <section class="c-6">
-      <div class="section-head"><h2>Where it's going</h2></div>
+      <div class="section-head"><h2>Limits</h2></div>
       <div class="methodology">
-        <p>The plan moves one gated step at a time. First, keep building an honest paper track record. Next, a tiny real-money test of about $30, only after a written checklist is met, to prove the mechanics work with real fills. Larger amounts come only if the evidence shows a real edge after costs, and anything involving other people's money would require a proper legal structure first. The current checklist is on the Dashboard under "Road to a $30 Live Test."</p>
+        <p>Fund lookups cover ETFs; mutual fund share classes such as VFIAX aren't in this data source. Crypto covers about 20 major coins, and its history may be shorter than five years. Prices can be delayed by 15 minutes or more during the trading day. To keep costs bounded, each visitor can generate a few new breakdowns a day, and every breakdown is shared and reused for the rest of that day.</p>
       </div>
     </section>
     <section class="c-12">
       <div class="section-head"><h2>Built with</h2></div>
       <div class="methodology">
-        <p>Claude (Anthropic) for analysis, Alpaca for market data and paper trading, Finnhub for news, GitHub Actions to run everything on a schedule, GitHub Pages for this site, and a small Cloudflare Worker for the request forms. The full code, a candid status memo, and the long-term roadmap are public on <a href="https://github.com/JackSmiley1/market-brief-agent" target="_blank" style="color:inherit; text-decoration:underline;">GitHub</a>.</p>
+        <p>Claude (Anthropic) for analysis, Alpaca for market data, Finnhub for news and company data, a Cloudflare Worker for lookups, GitHub Actions for the scheduled long-horizon track, and GitHub Pages for this site. The code, a candid status memo and the roadmap are public on <a href="https://github.com/JackSmiley1/market-brief-agent" target="_blank">GitHub</a>.</p>
       </div>
     </section>
   </main>
@@ -1954,7 +2055,7 @@ main().catch(err => {
 // server, no separate HTML files, just toggling which .view is displayed
 // and mirroring the choice into location.hash so a link/refresh lands on
 // the right tab.
-const VIEWS = ['dashboard', 'mutual-funds', 'crypto', 'long-horizon', 'about'];
+const VIEWS = ['dashboard', 'mutual-funds', 'crypto', 'long-horizon', 'track-record', 'about'];
 let cryptoLoaded = false;
 
 function switchView(viewName, pushHash) {
@@ -2042,12 +2143,17 @@ function renderTerminalStrip(data) {
     });
     if (fs.asOfDate) cells.push(cell('Close', escapeHtml(fs.asOfDate)));
   }
-  const lr = data.launchReadiness;
-  if (lr) {
-    cells.push(cell('Clean runs', lr.cleanStreak + '/' + lr.requiredCleanRuns, 'status'));
-    cells.push(cell('Kill switch', lr.killSwitchOn ? '<span class="neg">ON</span>' : 'OFF'));
+  cells.push(cell('Mode', 'RESEARCH', 'status'));
+  // Track Record intro: live final figures (they settle after the wind-down).
+  const money = (n) => n == null ? 'n/a' : (n >= 0 ? '+$' : '−$') + Math.abs(n).toFixed(2);
+  const setT = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  if (data.overview) {
+    setT('tr-n', data.overview.closedTrades);
+    setT('tr-pnl', money(data.overview.totalPnl).replace('−', ''));
+    setT('tr-hit', data.overview.directionalHitRatePct != null ? data.overview.directionalHitRatePct.toFixed(1) + '%' : 'n/a');
+    setT('tr-self', data.overview.claudeSelfGradePct != null ? data.overview.claudeSelfGradePct.toFixed(1) + '%' : 'n/a');
   }
-  cells.push(cell('Mode', 'PAPER', 'status'));
+  if (data.benchmark) setT('tr-spy', money(data.benchmark.spySameDollarsPnl).replace('+', ''));
   if (data.generatedAt) cells.push(cell('Updated', escapeHtml(new Date(data.generatedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))));
   el.innerHTML = cells.join('');
 }
@@ -2058,7 +2164,7 @@ function renderTerminalStrip(data) {
   const list = document.getElementById('cmd-list');
   if (!input || !list) return;
   const targets = [];
-  const viewLabel = { 'dashboard': 'Dashboard', 'mutual-funds': 'Mutual Funds', 'crypto': 'Crypto', 'long-horizon': 'Long-Horizon', 'about': 'About' };
+  const viewLabel = { 'dashboard': 'Stocks', 'mutual-funds': 'Funds', 'crypto': 'Crypto', 'long-horizon': 'Long-Horizon', 'track-record': 'Track Record', 'about': 'About' };
   VIEWS.forEach((v) => targets.push({ label: viewLabel[v] || v, view: v, el: null }));
   VIEWS.forEach((v) => {
     const root = document.getElementById('view-' + v);
@@ -2102,6 +2208,172 @@ function renderTerminalStrip(data) {
     if (n >= 1 && n <= VIEWS.length) switchView(VIEWS[n - 1], true);
   });
 })();
+
+// ---- Research panels (Stocks / Funds / Crypto), added 2026-10-20 ----
+// Talks to the research Worker (worker/research/research-worker.js). Every
+// number shown comes from the Worker's price math; Claude's text is labeled.
+const RESEARCH_URL = "https://market-brief-research.market-brief-smiley-corp.workers.dev";
+const RS_VIEW = { stock: 'dashboard', fund: 'mutual-funds', crypto: 'crypto' };
+const rsCharts = {};
+
+const rsPct = (n) => n == null ? '<span class="movers">n/a</span>' : '<span class="' + (n >= 0 ? 'pos' : 'neg') + '">' + (n >= 0 ? '+' : '') + Number(n).toFixed(2) + '%</span>';
+const rsPts = (n) => n == null ? '<span class="movers">n/a</span>' : '<span class="' + (n >= 0 ? 'pos' : 'neg') + '">' + (n >= 0 ? '+' : '') + Number(n).toFixed(2) + ' pts</span>';
+const rsPrice = (n) => n == null ? 'n/a' : '$' + Number(n).toLocaleString(undefined, { minimumFractionDigits: n < 1 ? 4 : 2, maximumFractionDigits: n < 1 ? 6 : 2 });
+const rsCap = (m) => m == null ? 'n/a' : m >= 1e6 ? '$' + (m / 1e6).toFixed(2) + 'T' : m >= 1e3 ? '$' + (m / 1e3).toFixed(1) + 'B' : '$' + Math.round(m) + 'M';
+const rsNum = (n, d = 2, suf = '') => n == null ? 'n/a' : Number(n).toFixed(d) + suf;
+
+async function rsFetch(path, opts) {
+  const res = await fetch(RESEARCH_URL + path, opts);
+  let body = {};
+  try { body = await res.json(); } catch (_) { /* non-JSON error */ }
+  if (!res.ok) throw new Error(body.error || ('Request failed (' + res.status + ')'));
+  return body;
+}
+
+function rsReturnsTable(q) {
+  const rows = [['d1', '1 day'], ['d10', '10 days'], ['d30', '30 days'], ['ytd', 'YTD'], ['y1', '1 year'], ['y5', '5 years']];
+  const b = q.benchmark, sct = q.sector;
+  const head = '<tr><th>Period</th><th>' + escapeHtml(q.symbol) + '</th>' + (b ? '<th>' + escapeHtml(b.symbol) + '</th><th>vs ' + escapeHtml(b.symbol) + '</th>' : '') +
+    (sct ? '<th title="' + escapeHtml(sct.industry || '') + ' sector ETF">' + escapeHtml(sct.symbol) + '</th>' : '') + '</tr>';
+  const body = rows.map(([k, label]) => {
+    const r = q.returns[k];
+    const extra = k === 'y5' && r && r.annualizedPct != null ? '<br><span class="movers">' + (r.annualizedPct >= 0 ? '+' : '') + r.annualizedPct.toFixed(1) + '%/yr</span>' : '';
+    return '<tr><td title="' + (r ? 'From the close on ' + escapeHtml(r.fromDate) : 'Not enough history') + '">' + label + '</td><td>' + rsPct(r && r.pct) + extra + '</td>' +
+      (b ? '<td>' + rsPct(b.returns && b.returns[k] && b.returns[k].pct) + '</td><td>' + rsPts(b.diff && b.diff[k]) + '</td>' : '') +
+      (sct ? '<td>' + rsPct(sct.returns && sct.returns[k] && sct.returns[k].pct) + '</td>' : '') + '</tr>';
+  }).join('');
+  const key = '<div class="rs-meta" style="margin-top:4px;">' + (b ? escapeHtml(b.symbol) + ' = ' + (b.symbol === 'SPY' ? 'S&amp;P 500' : b.symbol === 'BTC/USD' ? 'Bitcoin' : '') + ' benchmark; "vs" = difference in percentage points.' : '') +
+    (sct ? ' ' + escapeHtml(sct.symbol) + ' = ' + escapeHtml(sct.industry || '') + ' sector ETF.' : '') + ' Hover a period for its start date.</div>';
+  return '<div class="bucket-group" style="padding:0;"><table class="rs-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' + key;
+}
+
+function rsStats(q) {
+  const s = q.stats || {}, m = q.metrics || {}, p = q.profile || {};
+  const cells = [
+    ['Volatility (1y, annualized)', rsNum(s.volatilityPct, 1, '%')],
+    ['Max drawdown (1y)', s.maxDrawdownPct == null ? 'n/a' : rsPct(s.maxDrawdownPct)],
+    ['52-week range', s.low52 == null ? 'n/a' : rsPrice(s.low52) + ' – ' + rsPrice(s.high52)],
+    ['From 52-week high', s.fromHighPct == null ? 'n/a' : rsPct(s.fromHighPct)],
+    ['Volume vs 30-day avg', s.volumeVsAvg == null ? 'n/a' : s.volumeVsAvg.toFixed(2) + '×'],
+  ];
+  if (q.type === 'stock') {
+    cells.push(['Market cap', rsCap(p.marketCapM)], ['P/E (TTM)', rsNum(m.peTTM, 1)], ['Beta', rsNum(m.beta, 2)],
+      ['Dividend yield', rsNum(m.dividendYieldPct, 2, '%')], ['Revenue growth (TTM)', m.revenueGrowthTTMPct == null ? 'n/a' : rsPct(m.revenueGrowthTTMPct)],
+      ['Net margin (TTM)', rsNum(m.netMarginTTMPct, 1, '%')]);
+  }
+  return '<div class="stat-grid rs-stats">' + cells.map(([l, v]) => '<div class="stat-card"><div class="value" style="font-size:13px !important;">' + v + '</div><div class="label">' + l + '</div></div>').join('') + '</div>';
+}
+
+function rsChart(type, q, range) {
+  const canvas = document.getElementById('rs-chart-' + type);
+  if (!canvas || !window.Chart) return;
+  const days = { '10D': 10, '30D': 30, '1Y': 365, '5Y': 5 * 365 }[range];
+  const last = q.series.length ? Date.parse(q.series[q.series.length - 1][0]) : 0;
+  const pts = q.series.filter(([t]) => !days || Date.parse(t) >= last - days * 86400000);
+  const up = pts.length > 1 && pts[pts.length - 1][1] >= pts[0][1];
+  if (rsCharts[type]) rsCharts[type].destroy();
+  rsCharts[type] = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels: pts.map((p) => p[0]), datasets: [{ label: q.symbol, data: pts.map((p) => p[1]), borderColor: up ? '#00B878' : '#F05B50', backgroundColor: up ? 'rgba(0,184,120,0.08)' : 'rgba(240,91,80,0.08)', fill: true, pointRadius: 0, pointHoverRadius: 3, borderWidth: 1.5, tension: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#171717', borderColor: '#353535', borderWidth: 1, callbacks: { label: (i) => rsPrice(i.parsed.y) } } },
+      scales: { x: { ticks: { maxTicksLimit: 6 }, grid: { display: false } }, y: { ticks: { callback: (v) => rsPrice(v) } } } },
+  });
+}
+
+function rsReport(rec) {
+  const r = rec.report || {};
+  const para = (h, t) => t ? '<h3>' + h + '</h3><p>' + escapeHtml(t) + '</p>' : '';
+  const list = (h, a) => Array.isArray(a) && a.length ? '<h3>' + h + '</h3><ul>' + a.map((x) => '<li>' + escapeHtml(x) + '</li>').join('') + '</ul>' : '';
+  const ev = { 'clear catalyst': 'ok', 'partial explanation': 'warn', 'no clear catalyst': 'pass' }[String(r.evidence || '').toLowerCase()] || 'pass';
+  const when = rec.generatedAt ? new Date(rec.generatedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+  const src = (rec.sources || []).length ? '<h3>News it drew on</h3><ul class="rs-sources">' + rec.sources.map((n) => '<li>' + escapeHtml(n.date) + ' · ' + escapeHtml(n.source) + ': ' + escapeHtml(n.headline) + '</li>').join('') + '</ul>' : '<h3>News it drew on</h3><p class="movers">No company-specific headlines in the last 10 days.</p>';
+  return '<div class="rs-report">' +
+    '<div class="rs-headline">' + escapeHtml(r.headline || '') + '</div>' +
+    '<span class="req-outcome ' + ev + '">Evidence: ' + escapeHtml(r.evidence || 'n/a') + '</span>' +
+    para('Latest session', r.today) + para('Recent trend (10 and 30 days)', r.recentTrend) + para('Long run (YTD, 1 and 5 years)', r.longRun) +
+    para('Versus the market', r.vsMarket) + list('Drivers', r.drivers) + para('Market backdrop', r.marketBackdrop) +
+    list('Risks and open questions', r.risks) + list('What to watch', r.watch) + para('Bottom line', r.bottomLine) + src +
+    '<div class="rs-foot">Written by Claude (' + escapeHtml(rec.model || '') + ') ' + escapeHtml(when) + (rec.cached ? ' · shared copy from earlier today' : '') +
+    '. Numbers above are computed from market data; this text is AI-generated and can be wrong. Not investment advice.</div></div>';
+}
+
+async function rsLookup(type, q) {
+  const out = document.getElementById('rs-out-' + type);
+  out.innerHTML = '<div class="loading"><span class="rs-spin"></span>Pulling five years of prices for ' + escapeHtml(q) + '…</div>';
+  let quote;
+  try {
+    quote = await rsFetch('/quote?type=' + type + '&q=' + encodeURIComponent(q));
+  } catch (err) {
+    out.innerHTML = '<div class="status-msg err show">' + escapeHtml(err.message) + '</div>';
+    return;
+  }
+  const r = quote.returns;
+  out.innerHTML =
+    '<div class="rs-head"><span class="sym">' + escapeHtml(quote.symbol) + '</span><span class="nm">' + escapeHtml(quote.name || '') + '</span>' +
+    (quote.profile && quote.profile.industry ? '<span class="movers">' + escapeHtml(quote.profile.industry) + (quote.profile.exchange ? ' · ' + escapeHtml(quote.profile.exchange) : '') + '</span>' : '') +
+    '<span class="px">' + rsPrice(r.last) + ' ' + rsPct(r.d1 && r.d1.pct) + '</span></div>' +
+    '<div class="rs-meta">Prices as of ' + escapeHtml(r.asOf) + ' · history from ' + escapeHtml(quote.historyStart) + (quote.note ? ' · ' + escapeHtml(quote.note) : '') + '</div>' +
+    '<div class="rs-grid"><div>' + rsReturnsTable(quote) + '</div>' +
+    '<div><div class="rs-chart-head"><span class="lbl">Price</span><div class="range-toggle" data-type="' + type + '">' +
+    ['10D', '30D', '1Y', '5Y'].map((x) => '<button type="button" class="range-btn' + (x === '1Y' ? ' active' : '') + '" data-range="' + x + '">' + x + '</button>').join('') +
+    '</div></div><div class="rs-chart"><canvas id="rs-chart-' + type + '"></canvas></div></div></div>' +
+    rsStats(quote) +
+    '<div class="rs-ai"><div class="rs-ai-bar"><button type="button" class="btn ' + (quote.reportCached ? 'btn-ghost' : 'btn-primary') + ' rs-write">' +
+    (quote.reportCached ? "View today's AI breakdown" : 'Write the AI breakdown') + '</button><span class="hint">' +
+    (quote.reportCached ? 'Already written today; opens instantly.' : 'Takes about 20–40 seconds. Explains why it moved, using recent news.') + '</span></div><div class="rs-ai-out"></div></div>';
+  rsChart(type, quote, '1Y');
+  out.querySelectorAll('.range-toggle .range-btn').forEach((b) => b.addEventListener('click', () => {
+    out.querySelectorAll('.range-toggle .range-btn').forEach((x) => x.classList.toggle('active', x === b));
+    rsChart(type, quote, b.dataset.range);
+  }));
+  const btn = out.querySelector('.rs-write'), aiOut = out.querySelector('.rs-ai-out');
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    aiOut.innerHTML = '<div class="loading"><span class="rs-spin"></span>Reading the news and writing the breakdown…</div>';
+    try {
+      const rec = await rsFetch('/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type, q: quote.symbol }) });
+      aiOut.innerHTML = rsReport(rec);
+      btn.style.display = 'none';
+      out.querySelector('.rs-ai-bar .hint').textContent = '';
+      rsLoadRecent();
+    } catch (err) {
+      aiOut.innerHTML = '<div class="status-msg err show">' + escapeHtml(err.message) + '</div>';
+      btn.disabled = false;
+    }
+  });
+  if (quote.reportCached) btn.click();
+}
+
+async function rsLoadRecent() {
+  const lists = document.querySelectorAll('.rs-recent');
+  let items = [];
+  try { items = (await rsFetch('/recent')).items || []; } catch (_) {
+    lists.forEach((el) => { el.innerHTML = '<div class="loading">Research service not reachable right now.</div>'; });
+    return;
+  }
+  lists.forEach((el) => {
+    const t = el.dataset.type, mine = items.filter((i) => i.type === t);
+    el.innerHTML = mine.length ? mine.map((i) =>
+      '<div class="brief-row req-row" data-sym="' + escapeHtml(i.symbol) + '"><div class="req-head"><span>' + escapeHtml(i.symbol) + '</span><span class="movers">' + escapeHtml(i.date) + '</span></div>' +
+      '<span class="hl">' + escapeHtml(i.headline || '') + '</span></div>').join('') : '<div class="loading">None yet. Look something up to write the first one.</div>';
+    el.querySelectorAll('.brief-row').forEach((row) => row.addEventListener('click', () => {
+      const form = document.querySelector('.rs-form[data-type="' + t + '"]');
+      form.querySelector('.rs-input').value = row.dataset.sym;
+      rsLookup(t, row.dataset.sym);
+      form.closest('section').scrollIntoView({ block: 'start' });
+    }));
+  });
+}
+
+document.querySelectorAll('.rs-form').forEach((form) => {
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = form.querySelector('.rs-input').value.trim();
+    if (q) rsLookup(form.dataset.type, q);
+  });
+});
+rsLoadRecent();
 </script>
 
 </body>
