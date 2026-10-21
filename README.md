@@ -1,125 +1,70 @@
 # Great Lakes Investments
 
-*(repo name and internal package name remain `market-brief-agent` — this is the public-facing brand name shown on the live dashboard)*
+*(The repo and package are named `market-brief-agent`; "Great Lakes Investments" is the public name on the site.)*
 
-An autonomous research pipeline that generates a nightly market brief from live data, layers evidence-based simulated trades on top of it, grades its own calls against reality, and periodically reviews its own losing trades to write down what it's learned — all running unattended, every trading night, via GitHub Actions.
+A student-built AI market research tool. Type in a US stock, an ETF or a major cryptocurrency and it shows:
 
-**Live dashboard:** https://jacksmiley1.github.io/market-brief-agent/
-**Status memo (honest, current-state writeup):** [status-memo.md](./status-memo.md)
-**Long-term roadmap (future phases — personal live trading, multi-user accounts, crypto, and the legal/licensing reality of each):** [roadmap.md](./roadmap.md)
+- returns over **1 day, 10 days, 30 days, year to date, 1 year and 5 years**
+- those same windows for the market (SPY; Bitcoin for crypto), the gap in percentage points, and, for stocks, its sector ETF
+- a price chart, volatility, max drawdown, the 52-week range and volume versus average
+- for stocks: market cap, P/E, beta, dividend yield, revenue growth and net margin
+- an **AI breakdown** of why it moved: the latest session, the recent trend, the long run, versus the market, news drivers with dates and sources, the market backdrop, risks and what to watch, plus an evidence label (clear catalyst, partial explanation, or no clear catalyst)
 
-## At a glance
+**Live site:** https://jacksmiley1.github.io/market-brief-agent/
+**Status memo (dated decisions and results, including the failures):** [status-memo.md](./status-memo.md)
+**Roadmap:** [roadmap.md](./roadmap.md)
 
-Numbers as of the September 25 nightly run, straight from the system's own data, not cherry-picked — including the ones that aren't flattering (live figures are on the dashboard):
+Educational research only. Not investment advice.
 
-- 97 closed simulated trades, net-negative blended P&L (-0.41%), and roughly even with SPY at best: the same dollars held in SPY over the same windows lost $3.66, while the strategy lost $344.87.
-- The stock moved the called direction on 52.7% of 93 price-checked calls (95% range 42.5%–62.8%), which isn't yet distinguishable from a coin flip. Claude's own grade of those calls was a more generous 66.9%, a self-evaluation gap the system now reports instead of hiding.
-- One sizing hypothesis has cleared this project's own n≥20 statistical bar and is documented as fact, not guess: shorts underperform longs even after an existing 0.5x size cut.
-- Every sizing rule requires 20+ closed trades on both sides of a comparison before it's treated as real instead of noise — enforced in code (`src/checkpoint.js`), not just policy.
-- A self-reflection loop periodically reviews its own losing trades and is explicitly allowed to conclude "no clear pattern" rather than force one.
-- Zero real capital, zero real users, by construction — `ALPACA_TRADING_BASE` is hardcoded to Alpaca's paper endpoint, and the API key in use is itself a paper-only key.
+## How a lookup works
 
-Full numbers, including what hasn't worked: [status-memo.md](./status-memo.md).
+1. **Prices.** The research Worker (`worker/research/`) pulls up to five years of daily bars from Alpaca's market data, adjusted for splits and dividends.
+2. **Numbers.** Code, not AI, computes every return, comparison and risk statistic (`worker/research/researchMath.js`, unit-tested).
+3. **News and company data.** Ten days of company headlines, the latest market headlines, the company profile and key metrics come from Finnhub.
+4. **Breakdown.** Claude receives the computed numbers and the headlines and fills in a fixed structure through Anthropic's tool-use mode. It's instructed to use only the numbers it's given, cite the news it relies on, say plainly when nothing explains a move, and never recommend buying or selling.
 
-## What it actually does, end to end
+## How it keeps itself honest
 
-1. **Nightly (weekdays after the close, via GitHub Actions — 21:30 UTC, i.e. 5:30pm ET in summer / 4:30pm ET in winter, so DST needs no manual change):** pulls end-of-day price/volume data for a fixed 32-ticker watchlist from Alpaca and same-day news from Finnhub, sends it to Claude for analysis.
-2. Claude produces a written brief (market overview, winners/losers with causes, notable events, a 3-5 ticker watchlist for tomorrow) and, in a structured block ahead of the prose, a directional call (long/short), a self-rated confidence level, and an event-risk flag for each watchlist ticker.
-3. Those calls are layered with **simulated** trades on Alpaca's paper trading API — position size is derived from real evidence in the system's own trade history (see Sizing rules below), not fixed or guessed.
-4. The next night, each prior call is graded against what actually happened, using the code-computed price change (never a number Claude self-reports).
-5. Separately, a **reflection loop** periodically reviews batches of the system's own losing trades and writes a short natural-language lesson, fed into future briefs as advisory context — distinct from and in addition to the numeric sizing rules.
-6. A public dashboard is regenerated from the database after every run and committed back to the repo, so what's shown publicly is never more than one trading day stale.
-7. A dashboard "Invest in: ___" bar lets a visitor trigger an on-demand analysis (and, if Claude finds a real setup, a simulated trade) for any ticker or company name outside the fixed nightly watchlist, via a Cloudflare Worker that proxies to a GitHub Actions workflow — same pipeline, same paper capital, tagged separately so it never contaminates the nightly system's evidence.
-8. The **Mutual Funds** and **Crypto** tabs have their own invest forms: a fixed 5-ETF buy-and-hold basket, any single fund ticker at a chosen amount (buy-and-hold), and a Claude-analyzed, long-only crypto entry for any Alpaca-supported coin (one-session hold). A separate nightly crypto watchlist runs automatically with its own evidence pool.
-9. **Every invest request is logged with its outcome** (order placed, Claude passed, skipped by the portfolio cap, failed, …) and Claude's reasoning, and listed under each tab's form, so an honest "no trade" is visible instead of looking like a broken button.
-10. Held fund positions show their current value and unrealized P&L, and each has a **Sell** button: a simulated sale in the paper account that books realized gains or losses into a Sold Positions list and running total. Paper proceeds stay in the paper account; there is no real money to withdraw.
+- **The numbers never come from the model.** The tables are computed from prices. The written analysis sits next to them and is labeled as AI-generated.
+- **"No clear catalyst" is an allowed answer.** Every report carries an evidence label.
+- **No recommendations, no price targets.**
+- **The failed experiment stays public.** See the Track Record below.
 
-## The one hard boundary
+## Track Record: what came before
 
-This is Phase 1 of a longer-term plan. **There is no live trading, no real capital, and no product built for other people to use.** `ALPACA_TRADING_BASE` is hardcoded to `paper-api.alpaca.markets`, and the Alpaca key in use is itself a paper-only key — both by design, not just by convention. Moving past this requires a legal/registration step that has not been started. See the status memo for the full, unvarnished current state, including what hasn't worked yet.
+From Aug 18 to Oct 20, 2026, this project was an automated paper-trading system: Claude made daily calls on a fixed watchlist, simulated trades were placed on Alpaca's paper account, and everything was graded nightly against real prices and against simply holding SPY.
 
-## Order safety details
+- **Result:** over 168 closed stock trades it lost about $395 in simulated money, while the same dollars in SPY were roughly flat to slightly up. On the day it was stopped (159 trades), its per-trade return versus SPY was below zero with 95% confidence. A mid-test rule change (requiring a specific catalyst for short calls) didn't fix it, and the nightly crypto picks won 1 of 11.
+- **A second finding:** Claude graded its own calls more generously than prices did (about 58% vs 51% price-checked), which is why this tool computes numbers in code and labels the AI text.
+- The full record, unedited, is on the site's **Track Record** tab and in [status-memo.md](./status-memo.md).
 
-Everything trades in one paper account, where Alpaca nets all activity in a symbol into a single position. So:
-- Positions are closed **by their own quantity** (sell for a long, buy-to-cover for a short), never with a whole-symbol close. Closing a nightly SPY pick can't liquidate the fund allocation's SPY shares. Crypto, where fees make the held quantity slightly smaller than the filled quantity and there is no fund overlap, uses the whole-symbol close with Alpaca's unslashed position symbol (`BTCUSD`).
-- The nightly/on-demand system won't **short** a ticker the fund allocation holds (the short would just sell the held shares), and a fund buy is blocked while a live short in that ticker is open (the buy would cover it instead of opening a holding).
-- A sold fund position is re-keyed at sell time, so the same ticker can be bought again without overwriting the sold position's realized P&L.
+A separate **Long-Horizon** experiment continues. It's based on FutureSearch's finding that long-run business forecasts may be more predictable than short-term moves. Each quarter Claude forecasts five-year revenue growth and margins for a fixed list of large companies; code ranks them by implied return, and a virtual top-five portfolio is tracked against SPY. It places no orders, and it needs a year or more of data before it means anything.
 
-## Sizing rules (evidence-based, not assumed)
+## Architecture
 
-Position size starts at a flat base and is cut for low self-rated confidence, scheduled-event risk, and short positions — each cut was added only after real data showed that factor correlating with worse outcomes (see `src/config.js` for the exact multipliers and the reasoning comments next to each one). A fixed rule enforced in `src/checkpoint.js` requires **n ≥ 20** closed trades in a comparison before it's treated as evidence real enough to justify a sizing change — anything below that is reported as directional only, never acted on.
+| Piece | What it does | Cost |
+|---|---|---|
+| `docs/index.html` (GitHub Pages) | The whole site: one static page | Free |
+| `worker/research/` (Cloudflare Worker) | `/quote` (prices and stats), `/report` (AI breakdown), `/recent`. Holds the API keys; caches one report per symbol per day; caps new reports at 5 per visitor and 60 site-wide per day | Free tier + Claude calls |
+| `src/longHorizon.js`, `src/dailyMark.js` + `.github/workflows/long-horizon.yml` | Weekday price marks (no AI); quarterly forecasts | ~30 short Claude calls per quarter |
+| `src/exportSite.js` | Builds `docs/data.json` (Track Record, Long-Horizon, index closes) from the SQLite log | Free |
+| `worker/invest-worker.js` | Older Worker for the paper fund-holding buttons | Free |
 
-## Reflection loop
-
-`src/reflect.js` reviews the system's own closed losing trades (original thesis vs. actual outcome), gated so it only runs on a new-enough batch (not single anecdotes), and asks Claude to write 2-4 short, falsifiable, cross-trade observations — or to say plainly that there's no real pattern in the batch, rather than forcing one. Lessons are stored in the `lessons` table, folded into the next night's brief as explicitly advisory context (never a hard rule), and shown publicly on the dashboard's Lessons Learned section. `src/lessons.js` (`npm run lessons -- list` / `delete <id>`) lets a bad lesson be reviewed and removed without touching the database directly.
+The daily trading code (`src/index.js`, `paperTrade.js`, `cryptoNightly.js` and others) is kept for the record but locked by `DAILY_STRATEGY_ENDED` in `src/config.js`, so it exits before any AI call or order.
 
 ## Stack
 
-Node.js (`node:sqlite`, no native binary dependency — chosen after `better-sqlite3` segfaulted reproducibly on GitHub Actions' runner), Alpaca (market data + paper trading, free tier), Finnhub (news, free tier), the Anthropic API (Claude), GitHub Actions (free scheduled + on-demand automation), GitHub Pages (free static hosting for the dashboard), and a single Cloudflare Worker (free tier) as the only server-side component — a thin, deliberately dumb proxy that checks a PIN and calls GitHub's `workflow_dispatch` API, with no business logic or secrets duplicated anywhere else. Free-tools-first by design, until there's a specific reason to pay for something.
-
-## Repo layout
-
-```
-src/
-  index.js            nightly pipeline entry point (stocks)
-  cryptoNightly.js     nightly automated crypto watchlist + trades (own evidence pool, long-only, flat sizing)
-  onDemandTrade.js     on-demand stock analysis + trade (dashboard-triggered or CLI), optional --amount override
-  onDemandCrypto.js    on-demand crypto analysis + trade, any Alpaca-supported coin, user-chosen amount
-  investAllocation.js  fixed 5-fund buy-and-hold allocation trigger (idempotent, no Claude call)
-  investFundCustom.js  custom-ticker buy-and-hold allocation trigger (same logic, user ticker/amount)
-  sellPosition.js      simulated sale of one held buy-and-hold position (dashboard Sell button)
-  orders.js            pure order-construction helpers (quantity-based closes, position symbols, kill switch) — unit tested
-  logRun.js            records each nightly run's step outcomes (launch-readiness clean-run counter)
-  liveMirror.js        INERT $30 long-only shadow account: records orders it would place, sends nothing
-  longHorizon.js       separate long-horizon experiment: quarterly fundamental forecasts, virtual top-5 portfolio vs SPY (no orders)
-  longHorizonMath.js   pure valuation/ranking/tracking math for it, unit tested
-  fetchCryptoMarketData.js  Alpaca crypto price/volume data (v1beta3)
-  stats.js               shared trade-aggregation math (used by checkpoint.js + exportSite.js)
-  fetchMarketData.js   Alpaca price/volume data
-  fetchNews.js         Finnhub news (stock + general crypto category)
-  buildPrompt.js        prompt construction (nightly + on-demand, stock + crypto)
-  generateBrief.js      Claude API calls, structured-block parsing
-  paperTrade.js         simulated order submission, reconciliation, portfolio risk caps
-  reflect.js            reflection loop (loss review -> lesson synthesis)
-  lessons.js             lesson management CLI (list/delete)
-  checkpoint.js          sizing-lever evidence review (n>=20 gate, stocks only)
-  exportSite.js          generates docs/data.json for the public dashboard
-  config.js              watchlists, sizing rules, portfolio risk caps (stock + crypto + fund)
-  db.js                  SQLite schema + migrations
-  saveBrief.js           writes brief markdown + logs, reads back most recent watchlist/brief date (stock + crypto variants)
-  computeAccuracy.js     standalone directional-accuracy report (superseded day-to-day by checkpoint.js)
-  computePnL.js          standalone P&L report (superseded day-to-day by checkpoint.js)
-  computeConfidence.js   standalone confidence-bucket report (superseded day-to-day by checkpoint.js)
-worker/                 Cloudflare Worker for the dashboard's Invest and Sell buttons (PIN-gated proxy to workflow_dispatch)
-docs/                   the public dashboard (index.html) + generated data.json
-.github/workflows/      nightly-brief.yml (stocks + crypto), on-demand-trade.yml, invest-allocation.yml, crypto-invest.yml, fund-custom-invest.yml, sell-position.yml, refresh-benchmark.yml, live-mirror.yml (dry run), long-horizon.yml
-status-memo.md          current, honest state of the project — read this for real numbers
-roadmap.md              long-term vision + what it actually takes to get there
-tests/                  npm test (Node's built-in test runner) — see Tests below
-```
+Claude (Anthropic) for analysis, Alpaca for market data, Finnhub for news and fundamentals, Cloudflare Workers + KV for lookups and caching, GitHub Actions for scheduled jobs, GitHub Pages for the site, SQLite (`node:sqlite`) for the historical log. Node 22.
 
 ## Tests
 
-`tests/orders.test.js` covers the quantity-based close orders and crypto position symbols described in Order safety details above. `tests/config.test.js` covers `computeNotional` (the position-sizing formula) end to end — base sizing, each individual cut, the cuts stacking multiplicatively, and the exact worked example from `config.js`'s own comments. Honest scope note: most of `src/` is script-style (side effects against the live database at import time), so this is deliberately the one function that's both pure and the highest-stakes to get wrong, not a claim of full coverage (the order helpers above were pulled into a pure module for the same reason). Runs via `npm test` (Node's built-in test runner, no dependency added), and as a required step before every nightly and on-demand run in both GitHub Actions workflows — a broken sizing formula fails the run loudly instead of silently mis-sizing a real order.
-
-## Running locally
-
-Requires Node 22.5+ (for `node:sqlite`). Copy `.env.example` to `.env` and fill in `ANTHROPIC_API_KEY`, `ALPACA_KEY_ID`/`ALPACA_SECRET_KEY` (paper keys only), and `FINNHUB_KEY`, then:
-
 ```
 npm install
-npm run brief          # run tonight's stock pipeline once, locally
-npm run crypto-brief   # run tonight's automated crypto watchlist once, locally (own evidence pool)
-npm run invest -- NVDA "context"   # on-demand stock analysis/trade for one ticker
-npm run invest -- NVDA "context" --amount=2500   # same, but override evidence-based sizing for this trade only
-npm run invest-crypto -- bitcoin 250   # on-demand crypto analysis/trade, any Alpaca-supported coin
-npm run invest-allocation -- fund    # fixed 5-fund buy-and-hold allocation (idempotent, one-time)
-npm run invest-fund-custom -- VXUS 500   # custom-ticker buy-and-hold allocation
-npm run sell -- VXUS   # simulated sale of a held buy-and-hold position
-npm run checkpoint     # review sizing-lever evidence (n>=20 gate, stocks only)
-npm run reflect        # run the reflection loop against current losses
-npm run lessons -- list
-npm run export-site    # regenerate docs/data.json from the local db
+npm test
 ```
 
-In production, `npm run brief`, `npm run crypto-brief`, `npm run reflect`, and `npm run export-site` all run automatically every weekday evening via `.github/workflows/nightly-brief.yml` (crypto in its own step, same commit, never a separate cron).
+These cover the research math (returns windows, risk stats, crypto and fund-name handling), order construction, benchmark math, long-horizon math and config safety.
+
+## Deploying the research Worker
+
+See [worker/research/README.md](./worker/research/README.md). In short: create the KV namespace, set four secrets with `wrangler secret put`, then `wrangler deploy`. Pushing to GitHub doesn't redeploy the Worker.
