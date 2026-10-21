@@ -66,3 +66,33 @@ test("popular mutual fund share classes map to an ETF on the same index", () => 
   assert.equal(MUTUAL_TO_ETF.VTSAX, "VTI");
   assert.equal(MUTUAL_TO_ETF.FXAIX, "IVV");
 });
+
+import { verifyReport } from "../worker/research/researchMath.js";
+
+const QUOTE = {
+  symbol: "AAPL", returns: { last: 248.97, d1: { pct: 0.5, fromClose: 247.73 }, d10: { pct: 2.07 }, y5: { pct: 60.69, annualizedPct: 9.95 } },
+  benchmark: { symbol: "SPY", returns: { d10: { pct: 1.1 } }, diff: { d10: 0.97 } },
+  stats: { volatilityPct: 24.3, maxDrawdownPct: -5.9, volumeVsAvg: 1.42 },
+  profile: { marketCapM: 3497000 }, metrics: { peTTM: 31.2 }, series: [["2026-01-01", 1]],
+};
+
+test("figures that match the data (with rounding and hedges) are verified", () => {
+  const r = { headline: "Apple rose 2.1% over 10 days, about 1 percentage point ahead of SPY.", today: "It closed at $248.97, up 0.5%.",
+    longRun: "Over five years it gained roughly 61%, or 9.95% a year, with a 5.9% drawdown and 24.3% volatility.",
+    vsMarket: "Volume ran 1.42x normal; the P/E is 31.2x and the market cap is about $3.5 trillion.", drivers: [], risks: [], watch: [] };
+  const v = verifyReport(r, QUOTE, { company: [], market: [] });
+  assert.equal(v.status, "verified", JSON.stringify(v.unmatched));
+  assert.ok(v.checked >= 10);
+});
+
+test("a figure that appears nowhere in the data or news is flagged with its sentence", () => {
+  const r = { headline: "Apple jumped 7.4% this week.", drivers: ["Revenue grew 12% per Reuters"], risks: [], watch: [] };
+  const v = verifyReport(r, QUOTE, { company: [{ headline: "Apple revenue grows 12%", summary: "" }], market: [] });
+  assert.equal(v.status, "unmatched");
+  assert.deepEqual(v.unmatched.map((u) => u.figure), ["7.4%"]);
+  assert.ok(v.unmatched[0].context.includes("jumped"));
+});
+
+test("a report with no figures says so instead of claiming verification", () => {
+  assert.equal(verifyReport({ headline: "Quiet day.", drivers: [] }, QUOTE, {}).status, "no-figures");
+});

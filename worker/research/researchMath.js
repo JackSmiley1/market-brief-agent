@@ -148,3 +148,83 @@ export function fundHint(input) {
   const key = String(input || "").toLowerCase().replace(/[^a-z]/g, "").replace(/(funds?|etfs?|investments?|group)$/, "");
   return FUND_FAMILIES[key] || null;
 }
+
+// ---------- Accuracy check for the AI text (added 2026-10-21) ----------
+// Pulls every figure out of a report's text (percentages, dollar amounts,
+// percentage points, multiples) and checks each against the numbers the
+// report was given: computed returns/stats/metrics, plus any number that
+// appears in the news headlines and summaries it was shown. A figure that
+// can't be matched is reported, not silently dropped. "Couldn't be matched"
+// isn't proof of an error (the model may have done its own arithmetic),
+// so the page words it that way.
+
+const APPROX_RE = /(about|roughly|around|approximately|nearly|almost|close to|more than|over|under|less than|just under|just over|~)\s*$/i;
+const FIELDS = ["headline", "today", "recentTrend", "longRun", "vsMarket", "drivers", "marketBackdrop", "risks", "watch", "bottomLine"];
+
+function collectNumbers(obj, out = []) {
+  if (obj == null) return out;
+  if (typeof obj === "number" && Number.isFinite(obj)) out.push(obj);
+  else if (Array.isArray(obj)) obj.forEach((x) => collectNumbers(x, out));
+  else if (typeof obj === "object") Object.values(obj).forEach((x) => collectNumbers(x, out));
+  return out;
+}
+
+function newsNumbers(news) {
+  const text = [...(news?.company || []), ...(news?.market || [])].map((n) => `${n.headline || ""} ${n.summary || ""}`).join(" ");
+  return [...text.matchAll(/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)/g)].map((m) => Number(m[1].replace(/,/g, "")));
+}
+
+function extractFigures(text) {
+  const out = [];
+  const add = (m, value, kind) => {
+    const start = Math.max(0, m.index - 70);
+    const before = text.slice(start, m.index);
+    const raw = m[0].trim();
+    const decimals = (raw.match(/\.(\d+)/) || ["", ""])[1].length;
+    out.push({ raw, value, kind, decimals, approx: APPROX_RE.test(before), context: text.slice(start, Math.min(text.length, m.index + m[0].length + 50)).replace(/\s+/g, " ").trim() });
+  };
+  // $3.5 trillion / $248.97 / $1.2B
+  for (const m of text.matchAll(/\$\s?(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(trillion|billion|million|T\b|B\b|M\b)?/gi)) {
+    const n = Number(m[1].replace(/,/g, "")), u = (m[2] || "").toLowerCase();
+    add(m, n * (u.startsWith("t") ? 1e6 : u.startsWith("b") ? 1e3 : u.startsWith("m") ? 1 : 0) || n, u ? "cap" : "price");
+  }
+  // 12.5 percentage points / 3.1 pts / 3.1 points
+  for (const m of text.matchAll(/([+-−]?\d+(?:\.\d+)?)\s*(percentage points?|pts?\b|points?\b)/gi)) add(m, Math.abs(Number(m[1].replace("−", "-"))), "pts");
+  // 2.07% / 2.1 percent
+  for (const m of text.matchAll(/([+-−]?\d+(?:\.\d+)?)\s*(%|percent\b)/gi)) add(m, Math.abs(Number(m[1].replace("−", "-"))), "pct");
+  // 31.2x / 1.4×
+  for (const m of text.matchAll(/(\d+(?:\.\d+)?)\s*[x×](?![a-z])/gi)) add(m, Number(m[1]), "mult");
+  return out;
+}
+
+function matches(fig, candidates) {
+  const v = fig.value;
+  const exactTol = 0.5 * 10 ** -fig.decimals + 1e-9;
+  for (const c0 of candidates) {
+    const c = Math.abs(c0);
+    if (Math.abs(c - v) <= exactTol) return true;
+    if (fig.approx && Math.abs(c - v) <= Math.max(1, 0.06 * c)) return true;
+    if (fig.kind === "cap" && c > 0 && Math.abs(c - v) / c <= 0.06) return true; // "$3.5T" for 3,497,000M
+  }
+  return false;
+}
+
+// quote: the /quote object the report was written from. news: {company, market}.
+export function verifyReport(report, quote, news) {
+  const text = FIELDS.map((k) => (Array.isArray(report?.[k]) ? report[k].join(" \n") : report?.[k] || "")).join(" \n");
+  const { series, ...numbersOnly } = quote || {};
+  const dataNums = collectNumbers(numbersOnly);
+  const allowed = [...dataNums, ...newsNumbers(news)];
+  const figures = extractFigures(text);
+  // A figure counted twice by overlapping patterns ("5 pts" and "5%" can't overlap, but "$5%" could) is de-duplicated by position.
+  const seen = new Set();
+  const unique = figures.filter((f) => { const k = f.context + "|" + f.raw; if (seen.has(k)) return false; seen.add(k); return true; });
+  const unmatched = unique.filter((f) => !matches(f, allowed)).map(({ raw, context }) => ({ figure: raw, context }));
+  return {
+    checked: unique.length,
+    matched: unique.length - unmatched.length,
+    unmatched: unmatched.slice(0, 10),
+    status: unique.length === 0 ? "no-figures" : unmatched.length === 0 ? "verified" : "unmatched",
+    method: "Every percentage, dollar amount, percentage-point figure and multiple in the text was compared with the computed data and the news it was given.",
+  };
+}

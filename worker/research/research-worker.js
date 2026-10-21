@@ -20,7 +20,7 @@
 // ALPACA_SECRET_KEY, FINNHUB_KEY. KV namespace binding: RESEARCH.
 // Nothing here can place an order: it only reads market data.
 
-import { periodReturns, riskStats, relativeReturns, SECTOR_ETF, resolveCrypto, MUTUAL_TO_ETF, fundHint } from "./researchMath.js";
+import { periodReturns, riskStats, relativeReturns, SECTOR_ETF, resolveCrypto, MUTUAL_TO_ETF, fundHint, verifyReport } from "./researchMath.js";
 
 const ALLOWED_ORIGINS = ["https://jacksmiley1.github.io", "http://localhost:8000", "http://localhost:8765"];
 const MODEL = "claude-sonnet-5";
@@ -226,7 +226,7 @@ function numbersForPrompt(q) {
 const SYSTEM = `You are the research analyst for Great Lakes Investments, a student-run AI market research project. You write a clear, honest breakdown of one security's recent and long-run performance for a general audience.
 
 Rules:
-- Use ONLY the numbers given in DATA. Never introduce a price, percentage, date or statistic that isn't in DATA. Refer to numbers the way they're given.
+- Use ONLY the numbers given in DATA (or stated in the NEWS). Never introduce a price, percentage, date or statistic that isn't there. Quote numbers as given (rounding is fine); don't compute new figures such as your own differences or averages. The gaps versus the benchmark and sector are already in DATA. Every figure you write is automatically checked against DATA and NEWS, and unmatched figures are shown to readers.
 - Explain moves with the NEWS provided when it plausibly explains them, citing the headline's date and source. If nothing in the news explains a move, say so plainly ("no clear company-specific catalyst in the news provided"); never invent a reason.
 - Separate what the data shows from interpretation. Hedge interpretations.
 - No buy, sell or hold recommendation, no price targets, no personal advice.
@@ -329,14 +329,16 @@ async function handleReport(req, env, type, q) {
   }
 
   const { report, news, model, usage } = await writeReport(env, quote);
+  const verification = verifyReport(report, quote, news);
   const record = {
     type, symbol: quote.symbol, name: quote.name, date: day, generatedAt: new Date().toISOString(), model,
-    report, numbersAsOf: quote.returns?.asOf ?? null, newsCount: news.company.length,
+    report, verification, numbersAsOf: quote.returns?.asOf ?? null, newsCount: news.company.length,
     sources: news.company.map((n) => ({ date: n.date, source: n.source, headline: n.headline })),
   };
   await env.RESEARCH.put(key, JSON.stringify(record), {
     expirationTtl: REPORT_TTL,
-    metadata: { type, symbol: quote.symbol, name: quote.name, headline: String(report.headline || "").slice(0, 200), generatedAt: record.generatedAt },
+    metadata: { type, symbol: quote.symbol, name: quote.name, headline: String(report.headline || "").slice(0, 200), generatedAt: record.generatedAt,
+      check: verification.status, checked: verification.checked, matched: verification.matched },
   });
   await Promise.all([bump(env, ipKey, 2 * 86400), bump(env, allKey, 2 * 86400)]);
   return json(req, { ...record, cached: false, usage });
@@ -350,7 +352,14 @@ async function handleRecent(req, env) {
     for (const k of l.keys) items.push({ date: d, ...(k.metadata || {}) });
   }
   items.sort((a, b) => String(b.generatedAt).localeCompare(String(a.generatedAt)));
-  return json(req, { items: items.slice(0, 30) });
+  const checkedItems = items.filter((i) => i.checked > 0);
+  const tally = {
+    reports: checkedItems.length,
+    figures: checkedItems.reduce((a, i) => a + i.checked, 0),
+    matched: checkedItems.reduce((a, i) => a + i.matched, 0),
+    fullyVerified: checkedItems.filter((i) => i.check === "verified").length,
+  };
+  return json(req, { items: items.slice(0, 30), tally });
 }
 
 export default {

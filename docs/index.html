@@ -394,7 +394,8 @@
     </section>
     <section class="c-4">
       <div class="section-head"><h2>Recent Research</h2></div>
-      <p class="section-sub">Breakdowns written today and yesterday. Click one to open it.</p>
+      <p class="section-sub">Breakdowns written today and yesterday. Click one to open it. ✓ means every figure in the text matched the data.</p>
+      <p class="section-sub rs-tally"></p>
       <div class="brief-list rs-recent" data-type="stock"><div class="loading">None yet today.</div></div>
     </section>
   </main>
@@ -423,7 +424,8 @@
     </section>
     <section class="c-4">
       <div class="section-head"><h2>Recent Research</h2></div>
-      <p class="section-sub">Breakdowns written today and yesterday. Click one to open it.</p>
+      <p class="section-sub">Breakdowns written today and yesterday. Click one to open it. ✓ means every figure in the text matched the data.</p>
+      <p class="section-sub rs-tally"></p>
       <div class="brief-list rs-recent" data-type="fund"><div class="loading">None yet today.</div></div>
     </section>
     <section class="c-5">
@@ -459,7 +461,8 @@
     </section>
     <section class="c-4">
       <div class="section-head"><h2>Recent Research</h2></div>
-      <p class="section-sub">Breakdowns written today and yesterday. Click one to open it.</p>
+      <p class="section-sub">Breakdowns written today and yesterday. Click one to open it. ✓ means every figure in the text matched the data.</p>
+      <p class="section-sub rs-tally"></p>
       <div class="brief-list rs-recent" data-type="crypto"><div class="loading">None yet today.</div></div>
     </section>
     <section class="c-6">
@@ -762,6 +765,7 @@
       <div class="section-head"><h2>How it keeps itself honest</h2></div>
       <div class="methodology">
         <p><strong>Numbers come from data, not the AI.</strong> The performance tables are calculated directly from prices. The written analysis can be wrong; the numbers it sits next to are not invented.</p>
+        <p><strong>Every figure in the AI text is checked automatically.</strong> Code pulls each percentage, dollar amount and multiple out of the breakdown and matches it against the computed data and the news Claude was given. Reports are badged "all figures match" or list exactly which figures couldn't be matched. This came directly from the paper-trading experiment, where Claude graded itself more generously than prices did.</p>
         <p><strong>"No clear catalyst" is an allowed answer.</strong> Every breakdown is labeled with how strong its explanation is.</p>
         <p><strong>No recommendations.</strong> It explains what happened. It never says buy, sell or hold.</p>
         <p><strong>The failed experiment stays public.</strong> The Track Record tab shows the paper-trading loss and how Claude graded itself more generously than prices did.</p>
@@ -2281,6 +2285,20 @@ function rsChart(type, q, range) {
   });
 }
 
+// Accuracy check badge (see verifyReport in worker/research/researchMath.js).
+function rsCheckBadge(v) {
+  if (!v) return '<span class="req-outcome pass" title="Written before the accuracy check existed">Figures: not checked</span>';
+  if (v.status === 'verified') return '<span class="req-outcome ok" title="' + escapeHtml(v.method) + '">✓ ' + (v.checked === 1 ? 'The 1 figure matches' : 'All ' + v.checked + ' figures match') + ' the data</span>';
+  if (v.status === 'no-figures') return '<span class="req-outcome pass">No figures to check</span>';
+  return '<span class="req-outcome warn" title="' + escapeHtml(v.method) + '">⚠ ' + (v.checked - v.matched) + ' of ' + v.checked + (v.checked === 1 ? ' figure' : ' figures') + ' couldn\'t be matched</span>';
+}
+function rsCheckDetail(v) {
+  if (!v || v.status !== 'unmatched') return '';
+  return '<h3>Accuracy check</h3><p class="movers" style="font-family:var(--sans);">' + v.matched + ' of ' + v.checked +
+    ' figures in this text match the computed data or the news it was given. These couldn\'t be matched; they may be the model\'s own arithmetic or an error, so treat them with caution:</p><ul>' +
+    v.unmatched.map((u) => '<li><strong>' + escapeHtml(u.figure) + '</strong> in "…' + escapeHtml(u.context) + '…"</li>').join('') + '</ul>';
+}
+
 function rsReport(rec) {
   const r = rec.report || {};
   const para = (h, t) => t ? '<h3>' + h + '</h3><p>' + escapeHtml(t) + '</p>' : '';
@@ -2290,10 +2308,10 @@ function rsReport(rec) {
   const src = (rec.sources || []).length ? '<h3>News it drew on</h3><ul class="rs-sources">' + rec.sources.map((n) => '<li>' + escapeHtml(n.date) + ' · ' + escapeHtml(n.source) + ': ' + escapeHtml(n.headline) + '</li>').join('') + '</ul>' : '<h3>News it drew on</h3><p class="movers">No company-specific headlines in the last 10 days.</p>';
   return '<div class="rs-report">' +
     '<div class="rs-headline">' + escapeHtml(r.headline || '') + '</div>' +
-    '<span class="req-outcome ' + ev + '">Evidence: ' + escapeHtml(r.evidence || 'n/a') + '</span>' +
+    '<span class="req-outcome ' + ev + '">Evidence: ' + escapeHtml(r.evidence || 'n/a') + '</span> ' + rsCheckBadge(rec.verification) +
     para('Latest session', r.today) + para('Recent trend (10 and 30 days)', r.recentTrend) + para('Long run (YTD, 1 and 5 years)', r.longRun) +
     para('Versus the market', r.vsMarket) + list('Drivers', r.drivers) + para('Market backdrop', r.marketBackdrop) +
-    list('Risks and open questions', r.risks) + list('What to watch', r.watch) + para('Bottom line', r.bottomLine) + src +
+    list('Risks and open questions', r.risks) + list('What to watch', r.watch) + para('Bottom line', r.bottomLine) + rsCheckDetail(rec.verification) + src +
     '<div class="rs-foot">Written by Claude (' + escapeHtml(rec.model || '') + ') ' + escapeHtml(when) + (rec.cached ? ' · shared copy from earlier today' : '') +
     '. Numbers above are computed from market data; this text is AI-generated and can be wrong. Not investment advice.</div></div>';
 }
@@ -2348,14 +2366,21 @@ async function rsLookup(type, q) {
 async function rsLoadRecent() {
   const lists = document.querySelectorAll('.rs-recent');
   let items = [];
-  try { items = (await rsFetch('/recent')).items || []; } catch (_) {
+  let tally = null;
+  try { const rec = await rsFetch('/recent'); items = rec.items || []; tally = rec.tally || null; } catch (_) {
     lists.forEach((el) => { el.innerHTML = '<div class="loading">Research service not reachable right now.</div>'; });
     return;
   }
+  document.querySelectorAll('.rs-tally').forEach((el) => {
+    el.textContent = tally && tally.figures ? 'Accuracy check, today and yesterday: ' + tally.matched + ' of ' + tally.figures + ' figures matched the data (' +
+      (100 * tally.matched / tally.figures).toFixed(1) + '%); ' + tally.fullyVerified + ' of ' + tally.reports + ' reports fully verified.' : '';
+  });
   lists.forEach((el) => {
     const t = el.dataset.type, mine = items.filter((i) => i.type === t);
     el.innerHTML = mine.length ? mine.map((i) =>
-      '<div class="brief-row req-row" data-sym="' + escapeHtml(i.symbol) + '"><div class="req-head"><span>' + escapeHtml(i.symbol) + '</span><span class="movers">' + escapeHtml(i.date) + '</span></div>' +
+      '<div class="brief-row req-row" data-sym="' + escapeHtml(i.symbol) + '"><div class="req-head"><span>' + escapeHtml(i.symbol) + ' ' +
+      (i.check === 'verified' ? '<span class="pos" title="All figures matched the data">✓</span>' : i.check === 'unmatched' ? '<span style="color:var(--amber)" title="Some figures couldn\'t be matched">⚠</span>' : '') +
+      '</span><span class="movers">' + escapeHtml(i.date) + '</span></div>' +
       '<span class="hl">' + escapeHtml(i.headline || '') + '</span></div>').join('') : '<div class="loading">None yet. Look something up to write the first one.</div>';
     el.querySelectorAll('.brief-row').forEach((row) => row.addEventListener('click', () => {
       const form = document.querySelector('.rs-form[data-type="' + t + '"]');
