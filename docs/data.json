@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-21T14:17:03.647Z",
+  "generatedAt": "2026-10-21T16:51:36.643Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 168,
@@ -13,8 +13,8 @@
       43.5,
       59.1
     ],
-    "claudeSelfGradePct": 58.5,
-    "claudeSelfGradeN": 207,
+    "aiSelfGradePct": 58.5,
+    "aiSelfGradeN": 207,
     "maxDrawdownUsd": 452.21,
     "bestTrade": {
       "ticker": "ORCL",
@@ -2261,6 +2261,11 @@
   },
   "changeLog": [
     {
+      "date": "2026-10-21",
+      "kind": "Measurement",
+      "text": "Added an automatic accuracy check to every AI breakdown: each percentage, dollar figure and multiple in the text is matched against the computed data and the news the AI was given, and the report shows which figures, if any, couldn't be matched."
+    },
+    {
       "date": "2026-10-20",
       "kind": "Direction",
       "text": "The site became a research tool. Stocks, Funds and Crypto each have a lookup that shows performance over 1 day, 10 days, 30 days, year to date, 1 year and 5 years against the market and sector, plus an AI breakdown of why it moved. The paper-trading experiment moved, unedited, to the Track Record tab."
@@ -2293,7 +2298,7 @@
     {
       "date": "2026-10-01",
       "kind": "Experiment",
-      "text": "Started a separate long-horizon track: Claude forecasts company fundamentals, code ranks them, and a virtual top-5 portfolio is tracked against SPY. It places no orders and doesn't touch the nightly strategy."
+      "text": "Started a separate long-horizon track: the AI forecasts company fundamentals, code ranks them, and a virtual top-5 portfolio is tracked against SPY. It places no orders and doesn't touch the nightly strategy."
     },
     {
       "date": "2026-09-30",
@@ -2308,7 +2313,7 @@
     {
       "date": "2026-09-27",
       "kind": "Measurement",
-      "text": "The direction hit rate is now checked against real prices. Claude's own, more generous grade is shown separately."
+      "text": "The direction hit rate is now checked against real prices. The AI's own, more generous grade is shown separately."
     },
     {
       "date": "2026-09-27",
@@ -2333,7 +2338,7 @@
     {
       "date": "2026-08-24",
       "kind": "Strategy",
-      "text": "Claude started rating its own confidence on each pick."
+      "text": "The AI started rating its own confidence on each pick."
     },
     {
       "date": "2026-08-20",

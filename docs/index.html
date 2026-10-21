@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Great Lakes Investments | AI Market Research</title>
-<meta name="description" content="An autonomous research pipeline: nightly Claude-driven market analysis, evidence-based simulated position sizing, and statistical guardrails against tuning on noise. Graded against reality every night. All trades simulated, zero real capital." />
+<meta name="description" content="AI market research: multi-horizon performance, market and sector comparisons, and checked AI breakdowns for US stocks, ETFs and major cryptocurrencies. For research and educational purposes only." />
 
 <!-- Inline SVG favicon (no separate asset file to host/track): white
      rounded-square card, three ascending diagonal bars (growth-chart /
@@ -490,7 +490,7 @@
 <div id="view-long-horizon" class="view">
   <div class="hero">
     <h1>Long-Horizon</h1>
-    <p class="tag">Claude forecasts each business five years out; code ranks them. Top 5 held.</p>
+    <p class="tag">The AI forecasts each business five years out; code ranks them. Top 5 held.</p>
   </div>
   <div class="disclaimer">
     <span class="ic"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="11" r="0.7" fill="currentColor"/></svg></span>
@@ -500,7 +500,7 @@
     <section class="c-5">
       <div class="section-head"><h2>How it works</h2></div>
       <div class="methodology">
-        <p>Every quarter, after earnings season, Claude reads each company's current fundamentals and recent news and forecasts two things: how fast revenue will grow over the next five years (with a low, middle, and high estimate) and what its profit margin will be in year five. It never says "buy" or "sell."</p>
+        <p>Every quarter, after earnings season, the AI reads each company's current fundamentals and recent news and forecasts two things: how fast revenue will grow over the next five years (with a low, middle, and high estimate) and what its profit margin will be in year five. It never says "buy" or "sell."</p>
         <p>Code then values each company the same way: today's revenue grown at the middle estimate, times the forecast margin, at one uniform price-to-earnings multiple, compared with today's market value. That gives an implied yearly return, used only to rank. The five highest-ranked stocks are held, equally weighted, until the next quarter.</p>
         <p>The idea comes from FutureSearch's study of the S&amp;P 500, whose central lesson is that short-term moves are close to unpredictable while long-run business forecasts may not be. Results here will take a year or more to mean anything.</p>
       </div>
@@ -532,8 +532,8 @@
     <section class="c-12">
       <div class="section-head"><h2>What Was Tested</h2></div>
       <div class="methodology">
-        <p>From Aug 18 to Oct 20, 2026, Claude made daily market calls on a fixed watchlist and placed simulated trades on them (Alpaca paper account, no real money), graded every night against real prices and against simply holding SPY.</p>
-        <p><strong>Result:</strong> over <span id="tr-n">…</span> closed stock trades it lost <span id="tr-pnl">…</span>, while the same dollars in SPY made <span id="tr-spy">…</span>. On the day it was stopped (159 trades), its per-trade return versus SPY was below zero with 95% confidence, and a mid-test rule change hadn't fixed it. Claude also graded its own calls more generously than prices did (<span id="tr-self">…</span> vs <span id="tr-hit">…</span> price-checked). The daily strategy ended on Oct 20, 2026; the complete record is below, unedited.</p>
+        <p>From Aug 18 to Oct 20, 2026, the AI made daily market calls on a fixed watchlist and placed simulated trades on them (Alpaca paper account, no real money), graded every night against real prices and against simply holding SPY.</p>
+        <p><strong>Result:</strong> over <span id="tr-n">…</span> closed stock trades it lost <span id="tr-pnl">…</span>, while the same dollars in SPY made <span id="tr-spy">…</span>. On the day it was stopped (159 trades), its per-trade return versus SPY was below zero with 95% confidence, and a mid-test rule change hadn't fixed it. The AI also graded its own calls more generously than prices did (<span id="tr-self">…</span> vs <span id="tr-hit">…</span> price-checked). The daily strategy ended on Oct 20, 2026; the complete record is below, unedited.</p>
         <p><strong>What came out of it:</strong> daily price moves look close to unpredictable from prices and news, which is why the project now focuses on research and on the longer-horizon experiment.</p>
       </div>
     </section>
@@ -559,11 +559,11 @@
       <div class="stat-grid" id="benchmark-stats"><div class="loading">Loading…</div></div>
     </section>
     <section class="c-12" id="honesty-section">
-      <div class="section-head"><h2>Is Claude Honest About Its Own Calls?</h2></div>
-      <p class="section-sub">Claude's grade of its own calls vs. what prices actually did.</p>
+      <div class="section-head"><h2>Is the AI Honest About Its Own Calls?</h2></div>
+      <p class="section-sub">The AI's grade of its own calls vs. what prices actually did.</p>
       <div class="stat-grid" id="honesty-stats"><div class="loading">Loading…</div></div>
       <div class="chart-wrap" style="margin-top:14px;"><div style="position:relative; height:300px;"><canvas id="honestyChart"></canvas></div></div>
-      <div class="bucket-grid" style="margin-top:14px;"><div class="bucket-group"><h3>Does confidence mean anything?</h3><table id="honesty-conf"><thead><tr><th>Claude's confidence</th><th>Calls</th><th>Direction right</th><th>Avg trade return</th></tr></thead><tbody></tbody></table></div></div>
+      <div class="bucket-grid" style="margin-top:14px;"><div class="bucket-group"><h3>Does confidence mean anything?</h3><table id="honesty-conf"><thead><tr><th>The AI's confidence</th><th>Calls</th><th>Direction right</th><th>Avg trade return</th></tr></thead><tbody></tbody></table></div></div>
       <p class="section-sub" id="honesty-note" style="margin-top:12px;"></p>
     </section>
     <section class="c-8" id="changes-section">
@@ -588,14 +588,14 @@
     <section class="c-6">
       <div class="section-head"><h2>Methodology</h2></div>
       <div class="methodology">
-        <p>Each pick gets a confidence level and an event-risk flag from Claude. Size is cut for low confidence, event risk and shorts, because each lined up with worse results in this system's own history.</p>
+        <p>Each pick gets a confidence level and an event-risk flag from the AI. Size is cut for low confidence, event risk and shorts, because each lined up with worse results in this system's own history.</p>
         <p id="methodology-detail" class="loading">Loading…</p>
         <p>No sizing rule changes until both sides of a comparison have at least <span id="min-n-inline">20</span> closed trades. Smaller groups are labeled <span class="flag">small sample</span>.</p>
       </div>
     </section>
     <section class="c-12" id="lessons-section" style="display:none;">
       <div class="section-head"><h2>Lessons Learned</h2></div>
-      <p class="section-sub">Patterns Claude writes down after reviewing its losing trades. Advisory only, never a trading rule.</p>
+      <p class="section-sub">Patterns the AI writes down after reviewing its losing trades. Advisory only, never a trading rule.</p>
       <div class="lesson-list" id="lesson-list"></div>
     </section>
     <section class="c-12" id="on-demand-section" style="display:none;">
@@ -649,7 +649,7 @@
           <input class="invest-input" id="invest-amount" type="number" placeholder="Amount (optional, $25-$10,000)" min="25" max="10000" step="1" style="max-width:220px;" />
           <button class="btn btn-primary" id="invest-btn">Simulate Investment</button>
         </div>
-        <div class="invest-hint">Claude analyzes it and opens a simulated position only if the setup clears the bar. Leave the amount blank for standard sizing. PIN required.</div>
+        <div class="invest-hint">The AI analyzes it and opens a simulated position only if the setup clears the bar. Leave the amount blank for standard sizing. PIN required.</div>
         <div id="invest-status" class="status-msg"></div>
       </div>
     </section>
@@ -727,7 +727,7 @@
           <input class="invest-input" id="crypto-invest-amount" type="number" placeholder="Amount ($25-$10,000)" min="25" max="10000" step="1" style="max-width:180px;" />
           <button class="btn btn-primary" id="crypto-invest-btn">Invest</button>
         </div>
-        <div class="invest-hint">Claude analyzes it and opens a simulated position only if the setup clears the bar. Held one day. PIN required.</div>
+        <div class="invest-hint">The AI analyzes it and opens a simulated position only if the setup clears the bar. Held one day. PIN required.</div>
         <div id="crypto-invest-status" class="status-msg"></div>
       </div>
     </section>
@@ -758,17 +758,17 @@
         <p><strong>1. Prices:</strong> up to five years of daily prices come from Alpaca's market data, adjusted for splits and dividends.</p>
         <p><strong>2. Numbers:</strong> code, not AI, computes every return, the comparisons with SPY and the sector, volatility, drawdown and the 52-week range.</p>
         <p><strong>3. News:</strong> the last ten days of company headlines and the latest market headlines come from Finnhub.</p>
-        <p><strong>4. Breakdown:</strong> Claude, an AI model made by Anthropic, reads those numbers and headlines and writes the explanation. It is told to use only the numbers it's given, to cite the news it relies on, and to say plainly when nothing in the news explains a move.</p>
+        <p><strong>4. Breakdown:</strong> An AI language model reads those numbers and headlines and writes the explanation. It is told to use only the numbers it's given, to cite the news it relies on, and to say plainly when nothing in the news explains a move.</p>
       </div>
     </section>
     <section class="c-6">
       <div class="section-head"><h2>How it keeps itself honest</h2></div>
       <div class="methodology">
         <p><strong>Numbers come from data, not the AI.</strong> The performance tables are calculated directly from prices. The written analysis can be wrong; the numbers it sits next to are not invented.</p>
-        <p><strong>Every figure in the AI text is checked automatically.</strong> Code pulls each percentage, dollar amount and multiple out of the breakdown and matches it against the computed data and the news Claude was given. Reports are badged "all figures match" or list exactly which figures couldn't be matched. This came directly from the paper-trading experiment, where Claude graded itself more generously than prices did.</p>
+        <p><strong>Every figure in the AI text is checked automatically.</strong> Code pulls each percentage, dollar amount and multiple out of the breakdown and matches it against the computed data and the news the AI was given. Reports are badged "all figures match" or list exactly which figures couldn't be matched. This came directly from the paper-trading experiment, where the AI graded itself more generously than prices did.</p>
         <p><strong>"No clear catalyst" is an allowed answer.</strong> Every breakdown is labeled with how strong its explanation is.</p>
         <p><strong>No recommendations.</strong> It explains what happened. It never says buy, sell or hold.</p>
-        <p><strong>The failed experiment stays public.</strong> The Track Record tab shows the paper-trading loss and how Claude graded itself more generously than prices did.</p>
+        <p><strong>The failed experiment stays public.</strong> The Track Record tab shows the paper-trading loss and how the AI graded itself more generously than prices did.</p>
       </div>
     </section>
     <section class="c-6">
@@ -780,7 +780,7 @@
     <section class="c-12">
       <div class="section-head"><h2>Built with</h2></div>
       <div class="methodology">
-        <p>Claude (Anthropic) for analysis, Alpaca for market data, Finnhub for news and company data, a Cloudflare Worker for lookups, GitHub Actions for the scheduled long-horizon track, and GitHub Pages for this site. The code, a candid status memo and the roadmap are public on <a href="https://github.com/JackSmiley1/market-brief-agent" target="_blank">GitHub</a>.</p>
+        <p>An AI language model (via the Anthropic API) for analysis, Alpaca for market data, Finnhub for news and company data, a Cloudflare Worker for lookups, GitHub Actions for the scheduled long-horizon track, and GitHub Pages for this site. The code, a candid status memo and the roadmap are public on <a href="https://github.com/JackSmiley1/market-brief-agent" target="_blank">GitHub</a>.</p>
       </div>
     </section>
   </main>
@@ -964,7 +964,7 @@ function setupAllocationInvestButton(btnId, statusId, allocationType, label) {
 // symbol/name, a user-chosen amount ($25-$10,000, client-side check here is
 // a UX nicety; the real enforcement is server-side in the Worker and again
 // in onDemandCrypto.js, see config.js's CRYPTO_ONDEMAND_LIMITS). Unlike the
-// allocation buttons above, this runs a real Claude analysis and can decide
+// allocation buttons above, this runs a real AI analysis and can decide
 // not to invest at all — same spirit as the main ticker invest bar, just
 // for crypto and with the amount fixed by the user instead of sized by
 // config.js's evidence-based adjustments.
@@ -1003,7 +1003,7 @@ function setupCryptoInvest() {
 }
 
 // Mutual Funds tab's "Invest in Another Fund" form — same buy-and-hold,
-// no-Claude-analysis logic as the fixed 5-fund button, just for a
+// no-AI-analysis logic as the fixed 5-fund button, just for a
 // user-supplied ticker/amount ($5-$10,000). Reuses the same 'fund_hold'
 // source server-side, so a successful buy shows up in "Current Fund
 // Holdings" alongside the fixed five with no separate list needed here.
@@ -1109,9 +1109,9 @@ async function main() {
   const stats = [
     { label: 'Win rate', value: o.winRatePct + '%', icon: 'target', color: '#4f8ef7' },
     // Price-checked (see exportSite.js): the stock actually moved the called
-    // way. Claude's own, more generous self-grade is shown separately.
+    // way. The AI's own, more generous self-grade is shown separately.
     { label: 'Direction right, price-checked', value: (o.directionalHitRatePct == null ? 'n/a' : o.directionalHitRatePct.toFixed(1) + '%') + ' (n=' + o.directionalResolvedN + ')', icon: 'percent', color: '#4FA3D9' },
-    ...(o.claudeSelfGradePct != null ? [{ label: "Claude's own grade of its calls", value: o.claudeSelfGradePct.toFixed(1) + '% (n=' + o.claudeSelfGradeN + ')', icon: 'target', color: '#8C8C8C' }] : []),
+    ...(o.aiSelfGradePct != null ? [{ label: "The AI's own grade of its calls", value: o.aiSelfGradePct.toFixed(1) + '% (n=' + o.aiSelfGradeN + ')', icon: 'target', color: '#8C8C8C' }] : []),
     { label: 'Max drawdown', value: '-$' + (o.maxDrawdownUsd ?? 0).toFixed(2), cls: 'neg', icon: 'trendDown', color: '#F05B50' },
   ];
   if (o.bestTrade) stats.push({ label: 'Best trade', value: o.bestTrade.ticker + ' ' + fmtPct(o.bestTrade.pnlPct), cls: 'pos', icon: 'award', color: '#00B878' });
@@ -1403,11 +1403,11 @@ async function main() {
 
 // "Your Invest Requests" lists (see exportSite.js's recentRequests /
 // db.js's invest_requests) — one per tab, filtered by kind. Every request
-// shows up here, including Claude passes, so a pass never looks like a
-// broken button. Claude's reasoning sits behind a "Why" toggle.
+// shows up here, including AI passes, so a pass never looks like a
+// broken button. The AI's reasoning sits behind a "Why" toggle.
 const REQUEST_OUTCOMES = {
   submitted: ['Order placed', 'ok'],
-  passed: ['Claude passed', 'pass'],
+  passed: ['The AI passed', 'pass'],
   no_decision: ['No clear decision', 'warn'],
   analyze_only: ['Analyzed only', 'pass'],
   skipped_cap: ['Skipped: portfolio cap', 'warn'],
@@ -1456,7 +1456,7 @@ function renderCryptoEquityChart(curve) {
   if (!canvas) return;
   const points = curve || [];
   if (points.length === 0) {
-    canvas.parentElement.innerHTML = '<div class="loading">No closed crypto trades yet. A position appears here after it opens and closes (one session). Claude passes, listed above, don\'t add points.</div>';
+    canvas.parentElement.innerHTML = '<div class="loading">No closed crypto trades yet. A position appears here after it opens and closes (one session). The AI passes, listed above, don\'t add points.</div>';
     return;
   }
   const ctx = canvas.getContext('2d');
@@ -1636,9 +1636,9 @@ function onDemandRowsHtml(pending, closed) {
 // src/benchmarkMath.js). Honest about uncertainty: the market-adjusted
 // figure carries its 95% interval, and the note says whether that interval
 // excludes zero (i.e. whether there's evidence of skill either way).
-// "Is Claude Honest About Its Own Calls?" (see exportSite.js's honesty).
+// "Is the AI Honest About Its Own Calls?" (see exportSite.js's honesty).
 // Two series on ONE percent axis (same unit, no dual axis): the
-// price-checked hit rate and Claude's own grade, per week, plus a dashed
+// price-checked hit rate and the AI's own grade, per week, plus a dashed
 // 50% coin-flip reference drawn as a third, unlabeled-in-tooltip dataset.
 function renderHonesty(h, o) {
   const statsEl = document.getElementById('honesty-stats');
@@ -1649,7 +1649,7 @@ function renderHonesty(h, o) {
   }
   const v = h.verdicts;
   const stats = [
-    { label: "Claude's own grade of its calls", value: o.claudeSelfGradePct != null ? o.claudeSelfGradePct.toFixed(1) + '%' : 'n/a', icon: 'target', color: '#4FA3D9' },
+    { label: "The AI's own grade of its calls", value: o.aiSelfGradePct != null ? o.aiSelfGradePct.toFixed(1) + '%' : 'n/a', icon: 'target', color: '#4FA3D9' },
     { label: 'What the prices actually say', value: o.directionalHitRatePct != null ? o.directionalHitRatePct.toFixed(1) + '%' : 'n/a', icon: 'percent', color: '#F0A52B' },
     { label: '"Played out" but the price went the wrong way', value: v.playedOutButWrongN + ' of ' + v.playedOutN, icon: 'alert', color: '#F05B50' },
     { label: '"Missed" but the price went the right way', value: v.missedButRightN + ' of ' + v.missedN, icon: 'activity', color: '#8C8C8C' },
@@ -1667,7 +1667,7 @@ function renderHonesty(h, o) {
       data: {
         labels: h.weekly.map(w => fmtWeek(w.week)),
         datasets: [
-          { label: "Claude's own grade", data: h.weekly.map(w => w.selfGradePct), borderColor: '#4FA3D9', backgroundColor: '#4FA3D9', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0.2, fill: false },
+          { label: "The AI's own grade", data: h.weekly.map(w => w.selfGradePct), borderColor: '#4FA3D9', backgroundColor: '#4FA3D9', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0.2, fill: false },
           { label: 'Price-checked', data: h.weekly.map(w => w.priceCheckedPct), borderColor: '#F0A52B', backgroundColor: '#F0A52B', borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0.2, fill: false },
           { label: 'Coin flip (50%)', data: h.weekly.map(() => 50), borderColor: 'rgba(184,184,184,0.5)', borderDash: [5, 4], borderWidth: 1.25, pointRadius: 0, pointHoverRadius: 0, fill: false },
         ],
@@ -1685,7 +1685,7 @@ function renderHonesty(h, o) {
               label: (item) => {
                 const w = h.weekly[item.dataIndex];
                 return item.datasetIndex === 0
-                  ? "Claude's own grade: " + (w.selfGradePct ?? 'n/a') + '% (n=' + w.selfGradeN + ')'
+                  ? "The AI's own grade: " + (w.selfGradePct ?? 'n/a') + '% (n=' + w.selfGradeN + ')'
                   : 'Price-checked: ' + (w.priceCheckedPct ?? 'n/a') + '% (n=' + w.n + ')';
               },
             },
@@ -1711,7 +1711,7 @@ function renderHonesty(h, o) {
   }
   const note = document.getElementById('honesty-note');
   if (note) {
-    note.textContent = "Claude's grade is never used for trading; the price check is what counts.";
+    note.textContent = "The AI's grade is never used for trading; the price check is what counts.";
   }
 }
 
@@ -2155,7 +2155,7 @@ function renderTerminalStrip(data) {
     setT('tr-n', data.overview.closedTrades);
     setT('tr-pnl', money(data.overview.totalPnl).replace('−', ''));
     setT('tr-hit', data.overview.directionalHitRatePct != null ? data.overview.directionalHitRatePct.toFixed(1) + '%' : 'n/a');
-    setT('tr-self', data.overview.claudeSelfGradePct != null ? data.overview.claudeSelfGradePct.toFixed(1) + '%' : 'n/a');
+    setT('tr-self', data.overview.aiSelfGradePct != null ? data.overview.aiSelfGradePct.toFixed(1) + '%' : 'n/a');
   }
   if (data.benchmark) setT('tr-spy', money(data.benchmark.spySameDollarsPnl).replace('+', ''));
   if (data.generatedAt) cells.push(cell('Updated', escapeHtml(new Date(data.generatedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))));
@@ -2215,7 +2215,7 @@ function renderTerminalStrip(data) {
 
 // ---- Research panels (Stocks / Funds / Crypto), added 2026-10-20 ----
 // Talks to the research Worker (worker/research/research-worker.js). Every
-// number shown comes from the Worker's price math; Claude's text is labeled.
+// number shown comes from the Worker's price math; the AI's text is labeled.
 const RESEARCH_URL = "https://market-brief-research.market-brief-smiley-corp.workers.dev";
 const RS_VIEW = { stock: 'dashboard', fund: 'mutual-funds', crypto: 'crypto' };
 const rsCharts = {};
@@ -2335,7 +2335,7 @@ function rsReport(rec, quote) {
     para('Latest session', r.today) + para('Recent trend (10 and 30 days)', r.recentTrend) + para('Long run (YTD, 1 and 5 years)', r.longRun) +
     para('Versus the market', r.vsMarket) + list('Drivers', r.drivers) + para('Market backdrop', r.marketBackdrop) +
     list('Risks and open questions', r.risks) + list('What to watch', r.watch) + para('Bottom line', r.bottomLine) + rsCheckDetail(rec.verification) + src +
-    '<div class="rs-foot">Written by Claude (' + escapeHtml(rec.model || '') + ') ' + escapeHtml(when) + (rec.cached ? ' · shared copy from earlier today' : '') +
+    '<div class="rs-foot">Written by AI ' + escapeHtml(when) + (rec.cached ? ' · shared copy from earlier today' : '') +
     '. Numbers above are computed from market data; this text is AI-generated and can be wrong. Not investment advice.</div></div>';
 }
 

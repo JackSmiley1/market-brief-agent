@@ -303,7 +303,7 @@ async function writeReport(env, quote, session) {
       headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify(body),
     });
-    if (!r.ok) { lastErr = new Error(`Anthropic ${r.status}: ${(await r.text()).slice(0, 200)}`); continue; }
+    if (!r.ok) { lastErr = new Error(`the analysis service returned an error (${r.status})`); await r.text(); continue; }
     const j = await r.json();
     const report = extractReport(j);
     if (report) return { report, news, model: MODEL, usage: j.usage || null };
