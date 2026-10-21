@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-20T00:35:59.874Z",
+  "generatedAt": "2026-10-21T00:54:20.904Z",
   "minSampleSize": 20,
   "overview": {
-    "closedTrades": 159,
-    "avgReturnPct": -0.403,
-    "totalPnl": -452.21,
-    "totalNotional": 124500,
-    "winRatePct": 48.4,
+    "closedTrades": 164,
+    "avgReturnPct": -0.348,
+    "totalPnl": -409.98,
+    "totalNotional": 127625,
+    "winRatePct": 50,
     "directionalHitRatePct": 51.3,
     "directionalResolvedN": 158,
     "directionalCi95": [
@@ -27,8 +27,8 @@
       "pnlPct": -15.59
     },
     "currentStreak": {
-      "type": "loss",
-      "count": 7
+      "type": "win",
+      "count": 5
     }
   },
   "equityCurve": [
@@ -1462,41 +1462,86 @@
       "tradePnlPct": -0.81,
       "cumulativePnl": -452.21,
       "spyCumulativePnl": 13.41
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "AMD",
+      "direction": "short",
+      "tradePnl": 16.5,
+      "tradePnlPct": 3.01,
+      "cumulativePnl": -435.71,
+      "spyCumulativePnl": 13.14
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "CVX",
+      "direction": "long",
+      "tradePnl": 7.92,
+      "tradePnlPct": 0.79,
+      "cumulativePnl": -427.79,
+      "spyCumulativePnl": 11
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "XOM",
+      "direction": "long",
+      "tradePnl": 3.84,
+      "tradePnlPct": 0.77,
+      "cumulativePnl": -423.95,
+      "spyCumulativePnl": 9.93
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "ORCL",
+      "direction": "short",
+      "tradePnl": 6.01,
+      "tradePnlPct": 1.54,
+      "cumulativePnl": -417.94,
+      "spyCumulativePnl": 8.86
+    },
+    {
+      "date": "2026-10-20",
+      "ticker": "JNJ",
+      "direction": "long",
+      "tradePnl": 7.96,
+      "tradePnlPct": 0.8,
+      "cumulativePnl": -409.98,
+      "spyCumulativePnl": 6.72
     }
   ],
   "benchmark": {
     "symbol": "SPY",
-    "n": 159,
+    "n": 164,
     "excluded": 0,
-    "strategyPnl": -452.21,
-    "spySameDollarsPnl": 13.41,
-    "strategyAvgPct": -0.403,
-    "spyAvgPct": 0.025,
-    "marketAdjustedAvgPct": -0.405,
+    "strategyPnl": -409.98,
+    "spySameDollarsPnl": 6.72,
+    "strategyAvgPct": -0.348,
+    "spyAvgPct": 0.017,
+    "marketAdjustedAvgPct": -0.349,
     "marketAdjustedCi95": [
-      -0.783,
-      -0.027
+      -0.719,
+      0.021
     ],
     "long": {
-      "n": 84,
-      "mean": -0.177,
+      "n": 87,
+      "mean": -0.136,
       "ci95": [
-        -0.66,
-        0.306
+        -0.605,
+        0.332
       ]
     },
     "short": {
-      "n": 75,
-      "mean": -0.66,
+      "n": 77,
+      "mean": -0.589,
       "ci95": [
-        -1.249,
-        -0.071
+        -1.172,
+        -0.007
       ]
     },
     "buyAndHold": {
       "from": "2026-08-18",
-      "to": "2026-10-19",
-      "pct": -0.04
+      "to": "2026-10-20",
+      "pct": 0.28
     }
   },
   "honesty": {
@@ -1577,15 +1622,15 @@
         "confidence": "medium",
         "n": 97,
         "priceCheckedPct": 54.6,
-        "avgTradePct": -0.14,
-        "tradeN": 92
+        "avgTradePct": -0.09,
+        "tradeN": 96
       },
       {
         "confidence": "low",
         "n": 36,
         "priceCheckedPct": 41.7,
-        "avgTradePct": -1.14,
-        "tradeN": 35
+        "avgTradePct": -1.03,
+        "tradeN": 36
       }
     ],
     "verdicts": {
@@ -2170,10 +2215,20 @@
         "date": "2026-10-19",
         "portfolioPct": 2.1,
         "spyPct": -0.53
+      },
+      {
+        "date": "2026-10-20",
+        "portfolioPct": 3.62,
+        "spyPct": -0.21
       }
     ]
   },
   "changeLog": [
+    {
+      "date": "2026-10-20",
+      "kind": "Decision",
+      "text": "Ended the daily strategy (nightly stock and crypto picks, and the on-demand buttons). Over 159 stock trades it lost $452 while the same dollars in SPY made $13, and its per-trade result versus SPY was below zero with 95% confidence. The September rule change did not fix it, and crypto won 1 of 11. Open trades were closed and the full record stays on this page. The long-horizon track and fund holdings continue."
+    },
     {
       "date": "2026-10-12",
       "kind": "Schedule",
@@ -2254,20 +2309,20 @@
     "direction": [
       {
         "label": "long",
-        "n": 84,
-        "totalPnl": -128.84,
-        "totalNotional": 76500,
-        "avgReturnPct": -0.151,
-        "winRatePct": 52.4,
+        "n": 87,
+        "totalPnl": -109.12,
+        "totalNotional": 79000,
+        "avgReturnPct": -0.119,
+        "winRatePct": 54,
         "meetsMinN": true
       },
       {
         "label": "short",
-        "n": 75,
-        "totalPnl": -323.37,
-        "totalNotional": 48000,
-        "avgReturnPct": -0.684,
-        "winRatePct": 44,
+        "n": 77,
+        "totalPnl": -300.86,
+        "totalNotional": 48625,
+        "avgReturnPct": -0.607,
+        "winRatePct": 45.5,
         "meetsMinN": true
       }
     ],
@@ -2283,51 +2338,51 @@
       },
       {
         "label": "medium",
-        "n": 92,
-        "totalPnl": -21.86,
-        "totalNotional": 72750,
-        "avgReturnPct": -0.138,
-        "winRatePct": 47.8,
+        "n": 96,
+        "totalPnl": 3.87,
+        "totalNotional": 75750,
+        "avgReturnPct": -0.092,
+        "winRatePct": 50,
         "meetsMinN": true
       },
       {
         "label": "low",
-        "n": 35,
-        "totalPnl": -308.08,
-        "totalNotional": 20250,
-        "avgReturnPct": -1.143,
-        "winRatePct": 48.6,
+        "n": 36,
+        "totalPnl": -291.58,
+        "totalNotional": 20375,
+        "avgReturnPct": -1.027,
+        "winRatePct": 50,
         "meetsMinN": true
       }
     ],
     "eventRisk": [
       {
         "label": "event_risk",
-        "n": 13,
-        "totalPnl": 31.58,
-        "totalNotional": 4000,
-        "avgReturnPct": 0.461,
-        "winRatePct": 61.5,
+        "n": 15,
+        "totalPnl": 51.92,
+        "totalNotional": 4625,
+        "avgReturnPct": 0.651,
+        "winRatePct": 66.7,
         "meetsMinN": false
       },
       {
         "label": "no_event_risk",
-        "n": 79,
-        "totalPnl": -267.3,
-        "totalNotional": 53500,
-        "avgReturnPct": -0.58,
-        "winRatePct": 41.8,
+        "n": 82,
+        "totalPnl": -245.41,
+        "totalNotional": 56000,
+        "avgReturnPct": -0.521,
+        "winRatePct": 43.9,
         "meetsMinN": true
       }
     ],
     "peerCatalystShorts": [
       {
         "label": "peer_catalyst",
-        "n": 13,
-        "totalPnl": -13.13,
-        "totalNotional": 5375,
-        "avgReturnPct": -0.087,
-        "winRatePct": 53.8,
+        "n": 15,
+        "totalPnl": 9.38,
+        "totalNotional": 6000,
+        "avgReturnPct": 0.228,
+        "winRatePct": 60,
         "meetsMinN": false
       },
       {
@@ -2353,11 +2408,11 @@
     },
     {
       "label": "AMD",
-      "n": 11,
-      "totalPnl": 107.94,
-      "totalNotional": 9750,
-      "avgReturnPct": 0.886,
-      "winRatePct": 63.6,
+      "n": 12,
+      "totalPnl": 124.44,
+      "totalNotional": 9875,
+      "avgReturnPct": 1.063,
+      "winRatePct": 66.7,
       "meetsMinN": false
     },
     {
@@ -2389,11 +2444,11 @@
     },
     {
       "label": "CVX",
-      "n": 4,
-      "totalPnl": 3.16,
-      "totalNotional": 3250,
-      "avgReturnPct": 0.16,
-      "winRatePct": 75,
+      "n": 5,
+      "totalPnl": 11.08,
+      "totalNotional": 4250,
+      "avgReturnPct": 0.286,
+      "winRatePct": 80,
       "meetsMinN": false
     },
     {
@@ -2407,11 +2462,11 @@
     },
     {
       "label": "XOM",
-      "n": 11,
-      "totalPnl": -0.26,
-      "totalNotional": 10000,
-      "avgReturnPct": -0.139,
-      "winRatePct": 54.5,
+      "n": 12,
+      "totalPnl": 3.58,
+      "totalNotional": 10500,
+      "avgReturnPct": -0.063,
+      "winRatePct": 58.3,
       "meetsMinN": false
     },
     {
@@ -2469,12 +2524,30 @@
       "meetsMinN": false
     },
     {
+      "label": "ORCL",
+      "n": 16,
+      "totalPnl": -43.37,
+      "totalNotional": 11500,
+      "avgReturnPct": -0.729,
+      "winRatePct": 50,
+      "meetsMinN": false
+    },
+    {
       "label": "BA",
       "n": 4,
       "totalPnl": -20.79,
       "totalNotional": 2250,
       "avgReturnPct": -0.77,
       "winRatePct": 25,
+      "meetsMinN": false
+    },
+    {
+      "label": "JNJ",
+      "n": 6,
+      "totalPnl": -19.23,
+      "totalNotional": 4000,
+      "avgReturnPct": -0.823,
+      "winRatePct": 50,
       "meetsMinN": false
     },
     {
@@ -2487,29 +2560,11 @@
       "meetsMinN": false
     },
     {
-      "label": "ORCL",
-      "n": 15,
-      "totalPnl": -49.38,
-      "totalNotional": 11000,
-      "avgReturnPct": -0.881,
-      "winRatePct": 46.7,
-      "meetsMinN": false
-    },
-    {
       "label": "NFLX",
       "n": 5,
       "totalPnl": -30.8,
       "totalNotional": 3000,
       "avgReturnPct": -1.014,
-      "winRatePct": 40,
-      "meetsMinN": false
-    },
-    {
-      "label": "JNJ",
-      "n": 5,
-      "totalPnl": -27.19,
-      "totalNotional": 3000,
-      "avgReturnPct": -1.148,
       "winRatePct": 40,
       "meetsMinN": false
     },
@@ -2559,8 +2614,8 @@
     }
   },
   "portfolioRisk": {
-    "currentOpenPositions": 11,
-    "currentDeployedUsd": 6000,
+    "currentOpenPositions": 6,
+    "currentDeployedUsd": 2875,
     "maxConcurrentPositions": 22,
     "maxTotalNotionalUsd": 20000
   },
@@ -2887,10 +2942,10 @@
       "entryPrice": 769.73,
       "entryFilledAt": "2026-10-05T13:30:00.80379Z",
       "qty": 0.032465929,
-      "marketValue": 24.89,
-      "unrealizedPnl": -0.11,
-      "unrealizedPnlPct": -0.446,
-      "valueAsOf": "2026-10-19"
+      "marketValue": 24.97,
+      "unrealizedPnl": -0.03,
+      "unrealizedPnlPct": -0.123,
+      "valueAsOf": "2026-10-20"
     },
     {
       "ticker": "VXUS",
@@ -2899,10 +2954,10 @@
       "entryPrice": 85.79,
       "entryFilledAt": "2026-09-28T13:30:01.018279Z",
       "qty": 1.165520456,
-      "marketValue": 97.05,
-      "unrealizedPnl": -2.95,
-      "unrealizedPnlPct": -2.947,
-      "valueAsOf": "2026-10-19"
+      "marketValue": 97.57,
+      "unrealizedPnl": -2.43,
+      "unrealizedPnlPct": -2.434,
+      "valueAsOf": "2026-10-20"
     }
   ],
   "fundSold": [],
@@ -3003,6 +3058,12 @@
       "totalMarketValue": 121.94,
       "totalCostBasis": 125,
       "unrealizedPnl": -3.06
+    },
+    {
+      "date": "2026-10-20",
+      "totalMarketValue": 122.54,
+      "totalCostBasis": 125,
+      "unrealizedPnl": -2.46
     }
   ],
   "cryptoHoldings": [],
@@ -3126,42 +3187,42 @@
     "meetsMinN": false
   },
   "fundSnapshots": {
-    "asOfDate": "2026-10-19",
+    "asOfDate": "2026-10-20",
     "items": [
       {
         "ticker": "DIA",
         "label": "Dow Jones Industrial Average (DIA)",
-        "close": 518.98,
-        "pctChange": -0.02
+        "close": 524.21,
+        "pctChange": 1.01
       },
       {
         "ticker": "IWM",
         "label": "Russell 2000 (IWM)",
-        "close": 271.3,
-        "pctChange": 0.31
+        "close": 275.8,
+        "pctChange": 1.66
       },
       {
         "ticker": "QQQ",
         "label": "Nasdaq-100 (QQQ)",
-        "close": 718.31,
-        "pctChange": 1.2
+        "close": 717.21,
+        "pctChange": -0.15
       },
       {
         "ticker": "SPY",
         "label": "S&P 500 (SPY)",
-        "close": 766.6,
-        "pctChange": 0.43
+        "close": 769.09,
+        "pctChange": 0.32
       },
       {
         "ticker": "VOO",
         "label": "Vanguard S&P 500 ETF (VOO)",
-        "close": 704.47,
-        "pctChange": 0.39
+        "close": 706.33,
+        "pctChange": 0.26
       },
       {
         "ticker": "VTI",
         "label": "Vanguard Total Stock Market ETF (VTI)",
-        "close": 375.54,
+        "close": 376.95,
         "pctChange": 0.38
       }
     ]
