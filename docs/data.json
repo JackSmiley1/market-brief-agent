@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-21T16:51:36.643Z",
+  "generatedAt": "2026-10-22T00:53:01.859Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 168,
@@ -1515,7 +1515,7 @@
       "tradePnl": 10.67,
       "tradePnlPct": 4.27,
       "cumulativePnl": -399.31,
-      "spyCumulativePnl": null
+      "spyCumulativePnl": 8.53
     },
     {
       "date": "2026-10-21",
@@ -1524,7 +1524,7 @@
       "tradePnl": 12.07,
       "tradePnlPct": 1.21,
       "cumulativePnl": -387.24,
-      "spyCumulativePnl": null
+      "spyCumulativePnl": 15.75
     },
     {
       "date": "2026-10-21",
@@ -1533,7 +1533,7 @@
       "tradePnl": 5.46,
       "tradePnlPct": 1.09,
       "cumulativePnl": -381.78,
-      "spyCumulativePnl": null
+      "spyCumulativePnl": 19.36
     },
     {
       "date": "2026-10-21",
@@ -1542,28 +1542,28 @@
       "tradePnl": -12.96,
       "tradePnlPct": -1.3,
       "cumulativePnl": -394.74,
-      "spyCumulativePnl": null
+      "spyCumulativePnl": 26.58
     }
   ],
   "benchmark": {
     "symbol": "SPY",
-    "n": 164,
-    "excluded": 4,
-    "strategyPnl": -409.98,
-    "spySameDollarsPnl": 6.72,
-    "strategyAvgPct": -0.348,
-    "spyAvgPct": 0.017,
-    "marketAdjustedAvgPct": -0.349,
+    "n": 168,
+    "excluded": 0,
+    "strategyPnl": -394.74,
+    "spySameDollarsPnl": 26.58,
+    "strategyAvgPct": -0.308,
+    "spyAvgPct": 0.034,
+    "marketAdjustedAvgPct": -0.327,
     "marketAdjustedCi95": [
-      -0.719,
-      0.021
+      -0.691,
+      0.038
     ],
     "long": {
-      "n": 87,
-      "mean": -0.136,
+      "n": 91,
+      "mean": -0.104,
       "ci95": [
-        -0.605,
-        0.332
+        -0.561,
+        0.353
       ]
     },
     "short": {
@@ -1576,8 +1576,8 @@
     },
     "buyAndHold": {
       "from": "2026-08-18",
-      "to": "2026-10-20",
-      "pct": 0.28
+      "to": "2026-10-21",
+      "pct": 0.81
     }
   },
   "honesty": {
@@ -2256,6 +2256,11 @@
         "date": "2026-10-20",
         "portfolioPct": 3.62,
         "spyPct": -0.21
+      },
+      {
+        "date": "2026-10-21",
+        "portfolioPct": 3.99,
+        "spyPct": 0.32
       }
     ]
   },
@@ -2997,10 +3002,10 @@
       "entryPrice": 769.73,
       "entryFilledAt": "2026-10-05T13:30:00.80379Z",
       "qty": 0.032465929,
-      "marketValue": 24.97,
-      "unrealizedPnl": -0.03,
-      "unrealizedPnlPct": -0.123,
-      "valueAsOf": "2026-10-20"
+      "marketValue": 25.1,
+      "unrealizedPnl": 0.1,
+      "unrealizedPnlPct": 0.402,
+      "valueAsOf": "2026-10-21"
     },
     {
       "ticker": "VXUS",
@@ -3009,10 +3014,10 @@
       "entryPrice": 85.79,
       "entryFilledAt": "2026-09-28T13:30:01.018279Z",
       "qty": 1.165520456,
-      "marketValue": 97.57,
-      "unrealizedPnl": -2.43,
-      "unrealizedPnlPct": -2.434,
-      "valueAsOf": "2026-10-20"
+      "marketValue": 97.92,
+      "unrealizedPnl": -2.08,
+      "unrealizedPnlPct": -2.079,
+      "valueAsOf": "2026-10-21"
     }
   ],
   "fundSold": [],
@@ -3119,6 +3124,12 @@
       "totalMarketValue": 122.54,
       "totalCostBasis": 125,
       "unrealizedPnl": -2.46
+    },
+    {
+      "date": "2026-10-21",
+      "totalMarketValue": 123.02,
+      "totalCostBasis": 125,
+      "unrealizedPnl": -1.98
     }
   ],
   "cryptoHoldings": [],
@@ -3242,43 +3253,43 @@
     "meetsMinN": false
   },
   "fundSnapshots": {
-    "asOfDate": "2026-10-20",
+    "asOfDate": "2026-10-21",
     "items": [
       {
         "ticker": "DIA",
         "label": "Dow Jones Industrial Average (DIA)",
-        "close": 524.21,
-        "pctChange": 1.01
+        "close": 527.7,
+        "pctChange": 0.67
       },
       {
         "ticker": "IWM",
         "label": "Russell 2000 (IWM)",
-        "close": 275.8,
-        "pctChange": 1.66
+        "close": 276.46,
+        "pctChange": 0.24
       },
       {
         "ticker": "QQQ",
         "label": "Nasdaq-100 (QQQ)",
-        "close": 717.21,
-        "pctChange": -0.15
+        "close": 725.25,
+        "pctChange": 1.12
       },
       {
         "ticker": "SPY",
         "label": "S&P 500 (SPY)",
-        "close": 769.09,
-        "pctChange": 0.32
+        "close": 773.13,
+        "pctChange": 0.53
       },
       {
         "ticker": "VOO",
         "label": "Vanguard S&P 500 ETF (VOO)",
-        "close": 706.33,
-        "pctChange": 0.26
+        "close": 710.7,
+        "pctChange": 0.62
       },
       {
         "ticker": "VTI",
         "label": "Vanguard Total Stock Market ETF (VTI)",
-        "close": 376.95,
-        "pctChange": 0.38
+        "close": 379.27,
+        "pctChange": 0.62
       }
     ]
   },
