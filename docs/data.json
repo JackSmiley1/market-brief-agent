@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-11T02:14:22.555Z",
+  "generatedAt": "2026-11-12T03:20:26.400Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 168,
@@ -1576,8 +1576,8 @@
     },
     "buyAndHold": {
       "from": "2026-08-18",
-      "to": "2026-11-10",
-      "pct": -2.21
+      "to": "2026-11-11",
+      "pct": -0.93
     }
   },
   "honesty": {
@@ -2331,6 +2331,11 @@
         "date": "2026-11-10",
         "portfolioPct": 5.31,
         "spyPct": -2.69
+      },
+      {
+        "date": "2026-11-11",
+        "portfolioPct": 5.71,
+        "spyPct": -1.41
       }
     ]
   },
@@ -3072,10 +3077,10 @@
       "entryPrice": 769.73,
       "entryFilledAt": "2026-10-05T13:30:00.80379Z",
       "qty": 0.032465929,
-      "marketValue": 24.35,
-      "unrealizedPnl": -0.65,
-      "unrealizedPnlPct": -2.611,
-      "valueAsOf": "2026-11-10"
+      "marketValue": 24.67,
+      "unrealizedPnl": -0.33,
+      "unrealizedPnlPct": -1.33,
+      "valueAsOf": "2026-11-11"
     },
     {
       "ticker": "VXUS",
@@ -3084,10 +3089,10 @@
       "entryPrice": 85.79,
       "entryFilledAt": "2026-09-28T13:30:01.018279Z",
       "qty": 1.165520456,
-      "marketValue": 96.33,
-      "unrealizedPnl": -3.67,
-      "unrealizedPnlPct": -3.67,
-      "valueAsOf": "2026-11-10"
+      "marketValue": 97.24,
+      "unrealizedPnl": -2.76,
+      "unrealizedPnlPct": -2.761,
+      "valueAsOf": "2026-11-11"
     }
   ],
   "fundSold": [],
@@ -3284,6 +3289,12 @@
       "totalMarketValue": 120.68,
       "totalCostBasis": 125,
       "unrealizedPnl": -4.32
+    },
+    {
+      "date": "2026-11-11",
+      "totalMarketValue": 121.91,
+      "totalCostBasis": 125,
+      "unrealizedPnl": -3.09
     }
   ],
   "cryptoHoldings": [],
@@ -3407,43 +3418,43 @@
     "meetsMinN": false
   },
   "fundSnapshots": {
-    "asOfDate": "2026-11-10",
+    "asOfDate": "2026-11-11",
     "items": [
       {
         "ticker": "DIA",
         "label": "Dow Jones Industrial Average (DIA)",
-        "close": 521.8,
-        "pctChange": -0.29
+        "close": 524.465,
+        "pctChange": 0.51
       },
       {
         "ticker": "IWM",
         "label": "Russell 2000 (IWM)",
-        "close": 280.58,
-        "pctChange": -0.68
+        "close": 283.09,
+        "pctChange": 0.89
       },
       {
         "ticker": "QQQ",
         "label": "Nasdaq-100 (QQQ)",
-        "close": 674.82,
-        "pctChange": -0.58
+        "close": 690.4,
+        "pctChange": 2.31
       },
       {
         "ticker": "SPY",
         "label": "S&P 500 (SPY)",
-        "close": 749.93,
-        "pctChange": -0.37
+        "close": 759.8,
+        "pctChange": 1.32
       },
       {
         "ticker": "VOO",
         "label": "Vanguard S&P 500 ETF (VOO)",
-        "close": 689.415,
-        "pctChange": -0.36
+        "close": 698.25,
+        "pctChange": 1.28
       },
       {
         "ticker": "VTI",
         "label": "Vanguard Total Stock Market ETF (VTI)",
-        "close": 369.51,
-        "pctChange": -0.41
+        "close": 374.18,
+        "pctChange": 1.26
       }
     ]
   },
