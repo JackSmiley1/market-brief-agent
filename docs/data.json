@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T02:41:15.142Z",
+  "generatedAt": "2026-11-15T19:47:04.574Z",
   "minSampleSize": 20,
   "overview": {
     "closedTrades": 168,
@@ -1758,31 +1758,31 @@
     ]
   },
   "longHorizon": {
-    "formedDate": "2026-10-01",
-    "startDate": "2026-10-02",
+    "formedDate": "2026-11-15",
+    "startDate": null,
     "note": "exit P/E 18, 5-year horizon, top 5 equal weight",
-    "periods": 1,
+    "periods": 2,
     "holdings": [
       "GS",
       "BAC",
       "JPM",
-      "DIS",
-      "UNH"
+      "META",
+      "NFLX"
     ],
     "ranking": [
       {
         "symbol": "GS",
         "industry": "Financial Services",
         "cagr": [
-          0,
-          5.5,
-          11
+          1,
+          6,
+          12
         ],
-        "margin": 25,
-        "impliedReturn": 24.98,
+        "margin": 24,
+        "impliedReturn": 25.18,
         "rank": 1,
         "held": true,
-        "reasoning": "GS revenue growth should revert toward high-single-digit/mid-single-digit norms after an unusually strong recent run driven by trading/IB recovery and asset management growth, with capital markets cyclicality as the main swing factor. Net margin is expected to settle near its TTM/5Y average (~15-17%) as elevated recent profitability normalizes, though efficiency gains and buybacks support stable returns; the main risk is a capital markets downturn or regulatory capital requirements compressing margins and growth.",
+        "reasoning": "GS revenue growth has been elevated recently (TTM +10.5%, 5Y 17%) driven by trading, IB recovery, and asset management, but base rates suggest reversion toward mid-single-digit growth as capital markets normalize; a downturn scenario (recession, trading slump) could flatten growth near zero. Net margins should stay strong given operating leverage and TTM run-rate near 16-18%, but reverting partially toward the 5Y average with some cyclicality risk from credit losses or market volatility.",
         "status": "ok"
       },
       {
@@ -1791,20 +1791,20 @@
         "cagr": [
           0.5,
           3.5,
-          7
+          6.5
         ],
-        "margin": 28,
-        "impliedReturn": 20.78,
+        "margin": 28.5,
+        "impliedReturn": 21.21,
         "rank": 2,
         "held": true,
-        "reasoning": "BAC's revenue growth will likely normalize toward low-single-digit rates tied to loan growth, net interest margin trends, and fee income, after the recent YoY spike (driven by base effects and trading/NII recovery) fades. Net margin should revert toward its historical 28-30% range as credit costs normalize and rate tailwinds moderate, with key risks being a sharp yield curve inversion, credit deterioration, or regulatory capital changes compressing margins.",
+        "reasoning": "BAC's revenue growth will likely normalize toward low-single-digit rates driven by loan growth, NII stabilization, and fee income, after the unusual TTM spike (likely driven by trading/rate effects) fades. Net margins should revert toward the 25-30% historical band as credit costs normalize and rate tailwinds fade, with risks from credit losses, regulatory fines, and a potential recession compressing margins toward the low end.",
         "status": "ok"
       },
       {
         "symbol": "JPM",
         "industry": "Banking",
         "cagr": [
-          0.5,
+          0,
           4,
           8.5
         ],
@@ -1812,22 +1812,37 @@
         "impliedReturn": 16.19,
         "rank": 3,
         "held": true,
-        "reasoning": "JPM's revenue growth will likely normalize from current elevated TTM figures (distorted by rate environment and trading/IB rebound) toward historical mid-single-digit rates driven by loan growth, fee income, and modest NII expansion, though a recessionary or sharp rate-cutting scenario could flatten growth. Net margins should revert toward the 28-30% historical norm as net interest margins normalize from cyclically high levels and credit costs normalize upward from current benign levels. Main risks are credit cycle turns, regulatory capital requirements, and net interest margin compression if ",
+        "reasoning": "JPM's revenue growth will normalize from recent NII-driven surges toward low-to-mid single digits as rate tailwinds fade and loan growth tracks GDP, with credit card and trading revenue providing modest diversification; net margins should revert toward the historical 28-31% range as credit costs normalize upward from currently benign levels. Main risks are a credit cycle downturn or recession compressing margins sharply, versus upside from sustained high rates or market share gains in trading/banking fees.",
         "status": "ok"
       },
       {
-        "symbol": "DIS",
+        "symbol": "META",
         "industry": "Media",
         "cagr": [
-          0.5,
-          3.8,
-          7.5
+          6,
+          13,
+          20
         ],
-        "margin": 12.5,
-        "impliedReturn": 8.81,
+        "margin": 29,
+        "impliedReturn": 7.21,
         "rank": 4,
         "held": true,
-        "reasoning": "Disney's growth drivers are streaming profitability (Disney+/Hulu reaching scale economics), parks pricing power, and cost-cutting under Iger/D'Amaro, offset by linear TV secular decline and cord-cutting pressuring the Media Networks segment. Base case assumes low-to-mid single digit revenue growth with margins recovering toward historical ~10-13% net margin as streaming losses turn to profit, though content spend inflation and macro-sensitive consumer discretionary spending (parks) are key risks to both tails.",
+        "reasoning": "Meta's core ad business continues to benefit from AI-driven engagement and ad targeting improvements plus Reels/WhatsApp monetization, but growth is decelerating from the high-20s toward mid-teens as the base enlarges and digital ad spend matures. Heavy capex for AI infrastructure and Reality Labs losses will pressure margins versus peak 2024 levels, though core efficiency and operating leverage should keep net margins elevated relative to media-industry norms. Main risks include regulatory pressure (EU/Italy fines, privacy rules), intensifying AI capex without proportional revenue return, and",
+        "status": "ok"
+      },
+      {
+        "symbol": "NFLX",
+        "industry": "Media",
+        "cagr": [
+          3.5,
+          8.5,
+          13.5
+        ],
+        "margin": 26.5,
+        "impliedReturn": 6.93,
+        "rank": 5,
+        "held": true,
+        "reasoning": "Netflix's growth is decelerating toward mid-to-high single/low-double digits as subscriber saturation in core markets sets in, with ads, price hikes, live sports, and password-sharing crackdowns providing incremental upside; international expansion and gaming remain smaller growth levers. Margins should stay well above historical media norms given content cost leverage and ad-tier scaling, but competitive intensity (Disney, HBO Max, Amazon, YouTube) and content cost inflation cap further margin expansion, so some reversion from TTM peak (29.7%) toward the mid-20s is likely.",
         "status": "ok"
       },
       {
@@ -1839,55 +1854,10 @@
           9.5
         ],
         "margin": 4.5,
-        "impliedReturn": 8.39,
-        "rank": 5,
-        "held": true,
-        "reasoning": "UNH remains the largest US health insurer/PBM with steady Medicare Advantage and Optum growth, but 2024-2025 margin compression from elevated medical cost ratios, DOJ/CalPERS litigation overhangs, and regulatory scrutiny on MA reimbursement create downside risk to both growth and profitability. Base case assumes gradual margin recovery toward historical ~5% net margin as cost trends normalize and pricing catches up, with revenue growth moderating to high-single digits as the company scales off a ~$400B base; upside depends on successful Optum expansion and MA stabilization, downside on sustain",
-        "status": "ok"
-      },
-      {
-        "symbol": "PFE",
-        "industry": "Pharmaceuticals",
-        "cagr": [
-          -1.5,
-          3,
-          7.5
-        ],
-        "margin": 17.5,
-        "impliedReturn": 7.63,
+        "impliedReturn": 6.87,
         "rank": 6,
         "held": false,
-        "reasoning": "Pfizer faces a patent cliff on legacy products and fading COVID franchise revenue, but cost-cutting, pipeline launches (vaccines, oncology from Seagen, eczema/dermatology assets) and new product cycles should support modest single-digit growth after stabilization. Margins are currently depressed by one-time items and COVID inventory writedowns/impairments, so normalization plus cost savings programs should restore net margins toward historical double-digit levels, though generic competition and R&D/launch costs remain key risks.",
-        "status": "ok"
-      },
-      {
-        "symbol": "NFLX",
-        "industry": "Media",
-        "cagr": [
-          4.5,
-          10.5,
-          15.5
-        ],
-        "margin": 26,
-        "impliedReturn": 5.63,
-        "rank": 7,
-        "held": false,
-        "reasoning": "Netflix's growth is decelerating from historical teens-rates toward high-single/low-double digits as subscriber penetration matures in core markets, with ads tier, password-sharing crackdown and price increases providing continued but slowing upside; live sports/events are a wildcard driver. Margins should stay well above the historical streaming-industry norm given scale and operating leverage, but intensifying competition from YouTube, Paramount/WBD consolidation, and content cost inflation cap further expansion, so margins likely plateau near current levels rather than continuing to rise sh",
-        "status": "ok"
-      },
-      {
-        "symbol": "ORCL",
-        "industry": "Technology",
-        "cagr": [
-          6.5,
-          14,
-          24
-        ],
-        "margin": 22,
-        "impliedReturn": 5.62,
-        "rank": 8,
-        "held": false,
-        "reasoning": "Oracle's OCI and RPO backlog (fueled by large AI/cloud deals like Tencent) support above-trend growth for a company of its size, but massive capex for data centers and AI infrastructure plus rising debt load are compressing near-term margins. Base rate reversion suggests growth decelerates from current elevated 20%+ YoY rates toward low-teens over 5 years, with net margin settling below the TTM peak as depreciation and interest costs from the capex buildout weigh on profitability; key risk is execution/competition from AWS/Azure/GCP in the AI cloud race.",
+        "reasoning": "UNH retains scale advantages and Optum's diversified growth, but 2024-2025 showed margin compression from medical cost trends, Medicare Advantage repricing pressure, and DOJ/regulatory scrutiny, constraining near-term profitability recovery. Revenue growth should moderate toward mid-single digits as membership growth slows and reimbursement pressures persist, while margins normalize upward from trough levels but stay below the historical ~5-6% net margin peak given structural cost and regulatory headwinds. Key risk: further medical loss ratio deterioration or adverse regulatory/legal action (D",
         "status": "ok"
       },
       {
@@ -1895,119 +1865,59 @@
         "industry": "Technology",
         "cagr": [
           4.5,
-          8.5,
-          13.5
+          9,
+          14.5
         ],
-        "margin": 19.5,
-        "impliedReturn": 3.63,
-        "rank": 9,
+        "margin": 20.5,
+        "impliedReturn": 6.83,
+        "rank": 7,
         "held": false,
-        "reasoning": "Salesforce's growth has decelerated to low double digits as it matures and faces competitive pressure in CRM/SaaS from AI-native entrants, with Agentforce and AI monetization offering upside but large-enterprise IT budget cyclicality posing downside risk. Margins should continue expanding modestly from cost discipline and operating leverage but will likely plateau as reinvestment in AI and competitive pricing pressure offset further gains, settling near current TTM levels rather than expanding indefinitely. Main risk: slower enterprise software spend growth and AI disruption compressing both g",
+        "reasoning": "Salesforce's growth has decelerated from historical 20%+ rates to low-double-digits as the CRM market matures, with AI (Agentforce) and M&A (Cresta, Informatica, Slack) providing incremental upside but facing intensifying competition from Microsoft and native AI entrants. Margins should stay near current elevated TTM levels given management's sustained focus on operating leverage and buybacks, though competitive pricing pressure in AI products is a key risk to both growth and margin durability. Main risk: AI disruption could either accelerate seat/consumption growth or commoditize core SaaS va",
         "status": "ok"
       },
       {
-        "symbol": "HD",
-        "industry": "Retail",
-        "cagr": [
-          -1,
-          3.2,
-          7.5
-        ],
-        "margin": 8.7,
-        "impliedReturn": 2.21,
-        "rank": 10,
-        "held": false,
-        "reasoning": "Home Depot's growth should track modest housing turnover, home price appreciation, and Pro/SRS expansion, with low-single-digit CAGR as the base case given mature US market saturation and recent soft comps from weak discretionary remodel demand; upside depends on housing market recovery and continued M&A (SRS) integration, while downside risk comes from prolonged high rates suppressing existing home sales and big-ticket renovations. Margins are likely to stay near current levels (~8-9% net margin) as mix shift toward lower-margin Pro/supply chain investments offsets operating leverage, reverti",
-        "status": "ok"
-      },
-      {
-        "symbol": "META",
-        "industry": "Media",
-        "cagr": [
-          6,
-          13,
-          20
-        ],
-        "margin": 27,
-        "impliedReturn": 2.04,
-        "rank": 11,
-        "held": false,
-        "reasoning": "Meta's core ad business still benefits from AI-driven targeting/engagement gains and scale (27-28% recent YoY growth), but base effects, ad-market saturation, and competition (TikTok, YouTube) should decelerate growth toward high-single/low-double digits over five years. Net margins likely compress modestly from current ~30% as heavy capex/opex for AI infrastructure and Reality Labs losses weigh on profitability, though still above typical media-industry norms given Meta's dominant ad efficiency. Main risk: capex intensity from AI buildout fails to generate proportional revenue, compressing ma",
-        "status": "ok"
-      },
-      {
-        "symbol": "NVDA",
-        "industry": "Semiconductors",
-        "cagr": [
-          5,
-          20,
-          38
-        ],
-        "margin": 45,
-        "impliedReturn": 1.89,
-        "rank": 12,
-        "held": false,
-        "reasoning": "NVIDIA's AI/datacenter demand remains strong near-term, but current TTM revenue growth (~83%) and net margins (~64%) are far above sustainable base rates and will likely revert as the AI capex cycle matures, competition (AMD, custom ASICs, hyperscaler in-house chips) intensifies, and the law of large numbers constrains growth off a ~$130B+ revenue base. Main risk is a sharp AI-spending slowdown or share loss compressing both growth and margins faster than the median case assumes, while upside case assumes AI infrastructure buildout continues multi-year without major disruption.",
-        "status": "ok"
-      },
-      {
-        "symbol": "MSFT",
+        "symbol": "ORCL",
         "industry": "Technology",
         "cagr": [
           6.5,
-          12.5,
-          17.5
+          13.5,
+          24
         ],
-        "margin": 38.5,
-        "impliedReturn": 1.5,
-        "rank": 13,
+        "margin": 21,
+        "impliedReturn": 6.16,
+        "rank": 8,
         "held": false,
-        "reasoning": "Azure and AI-driven cloud demand should keep Microsoft growing well above typical large-cap rates, but massive capex for AI infrastructure and intensifying competition from Google, Amazon, and OpenAI-related ecosystems could compress incremental margins and growth durability. Net margin is expected to stay elevated versus tech peers given software mix and scale, but likely reverts slightly from current record highs as depreciation from AI capex and competitive pricing pressure weigh on profitability.",
+        "reasoning": "Oracle's cloud infrastructure (OCI) backlog (RPO) and AI datacenter demand are driving an acceleration from historic high-single-digit growth into the teens, with large contracted capacity providing revenue visibility for several years. The main risk is margin compression from massive capex and debt-financed buildout of GPU capacity, which has lower initial margins than legacy software/licensing, plus execution/financing risk if AI demand growth decelerates or capital costs rise faster than revenue realization.",
         "status": "ok"
       },
       {
-        "symbol": "XOM",
-        "industry": "Energy",
+        "symbol": "PFE",
+        "industry": "Pharmaceuticals",
         "cagr": [
-          -2.5,
+          -2,
           2.5,
+          7
+        ],
+        "margin": 17,
+        "impliedReturn": 5.99,
+        "rank": 9,
+        "held": false,
+        "reasoning": "Pfizer faces a significant patent cliff and post-COVID revenue normalization, with growth likely driven by its oncology pipeline (Seagen) and new launches offsetting losses from Comirnaty/Paxlovid decline and upcoming LOEs (Eliquis, Xtandi). Margins should recover from depressed TTM levels (6-7%) toward historical norms (15-20%) as cost-cutting programs mature and one-time impairments fade, though continued pricing pressure and generic competition remain key risks.",
+        "status": "ok"
+      },
+      {
+        "symbol": "DIS",
+        "industry": "Media",
+        "cagr": [
+          0.5,
+          4,
           7.5
         ],
-        "margin": 9.5,
-        "impliedReturn": 1.04,
-        "rank": 14,
+        "margin": 12.5,
+        "impliedReturn": 5.67,
+        "rank": 10,
         "held": false,
-        "reasoning": "XOM revenue is heavily tied to oil/gas price cycles and refining margins, so growth will largely track commodity prices rather than organic volume gains, with Guyana and Permian production providing modest structural upside. Net margin should revert toward its historical 8-10% norm as current elevated downstream/upstream spreads normalize, with integrated model and cost discipline supporting stability. Main risk is oil price volatility and energy transition pressures, which could swing both revenue and margins significantly in either direction.",
-        "status": "ok"
-      },
-      {
-        "symbol": "MA",
-        "industry": "Financial Services",
-        "cagr": [
-          6.5,
-          11.5,
-          15.5
-        ],
-        "margin": 44.5,
-        "impliedReturn": 0.01,
-        "rank": 15,
-        "held": false,
-        "reasoning": "Mastercard's growth is driven by continued cross-border volume recovery, secular cash-to-card/digital payment conversion, and value-added services expansion, though current mid-teens growth is elevated versus its historical ~10-12% base rate and should moderate as comps normalize and macro consumer spending growth slows. Main risks are regulatory/interchange pressure (EU digital euro, antitrust actions) and stablecoin/real-time payment rails disintermediating card networks; margins should stay near current best-in-class levels but face slight reversion from elevated TTM highs due to continued ",
-        "status": "ok"
-      },
-      {
-        "symbol": "V",
-        "industry": "Financial Services",
-        "cagr": [
-          5.5,
-          9.5,
-          13.5
-        ],
-        "margin": 51.5,
-        "impliedReturn": -0.7,
-        "rank": 16,
-        "held": false,
-        "reasoning": "Visa's scale, network effects, and secular cash-to-digital conversion support continued high-single to low-double-digit revenue growth, though recent 14%+ growth likely moderates as the base grows and cash-displacement opportunity matures. Margins should stay near current elevated levels given asset-light model and operating leverage, with main risks being stablecoin/real-time payment disincentermediation, regulatory/interchange pressure, and macro-driven consumer spending slowdowns.",
+        "reasoning": "Disney's growth will be driven by parks pricing power, streaming profitability scaling post-restructuring, and ESPN's DTC launch, but linear TV decline remains a persistent drag on the Media networks segment. Margins should recover toward historical norms (~12-14%) as streaming losses turn to profit and cost discipline continues, though content spending cycles and macro-sensitive consumer discretionary spending at parks are key risks.",
         "status": "ok"
       },
       {
@@ -2016,13 +1926,43 @@
         "cagr": [
           6.5,
           12.5,
-          19.5
+          18.5
         ],
         "margin": 27,
-        "impliedReturn": -1.21,
-        "rank": 17,
+        "impliedReturn": 2.56,
+        "rank": 11,
         "held": false,
-        "reasoning": "Growth driven by continued Search/YouTube ad strength, Cloud scaling toward profitability, and AI-driven product expansion, though current TTM revenue growth (~20%) is unlikely to persist at that pace over five years given base-rate reversion and increasing competition from AI-native alternatives. Net margin is forecast to revert toward the high-20s from the current unusually elevated TTM level (54.77%, inflated by one-time items/investment gains), consistent with heavy AI capex, regulatory/antitrust risk, and normalized operating margins in the high-20s to low-30s range. Main risks: antitrust",
+        "reasoning": "Alphabet's growth is driven by continued Search/YouTube ad strength, rapid Cloud expansion, and AI-related monetization, but current TTM margins (~50%) are inflated by one-off items like unrealized equity gains and are unlikely to persist given heavy AI capex and depreciation. Base rate reversion plus margin normalization toward the 27-32% historical range is likely as competition, regulatory pressure (antitrust), and capex intensity weigh on returns. Main risk: AI disruption to core Search advertising economics and heavy capex could compress margins faster than growth offsets.",
+        "status": "ok"
+      },
+      {
+        "symbol": "MSFT",
+        "industry": "Technology",
+        "cagr": [
+          6.5,
+          12.5,
+          18.5
+        ],
+        "margin": 38.5,
+        "impliedReturn": 2.15,
+        "rank": 12,
+        "held": false,
+        "reasoning": "Microsoft's growth is driven by Azure/cloud expansion, AI Copilot monetization, and enterprise software stickiness, with current revenue growth in high teens unlikely to fully persist over five years as base effects and competition weigh in. Heavy capex for AI infrastructure (41% capex CAGR) will pressure margins even as operating leverage from software and cost discipline provide support, so net margin likely moderates slightly from current ~41% TTM toward high-30s. Main risks are AI monetization falling short of massive capex spend, regulatory/antitrust pressure, and macro slowdown denting e",
+        "status": "ok"
+      },
+      {
+        "symbol": "XOM",
+        "industry": "Energy",
+        "cagr": [
+          -3.5,
+          2.5,
+          8
+        ],
+        "margin": 9.5,
+        "impliedReturn": 2.1,
+        "rank": 13,
+        "held": false,
+        "reasoning": "XOM's revenue is heavily tied to oil/gas prices and volumes from Guyana and Permian growth, but is a mature major with low structural growth, so mid-single-digit upside relies on price recovery while downside reflects commodity price collapse or demand destruction. Net margins should revert toward the historical 8-11% range as current elevated refining/upstream margins normalize with oil price and capacity cycles, with the main risk being prolonged low oil prices compressing both revenue and margins simultaneously.",
         "status": "ok"
       },
       {
@@ -2031,28 +1971,73 @@
         "cagr": [
           -3.5,
           2.5,
-          7.5
+          8.5
         ],
-        "margin": 9,
-        "impliedReturn": -1.25,
-        "rank": 18,
+        "margin": 9.5,
+        "impliedReturn": 0.21,
+        "rank": 14,
         "held": false,
-        "reasoning": "Chevron's revenue is heavily tied to oil/gas price cycles, so growth will largely track commodity prices rather than organic volume gains, with Hess integration adding some production upside; base case assumes modest price-driven growth near historical energy-sector averages. Net margin should revert toward its 5-10yr historical norm (~9-10%) as refining/chemicals normalize and upstream margins stay cyclical, with downside risk from a prolonged oil price slump and upside from supply constraints or geopolitical premiums.",
+        "reasoning": "Chevron's revenue is driven by volatile oil & gas prices and production volumes (including Venezuela expansion and LNG demand), so long-term growth should track global energy price cycles and modest production growth rather than any secular trend, with downside risk from a demand/price collapse and upside from sustained high commodity prices. Net margin should revert toward its 5-10yr historical norm (~10%) as current elevated TTM margins reflect cyclical highs rather than a structural improvement, tempered by ongoing capex discipline and cost control.",
         "status": "ok"
       },
       {
-        "symbol": "BA",
-        "industry": "Aerospace & Defense",
+        "symbol": "HD",
+        "industry": "Retail",
         "cagr": [
-          1.5,
-          6.5,
-          11.5
+          0.5,
+          3.8,
+          7.5
         ],
-        "margin": 5.5,
-        "impliedReturn": -2.98,
-        "rank": 19,
+        "margin": 8.8,
+        "impliedReturn": -1.48,
+        "rank": 15,
         "held": false,
-        "reasoning": "Boeing is recovering from production and certification issues, with 737 MAX rate increases, a resolved labor contract, and strong defense orders supporting mid-single-digit to double-digit revenue growth over five years as deliveries normalize and backlog converts to revenue. Margins should improve from today's thin levels as fixed-price defense program losses fade and commercial volume leverage returns, but execution risk, supply chain constraints, and historically weak defense program profitability keep upside margin limited near historical industry norms (~5-6%).",
+        "reasoning": "HD's growth will likely track low-single-digit housing turnover, home improvement spend, and Pro/SRS expansion, with modest recovery as rate cuts potentially boost housing activity, though a severe housing downturn could keep growth near flat. Margins should hold near current ~8.5-9% levels (slightly above TTM's 8.4%) as opex discipline and supply-chain efficiencies offset wage inflation and tariff risks, reverting toward the historical 9-10% norm rather than TTM compression. Main risk: prolonged high mortgage rates suppressing big-ticket remodeling and housing turnover, which is HD's primary ",
+        "status": "ok"
+      },
+      {
+        "symbol": "CAT",
+        "industry": "Machinery",
+        "cagr": [
+          0.5,
+          4.5,
+          9.5
+        ],
+        "margin": 13.5,
+        "impliedReturn": -3.03,
+        "rank": 16,
+        "held": false,
+        "reasoning": "Caterpillar's growth is cyclical and tied to construction, mining, and energy capex, with a record backlog and AI-driven power/data-center demand providing near-term tailwinds, but tariffs, China weakness, and eventual cyclical downturns are key risks over a 5-year horizon. Margins are currently elevated versus history (TTM ~15%) due to pricing and services mix, but should moderate toward the historical 13-14% range as price/cost normalizes and volume cyclicality reasserts itself.",
+        "status": "ok"
+      },
+      {
+        "symbol": "V",
+        "industry": "Financial Services",
+        "cagr": [
+          4.5,
+          9.5,
+          13.5
+        ],
+        "margin": 51,
+        "impliedReturn": -3.5,
+        "rank": 17,
+        "held": false,
+        "reasoning": "Visa's growth is tied to global payment volume, cross-border travel, and continued displacement of cash, but faces deceleration from a larger base, regulatory/interchange pressure, and competition from real-time payments and fintech disintermediation; a prolonged downturn or adverse regulation could push growth toward the low single digits. Margins are already near structural ceiling given its asset-light network model, so net margin should stay roughly stable with modest reversion from elevated current levels due to increased tech/compliance investment and competitive fee pressure.",
+        "status": "ok"
+      },
+      {
+        "symbol": "MA",
+        "industry": "Financial Services",
+        "cagr": [
+          4.5,
+          10.5,
+          15.5
+        ],
+        "margin": 44.5,
+        "impliedReturn": -3.63,
+        "rank": 18,
+        "held": false,
+        "reasoning": "Mastercard's growth is driven by continued cross-border travel, e-commerce penetration, and value-added services/data analytics expansion, but double-digit growth of recent years (16% 5Y) is unlikely to fully persist given a larger base, regulatory/interchange pressure, and potential stablecoin/alternative payment rail disintermediation. Margins should stay high given asset-light network economics but may see modest compression from increased investment in new payment rails, AI-driven fraud/compliance costs, and regulatory scrutiny globally. Main risk: faster-than-expected disruption from stab",
         "status": "ok"
       },
       {
@@ -2064,10 +2049,10 @@
           14.5
         ],
         "margin": 10.5,
-        "impliedReturn": -3,
-        "rank": 20,
+        "impliedReturn": -3.82,
+        "rank": 19,
         "held": false,
-        "reasoning": "AWS and advertising growth plus operating leverage support high-single to low-double-digit revenue CAGR, though a ~$2.7T base makes sustained double-digit growth harder and retail/cloud competition (Azure, Google Cloud, Walmart) caps upside. Net margin should moderate from the current TTM 17.4% (boosted by investment gains and cost cuts) back toward a more sustainable 9-11% as capex for AI/logistics normalizes and e-commerce margins stay thin, with risk of margin compression from heavy AI infrastructure spend or macro-driven consumer weakness.",
+        "reasoning": "AWS and advertising growth plus retail operating leverage should sustain high-single to low-double-digit revenue growth, though Amazon's massive revenue base and rising e-commerce/cloud competition make deceleration from current ~15% TTM growth likely. Margins should remain above historical norms due to AWS mix shift and ad revenue, but heavy AI/capex spending and potential retail/cloud price competition create downside risk, so net margin is expected to moderate from the unusually high TTM 16.9% toward a more sustainable ~10-11%.",
         "status": "ok"
       },
       {
@@ -2078,11 +2063,11 @@
           4,
           6.8
         ],
-        "margin": 23.5,
-        "impliedReturn": -4.38,
-        "rank": 21,
+        "margin": 22,
+        "impliedReturn": -7,
+        "rank": 20,
         "held": false,
-        "reasoning": "JNJ's growth is driven by MedTech expansion and new pharma launches (Darzalex, Tremfya, Rybrevant) offsetting Stelara biosimilar erosion, with base-rate large-pharma growth in low-to-mid single digits; recent 6-8% YoY growth likely moderates as patent cliffs and generic competition bite. Net margin should settle below the elevated historical ~27-29% levels toward the mid-20s as legal costs (talc litigation), R&D intensity, and pricing pressure persist, while still benefiting from scale and mix shift to higher-margin MedTech/Innovative Medicine. Main risk: litigation overhangs and faster-than-e",
+        "reasoning": "JNJ's growth is anchored by steady MedTech and pharma demand, with recent launches (oncology, immunology, bipolar drug) and talc litigation resolution providing upside, but patent cliffs (Stelara) and generic competition are key risks to both growth and margin. Net margin should normalize upward from the depressed TTM figure (which reflects one-time litigation/separation charges) toward historical norms as legal overhangs fade, though likely below the unusually high 5Y average due to R&D and pricing pressure.",
         "status": "ok"
       },
       {
@@ -2094,10 +2079,10 @@
           11.5
         ],
         "margin": 26.5,
-        "impliedReturn": -8.7,
-        "rank": 22,
+        "impliedReturn": -9.58,
+        "rank": 21,
         "held": false,
-        "reasoning": "Apple's growth will likely be driven by Services expansion, continued installed-base monetization, and new categories (AI-enabled devices, health features), but iPhone hardware growth remains structurally low-single-digit given market saturation. Margins should stay near current elevated levels due to Services mix shift offsetting hardware commoditization, with main risks being regulatory/antitrust pressure on Services fees, China competition/demand softness, and supply chain or tariff disruptions.",
+        "reasoning": "Apple's growth is driven by Services expansion, installed-base monetization, and AI-enabled product cycles, but is constrained by iPhone maturity and large-base math limiting upside surprises. Margins should stay near current elevated levels given Services mix shift offsetting hardware commoditization, with regulatory/antitrust pressure on Services economics and supply chain/tariff risk as key downside threats to both growth and margin.",
         "status": "ok"
       },
       {
@@ -2106,78 +2091,93 @@
         "cagr": [
           2,
           4.2,
-          7
+          6.8
         ],
         "margin": 3.3,
-        "impliedReturn": -8.88,
-        "rank": 23,
+        "impliedReturn": -11.49,
+        "rank": 22,
         "held": false,
-        "reasoning": "Walmart's revenue growth has been running 5-6% recently driven by grocery share gains, e-commerce/advertising/membership growth, and international expansion, but base effects and market saturation make reversion toward low-to-mid single digits likely over five years. Margins should see modest expansion from high-margin ad/membership/marketplace revenue mix and automation, but intense grocery price competition (Kroger, Aldi, Costco) and potential tariff/inflation cost pressure cap upside, keeping net margin near historical 3% norm with slight improvement.",
+        "reasoning": "Walmart's revenue growth has been steady in the 4-6% range driven by grocery resilience, e-commerce expansion, and advertising/membership income, though scale makes acceleration difficult and base rates favor reversion toward mid-single digits. Net margin should see modest expansion from high-margin ad/membership/fulfillment revenue mix shift, but intense retail competition and grocery's low-margin nature cap upside; main risk is margin pressure from tariffs, wage inflation, or price-based competition with Amazon/Costco/Target.",
         "status": "ok"
       },
       {
-        "symbol": "CAT",
-        "industry": "Machinery",
+        "symbol": "COST",
+        "industry": "Retail",
         "cagr": [
-          -1.5,
-          4.5,
+          3.5,
+          7,
           10.5
         ],
-        "margin": 13.5,
-        "impliedReturn": -9.87,
-        "rank": 24,
+        "margin": 3.3,
+        "impliedReturn": -12.42,
+        "rank": 23,
         "held": false,
-        "reasoning": "Caterpillar is a cyclical capital goods company; recent double-digit growth reflects a strong infrastructure/data-center-driven upcycle plus pricing, but machinery demand is historically mean-reverting and sensitive to construction, mining, and energy capex cycles. Base rate suggests mid-single-digit CAGR over five years with a wide range given cyclicality, while margins should settle near the high end of its historical 13-15% range as operating leverage and services mix offset cyclical pricing pressure. Main risk: a global industrial/construction downturn or mining capex pullback that compres",
+        "reasoning": "Costco's growth has been driven by steady membership renewal rates (~90%), new warehouse openings, and e-commerce expansion, though its low-margin model and large revenue base make continued double-digit growth harder to sustain over five years. Net margin should stay structurally thin given the company's cost-plus pricing philosophy, with modest upside from membership fee increases and scale efficiencies offset by competitive pressure from Walmart/Sam's Club and Amazon. Main risk is macro-driven consumer pullback or margin compression from wage/freight inflation.",
         "status": "ok"
       },
       {
         "symbol": "AMD",
         "industry": "Semiconductors",
         "cagr": [
-          2,
-          15,
-          32
+          5,
+          16,
+          28
         ],
         "margin": 18,
-        "impliedReturn": -23.19,
-        "rank": 25,
+        "impliedReturn": -18.8,
+        "rank": 24,
         "held": false,
-        "reasoning": "AMD's data-center GPU/CPU share gains (MI300/MI350 ramp, EPYC share vs Intel) and AI accelerator demand support strong growth, with margins improving from operating leverage and datacenter mix, though still below Nvidia-level profitability due to competitive pricing. Main risks are cyclicality in PC/gaming, intense competition from Nvidia/Intel/custom silicon, and potential AI capex slowdown that could compress both growth and margins toward low-single-digit/legacy semiconductor norms in a downside scenario.",
-        "status": "ok"
-      },
-      {
-        "symbol": "TSLA",
-        "industry": "Automobiles",
-        "cagr": [
-          1,
-          11,
-          22
-        ],
-        "margin": 6.5,
-        "impliedReturn": -31.96,
-        "rank": 26,
-        "held": false,
-        "reasoning": "Tesla's growth has decelerated sharply (TTM 11.75% vs 5Y 24.63%) amid EV demand softness and intensifying competition from BYD and other low-cost entrants, but new catalysts (robotaxi, energy storage, robotics/Optimus) could reaccelerate growth if commercialized successfully. Margins are likely to stay below past peaks given pricing pressure and heavy R&D/capex spend, though improving scale, software/services mix, and potential robotaxi high-margin revenue support gradual margin recovery. Main risk: execution failure on autonomy/robotics bets combined with continued price wars could keep growt",
+        "reasoning": "AMD's data center and AI GPU momentum (MI300/MI350 roadmap, Anthropic deal) plus share gains vs Intel support strong growth, but semiconductor cycles are volatile and competition from Nvidia and custom silicon is intense, so growth could decelerate sharply if AI capex slows. Margins should improve from current TTM levels as data center mix grows and operating leverage kicks in, but reversion toward industry norms and competitive pricing cap upside near high-teens net margin.",
         "status": "ok"
       },
       {
         "symbol": "INTC",
         "industry": "Semiconductors",
         "cagr": [
-          -2,
-          4,
-          11
+          -3,
+          3,
+          9
         ],
-        "margin": 7,
-        "impliedReturn": -32.62,
-        "rank": 27,
+        "margin": 5,
+        "impliedReturn": -27.74,
+        "rank": 25,
         "held": false,
-        "reasoning": "Intel's revenue has been volatile (5Y CAGR negative) but recent quarterly growth and AI-driven demand plus foundry ramp provide upside; base case assumes modest single-digit growth as PC/server markets stabilize and foundry business scales. Margins should recover from current deeply negative TTM levels as cost cuts, capex discipline, and foundry utilization improve, but intense competition from TSMC, AMD, and Nvidia in both design and manufacturing caps upside and is the key risk to both growth and margin durability.",
+        "reasoning": "Intel's revenue has been roughly flat-to-declining as it loses share in CPUs and struggles to gain traction in foundry/AI accelerators, but easy comps and modest recovery from cyclical lows support low-single-digit growth as the base case, with upside if foundry customers and AI products scale and downside if competitive and execution issues persist. Margins should improve from deeply negative TTM levels as cost cuts, capex discipline, and better utilization kick in, but heavy capital intensity and intense competition from TSMC/AMD/Nvidia likely keep net margins well below Intel's historical m",
         "status": "ok"
       },
       {
-        "symbol": "COST",
-        "industry": "Retail",
+        "symbol": "TSLA",
+        "industry": "Automobiles",
+        "cagr": [
+          0,
+          9,
+          20
+        ],
+        "margin": 6,
+        "impliedReturn": -34.94,
+        "rank": 26,
+        "held": false,
+        "reasoning": "Tesla's core EV growth has stalled (revenue growth TTM ~8%, quarterly flat) amid rising competition from Chinese automakers and margin compression, but optionality from energy storage, FSD/robotaxi, and new affordable models could reaccelerate growth; base rates suggest reversion toward low-double-digit growth with wide dispersion given execution uncertainty. Net margins have compressed sharply from prior highs (now ~3-4% TTM vs 10%+ historically) due to price cuts and competition, and are assumed to partially recover as scale/software mix improves but remain below past peak levels given inten",
+        "status": "ok"
+      },
+      {
+        "symbol": "BA",
+        "industry": "Aerospace & Defense",
+        "cagr": [
+          null,
+          null,
+          null
+        ],
+        "margin": null,
+        "impliedReturn": null,
+        "rank": null,
+        "held": false,
+        "reasoning": null,
+        "status": "bad_forecast"
+      },
+      {
+        "symbol": "NVDA",
+        "industry": "Semiconductors",
         "cagr": [
           null,
           null,
